@@ -2,6 +2,7 @@
 
 import { SessionProvider } from "next-auth/react";
 import { PreferencesStoreProvider } from "@/stores/preferences/preferences-provider";
+import { ReactQueryProvider } from "@/lib/react-query";
 import type { ThemeMode, ThemePreset } from "@/types/preferences/theme";
 
 export function Providers({
@@ -15,9 +16,11 @@ export function Providers({
 }) {
   return (
     <SessionProvider>
-      <PreferencesStoreProvider themeMode={themeMode} themePreset={themePreset}>
-        {children}
-      </PreferencesStoreProvider>
+      <ReactQueryProvider>
+        <PreferencesStoreProvider themeMode={themeMode} themePreset={themePreset}>
+          {children}
+        </PreferencesStoreProvider>
+      </ReactQueryProvider>
     </SessionProvider>
   );
 }

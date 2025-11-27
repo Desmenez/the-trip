@@ -17,11 +17,6 @@ export async function GET() {
       },
       include: {
         passports: true,
-        tags: {
-          include: {
-            tag: true,
-          },
-        },
       },
     });
 

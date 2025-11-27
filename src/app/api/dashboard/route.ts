@@ -45,12 +45,12 @@ export async function GET() {
       prisma.lead.findMany({
         take: 5,
         orderBy: { updatedAt: "desc" },
-        include: { customer: { select: { firstName: true, lastName: true } } },
+        include: { customer: { select: { firstNameTh: true, lastNameTh: true } } },
       }),
       prisma.booking.findMany({
         take: 5,
         orderBy: { createdAt: "desc" },
-        include: { customer: { select: { firstName: true, lastName: true } } },
+        include: { customer: { select: { firstNameTh: true, lastNameTh: true } } },
       }),
     ]);
 
