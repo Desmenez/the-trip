@@ -1,59 +1,32 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
-import { CustomerForm, type CustomerFormValues } from "../_components/customer-form";
-
-interface Tag {
-  id: string;
-  name: string;
-}
+import { CustomerForm } from "../_components/customer-form";
+import { CustomerFormValues } from "../hooks/use-customers";
+import { useCreateCustomer } from "../hooks/use-customers";
+import { useAllTags } from "@/app/dashboard/tags/hooks/use-tags";
 
 export default function NewCustomerPage() {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
-  const [tags, setTags] = useState<Tag[]>([]);
+  const createCustomerMutation = useCreateCustomer();
+  const { data: allTagsResponse } = useAllTags();
 
-  useEffect(() => {
-    const fetchTags = async () => {
-      try {
-        const res = await fetch("/api/tags");
-        if (res.ok) {
-          const data = await res.json();
-          setTags(data);
-        }
-      } catch (error) {
-        console.error("Error fetching tags:", error);
-      }
-    };
-
-    fetchTags();
-  }, []);
+  // Transform tags data for CustomerForm
+  const tags = allTagsResponse?.map((tag) => ({
+    id: tag.id,
+    name: tag.name,
+  })) || [];
 
   async function handleSubmit(values: CustomerFormValues) {
-    setLoading(true);
     try {
-      const res = await fetch("/api/customers", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(values),
-      });
-
-      if (!res.ok) {
-        throw new Error("Failed to create customer");
-      }
-
+      await createCustomerMutation.mutateAsync(values);
       router.push("/dashboard/customers");
       router.refresh();
     } catch (error) {
+      // Error is already handled in the mutation's onError
       console.error(error);
-      // You might want to show a toast here
-    } finally {
-      setLoading(false);
     }
   }
 
@@ -71,7 +44,7 @@ export default function NewCustomerPage() {
           mode="create"
           onSubmit={handleSubmit}
           onCancel={() => router.back()}
-          isLoading={loading}
+          isLoading={createCustomerMutation.isPending}
           availableTags={tags}
         />
       </div>

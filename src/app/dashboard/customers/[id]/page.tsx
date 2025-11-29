@@ -4,9 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CustomerInteractions } from "@/components/CustomerInteractions";
-import { CustomerTasks } from "@/components/CustomerTasks";
-import { PassportManager } from "@/components/PassportManager";
+import { CustomerInteractions } from "@/app/dashboard/customers/_components/customer-interactions";
+import { CustomerTasks } from "@/app/dashboard/customers/_components/customer-tasks";
+import { PassportManager } from "@/app/dashboard/customers/_components/passport-manager";
 import { ArrowLeft, Mail, Phone, MapPin, Calendar } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
@@ -16,25 +16,21 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
 
   const customer = await prisma.customer.findUnique({
     where: { id },
-    include: {
-      tags: { include: { tag: true } },
-      passports: {
-        orderBy: { updatedAt: "desc" },
-      },
-      interactions: {
-        orderBy: { date: "desc" },
-        include: { agent: { select: { name: true } } },
-      },
-      leads: {
-        orderBy: { updatedAt: "desc" },
-      },
-      bookings: {
-        orderBy: { createdAt: "desc" },
-        include: {
-          trip: true,
+      include: {
+        tags: { include: { tag: true } },
+        passports: {
+          orderBy: { updatedAt: "desc" },
+        },
+        leads: {
+          orderBy: { updatedAt: "desc" },
+        },
+        bookings: {
+          orderBy: { createdAt: "desc" },
+          include: {
+            trip: true,
+          },
         },
       },
-    },
   });
 
   if (!customer) {
@@ -47,12 +43,6 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
     where: { relatedCustomerId: id },
     orderBy: { dueDate: "asc" },
   });
-
-  // Transform dates for client components
-  const interactions = customer.interactions.map((i) => ({
-    ...i,
-    date: i.date.toISOString(),
-  }));
 
   const clientTasks = tasks.map((t) => ({
     ...t,
@@ -72,7 +62,7 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
           </Link>
           <div>
             <div className="text-muted-foreground mt-1 flex items-center gap-2">
-              <Badge variant="outline">{customer.type}</Badge>
+              <Badge variant="outline">{customer.type}</Badge> |
               {customer.tags.map(({ tag }) => (
                 <Badge key={tag.id} className="bg-blue-100 text-blue-800 hover:bg-blue-100">
                   {tag.name}
@@ -150,7 +140,7 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
             </TabsList>
 
             <TabsContent value="interactions" className="mt-6">
-              <CustomerInteractions customerId={customer.id} initialInteractions={interactions} />
+              <CustomerInteractions customerId={customer.id} />
             </TabsContent>
 
             <TabsContent value="tasks" className="mt-6">

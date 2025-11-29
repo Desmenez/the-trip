@@ -3,7 +3,6 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -11,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Badge } from "@/components/ui/badge";
 import { CalendarIcon, Check, ChevronsUpDown } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -23,33 +23,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-
-export const customerFormSchema = z.object({
-  firstNameTh: z.string().min(1, {
-    message: "First name (Thai) is required.",
-  }),
-  lastNameTh: z.string().min(1, {
-    message: "Last name (Thai) is required.",
-  }),
-  firstNameEn: z.string().min(1, {
-    message: "First name (English) is required.",
-  }),
-  lastNameEn: z.string().min(1, {
-    message: "Last name (English) is required.",
-  }),
-  title: z.enum(["MR", "MRS", "MS", "OTHER"]).optional(),
-  nickname: z.string().optional(),
-  email: z.string().email().optional().or(z.literal("")),
-  phone: z.string().optional(),
-  lineId: z.string().optional(),
-  nationality: z.string().optional(),
-  dateOfBirth: z.string().optional(),
-  preferences: z.string().optional(),
-  type: z.enum(["INDIVIDUAL", "CORPORATE"]),
-  tagIds: z.array(z.string()).optional(),
-});
-
-export type CustomerFormValues = z.infer<typeof customerFormSchema>;
+import { customerFormSchema, CustomerFormValues } from "../hooks/use-customers";
 
 interface Tag {
   id: string;
@@ -399,27 +373,37 @@ export function CustomerForm({ mode, initialData, onSubmit, onCancel, isLoading 
         <FormField
           control={form.control}
           name="tagIds"
-          render={({ field }) => (
-            <FormItem className="flex flex-col">
-              <FormLabel>Tags</FormLabel>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      className={cn(
-                        "w-full justify-between",
-                        (!field.value || field.value.length === 0) && "text-muted-foreground"
-                      )}
-                    >
-                      {field.value && field.value.length > 0
-                        ? `${field.value.length} tag(s) selected`
-                        : "Select tags"}
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
+          render={({ field }) => {
+            const selectedTags = availableTags.filter((tag) => field.value?.includes(tag.id));
+            return (
+              <FormItem className="flex flex-col">
+                <FormLabel>Tags</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        className={cn(
+                          "w-full justify-between",
+                          (!field.value || field.value.length === 0) && "text-muted-foreground"
+                        )}
+                      >
+                        <span className="flex flex-1 items-center gap-1 flex-wrap">
+                          {field.value && field.value.length > 0 ? (
+                            selectedTags.map((tag) => (
+                              <Badge key={tag.id} variant="outline">
+                                {tag.name}
+                              </Badge>
+                            ))
+                          ) : (
+                            <span className="text-muted-foreground">Select tags</span>
+                          )}
+                        </span>
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
                 <PopoverContent className="w-[300px] p-0">
                   <Command>
                     <CommandInput placeholder="Search tags..." />
@@ -460,7 +444,7 @@ export function CustomerForm({ mode, initialData, onSubmit, onCancel, isLoading 
               </FormDescription>
               <FormMessage />
             </FormItem>
-          )}
+          )}}
         />
 
         <div className="flex justify-end space-x-4">

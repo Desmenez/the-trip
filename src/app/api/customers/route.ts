@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 
-export async function GET() {
+export async function GET(request: Request) {
   const session = await getServerSession(authOptions);
 
   if (!session) {
@@ -11,16 +11,53 @@ export async function GET() {
   }
 
   try {
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get("page") || "1", 10);
+    const pageSize = parseInt(searchParams.get("pageSize") || "10", 10);
+    const search = searchParams.get("search") || "";
+    const skip = (page - 1) * pageSize;
+
+    // Build where clause for search
+    const where = search
+      ? {
+          OR: [
+            { firstNameTh: { contains: search, mode: "insensitive" as const } },
+            { lastNameTh: { contains: search, mode: "insensitive" as const } },
+            { firstNameEn: { contains: search, mode: "insensitive" as const } },
+            { lastNameEn: { contains: search, mode: "insensitive" as const } },
+            { email: { contains: search, mode: "insensitive" as const } },
+            { phone: { contains: search, mode: "insensitive" as const } },
+          ],
+        }
+      : {};
+
+    // Get total count for pagination
+    const total = await prisma.customer.count({ where });
+
+    // Fetch paginated customers
     const customers = await prisma.customer.findMany({
+      where,
+      skip,
+      take: pageSize,
       orderBy: {
         createdAt: "desc",
       },
       include: {
-        passports: true,
+        tags: {
+          include: {
+            tag: true,
+          },
+        },
       },
     });
 
-    return NextResponse.json(customers);
+    return NextResponse.json({
+      data: customers,
+      total,
+      page,
+      pageSize,
+      totalPages: Math.ceil(total / pageSize),
+    });
   } catch (error) {
     console.error("[CUSTOMERS_GET]", error);
     return new NextResponse("Internal Error", { status: 500 });

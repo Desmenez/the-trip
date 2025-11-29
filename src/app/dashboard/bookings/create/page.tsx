@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -22,8 +22,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { ArrowLeft, Check, ChevronsUpDown } from "lucide-react";
 import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+import { useSearchCustomers, useCustomer } from "@/app/dashboard/customers/hooks/use-customers";
 
 const formSchema = z.object({
   customerId: z.string().min(1, { message: "Customer is required" }),
@@ -33,12 +44,6 @@ const formSchema = z.object({
   status: z.string().optional(),
   visaStatus: z.string().optional(),
 });
-
-interface Customer {
-  id: string;
-  firstName: string;
-  lastName: string;
-}
 
 interface Trip {
   id: string;
@@ -53,25 +58,9 @@ interface Trip {
 export default function NewBookingPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [customers, setCustomers] = useState<Customer[]>([]);
   const [trips, setTrips] = useState<Trip[]>([]);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      const [customersRes, tripsRes] = await Promise.all([
-        fetch("/api/customers"),
-        fetch("/api/trips"),
-      ]);
-
-      if (customersRes.ok) {
-        setCustomers(await customersRes.json());
-      }
-      if (tripsRes.ok) {
-        setTrips(await tripsRes.json());
-      }
-    };
-    fetchData();
-  }, []);
+  const [customerSearchOpen, setCustomerSearchOpen] = useState(false);
+  const [customerSearchQuery, setCustomerSearchQuery] = useState("");
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -85,6 +74,35 @@ export default function NewBookingPage() {
     },
   });
 
+  const customerId = form.watch("customerId");
+  const { data: searchResults = [], isLoading: isSearching } = useSearchCustomers(
+    customerSearchQuery,
+    10
+  );
+  const { data: selectedCustomerData } = useCustomer(
+    customerId && !searchResults.find((c) => c.id === customerId) ? customerId : undefined
+  );
+
+  // Find selected customer to display name
+  const selectedCustomer = useMemo(() => {
+    if (!customerId) return null;
+    // Try to find in search results first
+    const found = searchResults.find((c) => c.id === customerId);
+    if (found) return found;
+    // If not found, use fetched customer data
+    return selectedCustomerData || null;
+  }, [customerId, searchResults, selectedCustomerData]);
+
+  useEffect(() => {
+    const fetchTrips = async () => {
+      const tripsRes = await fetch("/api/trips");
+      if (tripsRes.ok) {
+        setTrips(await tripsRes.json());
+      }
+    };
+    fetchTrips();
+  }, []);
+
   const handleTripChange = (tripId: string) => {
     form.setValue("tripId", tripId);
     const selectedTrip = trips.find((t) => t.id === tripId);
@@ -96,16 +114,6 @@ export default function NewBookingPage() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setLoading(true);
     try {
-      const selectedTrip = trips.find((t) => t.id === values.tripId);
-      
-      // Construct payload matching the new API expectation (if API was updated to take tripId)
-      // Or if API still expects flat fields, we map them here.
-      // Let's assume we updated API to take tripId, OR we send the flat fields derived from trip.
-      // Wait, I haven't updated the Booking POST API yet to accept tripId!
-      // I need to update the API first or send the flat fields.
-      // Actually, the schema change REMOVED tripName, destination, startDate, endDate from Booking.
-      // So the API MUST be updated to accept tripId.
-      
       const res = await fetch("/api/bookings", {
         method: "POST",
         headers: {
@@ -143,25 +151,78 @@ export default function NewBookingPage() {
               control={form.control}
               name="customerId"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="flex flex-col">
                   <FormLabel>Customer</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a customer" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {customers.map((customer) => (
-                        <SelectItem key={customer.id} value={customer.id}>
-                          {customer.firstName} {customer.lastName}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Popover open={customerSearchOpen} onOpenChange={setCustomerSearchOpen}>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          className={cn(
+                            "w-full justify-between",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          {selectedCustomer
+                            ? `${selectedCustomer.firstNameTh} ${selectedCustomer.lastNameTh} (${selectedCustomer.firstNameEn} ${selectedCustomer.lastNameEn})`
+                            : "Search for a customer..."}
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[400px] p-0">
+                      <Command shouldFilter={false}>
+                        <CommandInput
+                          placeholder="Search customers by name, email, or phone..."
+                          value={customerSearchQuery}
+                          onValueChange={setCustomerSearchQuery}
+                        />
+                        <CommandList>
+                          {isSearching ? (
+                            <div className="py-6 text-center text-sm text-muted-foreground">
+                              Searching...
+                            </div>
+                          ) : searchResults.length === 0 ? (
+                            <CommandEmpty>
+                              {customerSearchQuery ? "No customers found." : "Start typing to search..."}
+                            </CommandEmpty>
+                          ) : (
+                            <CommandGroup>
+                              {searchResults.map((customer) => (
+                                <CommandItem
+                                  value={customer.id}
+                                  key={customer.id}
+                                  onSelect={() => {
+                                    field.onChange(customer.id);
+                                    setCustomerSearchOpen(false);
+                                    setCustomerSearchQuery("");
+                                  }}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      customer.id === field.value ? "opacity-100" : "opacity-0"
+                                    )}
+                                  />
+                                  <div className="flex flex-col">
+                                    <span className="font-medium">
+                                      {customer.firstNameTh} {customer.lastNameTh}
+                                    </span>
+                                    <span className="text-xs text-muted-foreground">
+                                      {customer.firstNameEn} {customer.lastNameEn}
+                                      {customer.email && ` • ${customer.email}`}
+                                      {customer.phone && ` • ${customer.phone}`}
+                                    </span>
+                                  </div>
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          )}
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                   <FormMessage />
                 </FormItem>
               )}

@@ -1,113 +1,79 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { use } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
-import { CustomerForm, type CustomerFormValues } from "../../_components/customer-form";
-import { Spinner } from "@/components/ui/spinner";
-
-interface Tag {
-  id: string;
-  name: string;
-}
+import { CustomerForm } from "../../_components/customer-form";
+import { CustomerFormValues } from "../../hooks/use-customers";
+import { useCustomer, useUpdateCustomer } from "../../hooks/use-customers";
+import { useAllTags } from "@/app/dashboard/tags/hooks/use-tags";
 
 export default function EditCustomerPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
-  const [initialLoading, setInitialLoading] = useState(true);
-  const [customerId, setCustomerId] = useState<string>("");
-  const [initialData, setInitialData] = useState<Partial<CustomerFormValues>>();
-  const [tags, setTags] = useState<Tag[]>([]);
-  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
+  const resolvedParams = use(params);
+  const customerId = resolvedParams.id;
 
-  useEffect(() => {
-    async function loadData() {
-      try {
-        const resolvedParams = await params;
-        const id = resolvedParams.id;
-        setCustomerId(id);
+  const { data: customer, isLoading: isLoadingCustomer, error: customerError } = useCustomer(customerId);
+  const updateCustomerMutation = useUpdateCustomer();
+  const { data: allTagsResponse } = useAllTags();
 
-        // Fetch customer and tags in parallel
-        const [customerRes, tagsRes] = await Promise.all([
-          fetch(`/api/customers/${id}`),
-          fetch("/api/tags"),
-        ]);
+  // Transform tags data for CustomerForm
+  const tags = allTagsResponse?.map((tag) => ({
+    id: tag.id,
+    name: tag.name,
+  })) || [];
 
-        if (!customerRes.ok) {
-          throw new Error("Failed to load customer");
-        }
+  // Extract tag IDs from customer
+  const selectedTagIds = customer?.tags?.map((ct) => ct.tagId) || [];
 
-        const customer = await customerRes.json();
-        
-        if (tagsRes.ok) {
-          const tagsData = await tagsRes.json();
-          setTags(tagsData);
-        }
-
-        // Extract tag IDs from customer
-        const customerTagIds = customer.tags?.map((ct: any) => ct.tagId) || [];
-        setSelectedTagIds(customerTagIds);
-
-        // Format dateOfBirth for the form
-        const dateOfBirth = customer.dateOfBirth ? format(new Date(customer.dateOfBirth), "yyyy-MM-dd") : "";
-
-        setInitialData({
-          firstNameTh: customer.firstNameTh || "",
-          lastNameTh: customer.lastNameTh || "",
-          firstNameEn: customer.firstNameEn || "",
-          lastNameEn: customer.lastNameEn || "",
-          title: customer.title || undefined,
-          nickname: customer.nickname || "",
-          email: customer.email || "",
-          phone: customer.phone || "",
-          lineId: customer.lineId || "",
-          nationality: customer.nationality || "",
-          dateOfBirth: dateOfBirth,
-          preferences: customer.preferences || "",
-          type: customer.type || "INDIVIDUAL",
-          tagIds: customerTagIds,
-        });
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setInitialLoading(false);
+  // Format initial data for the form
+  const initialData: Partial<CustomerFormValues> | undefined = customer
+    ? {
+        firstNameTh: customer.firstNameTh || "",
+        lastNameTh: customer.lastNameTh || "",
+        firstNameEn: customer.firstNameEn || "",
+        lastNameEn: customer.lastNameEn || "",
+        title: customer.title || undefined,
+        nickname: customer.nickname || "",
+        email: customer.email || "",
+        phone: customer.phone || "",
+        lineId: customer.lineId || "",
+        nationality: customer.nationality || "",
+        dateOfBirth: customer.dateOfBirth ? format(new Date(customer.dateOfBirth), "yyyy-MM-dd") : "",
+        preferences: customer.preferences || "",
+        type: customer.type || "INDIVIDUAL",
+        tagIds: selectedTagIds,
       }
-    }
-
-    loadData();
-  }, [params]);
+    : undefined;
 
   async function handleSubmit(values: CustomerFormValues) {
-    setLoading(true);
     try {
-      const res = await fetch(`/api/customers/${customerId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(values),
+      await updateCustomerMutation.mutateAsync({
+        id: customerId,
+        data: values,
       });
-
-      if (!res.ok) {
-        throw new Error("Failed to update customer");
-      }
-
       router.push(`/dashboard/customers/${customerId}`);
       router.refresh();
     } catch (error) {
+      // Error is already handled in the mutation's onError
       console.error(error);
-      // You might want to show a toast here
-    } finally {
-      setLoading(false);
     }
   }
 
-  if (initialLoading) {
+  if (isLoadingCustomer) {
     return (
       <div className="flex size-full items-center justify-center">
-        <Spinner className="size-16" />
+        <div className="text-muted-foreground">Loading customer data...</div>
+      </div>
+    );
+  }
+
+  if (customerError) {
+    return (
+      <div className="flex size-full items-center justify-center">
+        <div className="text-destructive">Failed to load customer. Please try again.</div>
       </div>
     );
   }
@@ -128,7 +94,7 @@ export default function EditCustomerPage({ params }: { params: Promise<{ id: str
             initialData={initialData}
             onSubmit={handleSubmit}
             onCancel={() => router.back()}
-            isLoading={loading}
+            isLoading={updateCustomerMutation.isPending}
             availableTags={tags}
             selectedTagIds={selectedTagIds}
           />
@@ -137,3 +103,4 @@ export default function EditCustomerPage({ params }: { params: Promise<{ id: str
     </div>
   );
 }
+

@@ -86,7 +86,7 @@ export default function BookingsPage() {
             Manage trip bookings and visa statuses.
           </p>
         </div>
-        <Link href="/dashboard/bookings/new">
+        <Link href="/dashboard/bookings/create">
           <Button>
             <Plus className="mr-2 h-4 w-4" /> New Booking
           </Button>
