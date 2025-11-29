@@ -40,8 +40,8 @@ export interface LeadsResponse {
 export const leadKeys = {
   all: ["leads"] as const,
   lists: () => [...leadKeys.all, "list"] as const,
-  list: (page: number, pageSize: number) =>
-    [...leadKeys.lists(), page, pageSize] as const,
+  list: (page: number, pageSize: number, search?: string) =>
+    [...leadKeys.lists(), page, pageSize, search] as const,
   details: () => [...leadKeys.all, "detail"] as const,
   detail: (id: string) => [...leadKeys.details(), id] as const,
 };
@@ -49,12 +49,17 @@ export const leadKeys = {
 // Fetch leads function
 async function fetchLeads(
   page: number = 1,
-  pageSize: number = 10
+  pageSize: number = 10,
+  search?: string
 ): Promise<LeadsResponse> {
   const params = new URLSearchParams({
     page: page.toString(),
     pageSize: pageSize.toString(),
   });
+
+  if (search && search.trim()) {
+    params.set("search", search.trim());
+  }
 
   const res = await fetch(`/api/leads?${params.toString()}`);
   if (!res.ok) {
@@ -147,10 +152,10 @@ async function updateLead({
 }
 
 // Hook to fetch leads with pagination
-export function useLeads(page: number, pageSize: number) {
+export function useLeads(page: number, pageSize: number, search?: string) {
   return useQuery({
-    queryKey: leadKeys.list(page, pageSize),
-    queryFn: () => fetchLeads(page, pageSize),
+    queryKey: leadKeys.list(page, pageSize, search),
+    queryFn: () => fetchLeads(page, pageSize, search),
     staleTime: 30 * 1000, // 30 seconds
   });
 }

@@ -16,13 +16,26 @@ export async function GET(request: Request) {
     const pageSize = parseInt(searchParams.get("pageSize") || "10", 10);
     const skip = (page - 1) * pageSize;
 
+    const search = searchParams.get("search") || "";
+
+    const where =
+      search.trim().length > 0
+        ? {
+            name: {
+              contains: search,
+              mode: "insensitive" as const,
+            },
+          }
+        : {};
+
     // Get total count for pagination
-    const total = await prisma.trip.count();
+    const total = await prisma.trip.count({ where });
 
     // Fetch paginated trips
     const trips = await prisma.trip.findMany({
       skip,
       take: pageSize,
+      where,
       orderBy: {
         startDate: "asc",
       },

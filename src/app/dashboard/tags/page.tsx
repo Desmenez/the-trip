@@ -1,11 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import * as React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
-import { Plus, Pencil, Trash2, Eye } from "lucide-react";
+import { Plus, Pencil, Trash2, Eye, Search, X } from "lucide-react";
 import Link from "next/link";
 import {
   Dialog,
@@ -20,6 +20,8 @@ import { useDataTableInstance } from "@/hooks/use-data-table-instance";
 import { withDndColumn } from "@/components/data-table/table-utils";
 import { DataTablePagination } from "@/components/data-table/data-table-pagination";
 import { useTags, useDeleteTag, useReorderTags } from "./hooks/use-tags";
+import { Input } from "@/components/ui/input";
+import { useDebounce } from "@/hooks/use-debounce";
 
 interface Tag {
   id: string;
@@ -36,13 +38,23 @@ export default function TagsPage() {
   const [deletingId, setDeletingId] = React.useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
 
-  // Get pagination from URL params
+  // Get pagination and search from URL params
   const page = parseInt(searchParams.get("page") || "1", 10);
   const pageSize = parseInt(searchParams.get("pageSize") || "10", 10);
+  const searchQuery = searchParams.get("search") || "";
+
+  // Local state for search input
+  const [searchInput, setSearchInput] = useState(searchQuery);
+
+  // Debounce search input
+  const debouncedSearch = useDebounce(searchInput, 500);
+
+  // Ref to prevent flicker when clearing
+  const isClearing = useRef(false);
 
   // Function to update URL params
   const updateSearchParams = useCallback(
-    (updates: { page?: number; pageSize?: number }) => {
+    (updates: { page?: number; pageSize?: number; search?: string }) => {
       const params = new URLSearchParams(searchParams.toString());
       
       if (updates.page !== undefined) {
@@ -61,11 +73,40 @@ export default function TagsPage() {
         }
       }
 
+      if (updates.search !== undefined) {
+        if (updates.search === "") {
+          params.delete("search");
+        } else {
+          params.set("search", updates.search);
+        }
+      }
+
       const newUrl = params.toString() ? `?${params.toString()}` : "";
       router.push(`/dashboard/tags${newUrl}`, { scroll: false });
     },
     [searchParams, router]
   );
+
+  // Sync debounced search to URL (skip when clearing)
+  useEffect(() => {
+    if (isClearing.current) {
+      return;
+    }
+    if (debouncedSearch !== searchQuery) {
+      updateSearchParams({ search: debouncedSearch, page: 1 });
+    }
+  }, [debouncedSearch, searchQuery, updateSearchParams]);
+
+  // Sync URL search to input (for back/forward)
+  useEffect(() => {
+    if (!isClearing.current && searchQuery !== searchInput) {
+      setSearchInput(searchQuery);
+    }
+    if (isClearing.current && searchQuery === "") {
+      isClearing.current = false;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery]);
 
   const columns: ColumnDef<Tag>[] = useMemo(
     () => [
@@ -116,7 +157,11 @@ export default function TagsPage() {
   );
 
   // Use TanStack Query to fetch tags
-  const { data: tagsResponse, isLoading, error } = useTags(page, pageSize);
+  const { data: tagsResponse, isLoading, error } = useTags(
+    page,
+    pageSize,
+    searchQuery || undefined
+  );
   const deleteTagMutation = useDeleteTag();
   const reorderTagsMutation = useReorderTags();
 
@@ -212,7 +257,7 @@ export default function TagsPage() {
   }
 
   return (
-    <div className="space-y-8 p-8">
+    <div className="flex flex-col gap-8 p-8">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Tags</h2>
@@ -223,6 +268,34 @@ export default function TagsPage() {
             <Plus className="mr-2 h-4 w-4" /> Add Tag
           </Button>
         </Link>
+      </div>
+
+      {/* Search form */}
+      <div className="flex items-center justify-end gap-4">
+        <div className="relative w-80">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            type="text"
+            placeholder="Search tags..."
+            className="pl-9 pr-9"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+          />
+          {searchInput && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2"
+              onClick={() => {
+                isClearing.current = true;
+                setSearchInput("");
+                updateSearchParams({ search: "", page: 1 });
+              }}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="relative flex flex-col gap-4 overflow-auto">

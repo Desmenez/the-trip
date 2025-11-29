@@ -22,14 +22,28 @@ interface TagsResponse {
 export const tagKeys = {
   all: ["tags"] as const,
   lists: () => [...tagKeys.all, "list"] as const,
-  list: (page: number, pageSize: number) => [...tagKeys.lists(), page, pageSize] as const,
+  list: (page: number, pageSize: number, search?: string) =>
+    [...tagKeys.lists(), page, pageSize, search] as const,
   details: () => [...tagKeys.all, "detail"] as const,
   detail: (id: string) => [...tagKeys.details(), id] as const,
 };
 
 // Fetch tags function
-async function fetchTags(page: number = 1, pageSize: number = 10): Promise<TagsResponse> {
-  const res = await fetch(`/api/tags?page=${page}&pageSize=${pageSize}`);
+async function fetchTags(
+  page: number = 1,
+  pageSize: number = 10,
+  search?: string
+): Promise<TagsResponse> {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    pageSize: pageSize.toString(),
+  });
+
+  if (search && search.trim()) {
+    params.set("search", search.trim());
+  }
+
+  const res = await fetch(`/api/tags?${params.toString()}`);
   if (!res.ok) {
     throw new Error("Failed to fetch tags");
   }
@@ -115,10 +129,10 @@ async function reorderTags(tags: { id: string; order: number }[]): Promise<void>
 }
 
 // Hook to fetch tags with pagination
-export function useTags(page: number, pageSize: number) {
+export function useTags(page: number, pageSize: number, search?: string) {
   return useQuery({
-    queryKey: tagKeys.list(page, pageSize),
-    queryFn: () => fetchTags(page, pageSize),
+    queryKey: tagKeys.list(page, pageSize, search),
+    queryFn: () => fetchTags(page, pageSize, search),
     staleTime: 30 * 1000, // 30 seconds
   });
 }

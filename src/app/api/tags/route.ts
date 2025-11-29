@@ -12,6 +12,7 @@ export async function GET(request: Request) {
 
     const { searchParams } = new URL(request.url);
     const all = searchParams.get("all") === "true";
+    const search = searchParams.get("search") || "";
 
     // If all=true, return all tags without pagination (for order selection)
     if (all) {
@@ -31,13 +32,24 @@ export async function GET(request: Request) {
     const pageSize = parseInt(searchParams.get("pageSize") || "10", 10);
     const skip = (page - 1) * pageSize;
 
+    const where =
+      search.trim().length > 0
+        ? {
+            name: {
+              contains: search,
+              mode: "insensitive" as const,
+            },
+          }
+        : {};
+
     // Get total count for pagination
-    const total = await prisma.tag.count();
+    const total = await prisma.tag.count({ where });
 
     // Fetch paginated tags
     const tags = await prisma.tag.findMany({
       skip,
       take: pageSize,
+      where,
       orderBy: { order: "asc" },
       include: {
         _count: {

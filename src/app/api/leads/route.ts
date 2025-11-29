@@ -15,12 +15,50 @@ export async function GET(request: Request) {
     const page = parseInt(searchParams.get("page") || "1", 10);
     const pageSize = parseInt(searchParams.get("pageSize") || "10", 10);
     const skip = (page - 1) * pageSize;
+    const search = searchParams.get("search") || "";
 
-    const total = await prisma.lead.count();
+    const where =
+      search.trim().length > 0
+        ? {
+            customer: {
+              is: {
+                OR: [
+                  {
+                    firstNameTh: {
+                      contains: search,
+                      mode: "insensitive",
+                    },
+                  },
+                  {
+                    lastNameTh: {
+                      contains: search,
+                      mode: "insensitive",
+                    },
+                  },
+                  {
+                    firstNameEn: {
+                      contains: search,
+                      mode: "insensitive",
+                    },
+                  },
+                  {
+                    lastNameEn: {
+                      contains: search,
+                      mode: "insensitive",
+                    },
+                  },
+                ],
+              },
+            },
+          }
+        : {};
+
+    const total = await prisma.lead.count({ where });
 
     const leads = await prisma.lead.findMany({
       skip,
       take: pageSize,
+      where,
       orderBy: {
         updatedAt: "desc",
       },

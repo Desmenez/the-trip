@@ -42,14 +42,28 @@ export interface TripsResponse {
 export const tripKeys = {
   all: ["trips"] as const,
   lists: () => [...tripKeys.all, "list"] as const,
-  list: (page: number, pageSize: number) => [...tripKeys.lists(), page, pageSize] as const,
+  list: (page: number, pageSize: number, search?: string) =>
+    [...tripKeys.lists(), page, pageSize, search] as const,
   details: () => [...tripKeys.all, "detail"] as const,
   detail: (id: string) => [...tripKeys.details(), id] as const,
 };
 
 // Fetch trips function
-async function fetchTrips(page: number = 1, pageSize: number = 10): Promise<TripsResponse> {
-  const res = await fetch(`/api/trips?page=${page}&pageSize=${pageSize}`);
+async function fetchTrips(
+  page: number = 1,
+  pageSize: number = 10,
+  search?: string
+): Promise<TripsResponse> {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    pageSize: pageSize.toString(),
+  });
+
+  if (search && search.trim()) {
+    params.set("search", search.trim());
+  }
+
+  const res = await fetch(`/api/trips?${params.toString()}`);
   if (!res.ok) {
     throw new Error("Failed to fetch trips");
   }
@@ -102,10 +116,10 @@ async function updateTrip({ id, data }: { id: string; data: TripFormValues }): P
 }
 
 // Hook to fetch trips with pagination
-export function useTrips(page: number, pageSize: number) {
+export function useTrips(page: number, pageSize: number, search?: string) {
   return useQuery({
-    queryKey: tripKeys.list(page, pageSize),
-    queryFn: () => fetchTrips(page, pageSize),
+    queryKey: tripKeys.list(page, pageSize, search),
+    queryFn: () => fetchTrips(page, pageSize, search),
     staleTime: 30 * 1000, // 30 seconds
   });
 }
