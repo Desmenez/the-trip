@@ -24,11 +24,15 @@ import { format } from "date-fns";
 import { formatDecimal, cn } from "@/lib/utils";
 import Link from "next/link";
 import { Loading } from "@/components/page/loading";
+import { getLeadSourceLabel, getLeadStatusLabel, isSystemLeadStatus } from "@/lib/constants/lead";
+import { UserCog, MessageSquare, Handshake, AlertTriangle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const LEAD_STATUSES = [
   { value: "NEW", label: "New", icon: Circle },
+  { value: "CONTACTED", label: "Contacted", icon: MessageSquare },
   { value: "QUOTED", label: "Quoted", icon: FileText },
-  { value: "FOLLOW_UP", label: "Follow Up", icon: Calendar },
+  { value: "NEGOTIATING", label: "Negotiating", icon: Handshake },
   { value: "CLOSED_WON", label: "Closed Won", icon: CheckCircle2 },
   { value: "CLOSED_LOST", label: "Closed Lost", icon: XCircle },
 ] as const;
@@ -41,19 +45,22 @@ const getStatusColor = (status: string) => {
   switch (status) {
     case "NEW":
       return "bg-blue-500";
+    case "CONTACTED":
+      return "bg-cyan-500";
     case "QUOTED":
       return "bg-yellow-500";
-    case "FOLLOW_UP":
+    case "NEGOTIATING":
       return "bg-purple-500";
     case "CLOSED_WON":
       return "bg-green-500";
     case "CLOSED_LOST":
       return "bg-red-500";
+    case "ABANDONED":
+      return "bg-gray-500";
     default:
       return "bg-gray-500";
   }
 };
-
 
 export default function LeadViewPage() {
   const router = useRouter();
@@ -103,6 +110,28 @@ export default function LeadViewPage() {
           <CardDescription>Current progress in the sales pipeline</CardDescription>
         </CardHeader>
         <CardContent>
+          {/* Alert for system-managed status */}
+          {isSystemLeadStatus(lead.status) && lead.bookings && lead.bookings.length > 0 && (
+            <Alert className="mb-4">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>
+                This lead status is automatically managed by the system based on booking status.
+                {lead.status === "CLOSED_WON" && " Lead is marked as won because there are active bookings."}
+                {lead.status === "CLOSED_LOST" && " Lead is marked as lost because all bookings were cancelled."}
+              </AlertDescription>
+            </Alert>
+          )}
+          
+          {/* Special alert for ABANDONED status */}
+          {lead.status === "ABANDONED" && (
+            <Alert className="mb-4 border-yellow-500">
+              <AlertTriangle className="h-4 w-4 text-yellow-500" />
+              <AlertDescription>
+                This lead has been marked as abandoned due to no activity for over 30 days.
+              </AlertDescription>
+            </Alert>
+          )}
+
           <div className="flex items-center justify-between">
             {LEAD_STATUSES.map((status, index) => {
               const StatusIcon = status.icon;
@@ -114,7 +143,7 @@ export default function LeadViewPage() {
               // Determine colors based on status
               let iconBgColor = "bg-muted text-muted-foreground";
               let lineColor = "bg-muted";
-              
+
               if (isActive) {
                 if (isCurrent) {
                   // Current status
@@ -142,12 +171,7 @@ export default function LeadViewPage() {
               return (
                 <div key={status.value} className="flex flex-1 items-center">
                   <div className="flex flex-col items-center">
-                    <div
-                      className={cn(
-                        "rounded-full p-3 transition-colors",
-                        iconBgColor,
-                      )}
-                    >
+                    <div className={cn("rounded-full p-3 transition-colors", iconBgColor)}>
                       <StatusIcon className="h-5 w-5" />
                     </div>
                     <span
@@ -159,14 +183,7 @@ export default function LeadViewPage() {
                       {status.label}
                     </span>
                   </div>
-                  {!isLast && (
-                    <div
-                      className={cn(
-                        "mx-2 -mt-8 h-1 flex-1 transition-colors",
-                        lineColor,
-                      )}
-                    />
-                  )}
+                  {!isLast && <div className={cn("mx-2 -mt-8 h-1 flex-1 transition-colors", lineColor)} />}
                 </div>
               );
             })}
@@ -189,9 +206,7 @@ export default function LeadViewPage() {
             </div>
             <div>
               <p className="text-muted-foreground text-sm font-medium">Status</p>
-              <Badge className={cn("mt-1", getStatusColor(lead.status))}>
-                {getLeadStatusLabel(lead.status)}
-              </Badge>
+              <Badge className={cn("mt-1", getStatusColor(lead.status))}>{getLeadStatusLabel(lead.status)}</Badge>
             </div>
             {lead.potentialValue && (
               <div>

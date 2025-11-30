@@ -328,25 +328,32 @@ export function BookingForm({
                     />
                   </FormControl>
                 ) : (
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value}
-                    disabled={!customerId || customerLeads.length === 0}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder={!customerId ? "Select a customer first" : customerLeads.length === 0 ? "No leads found" : "Select a lead"} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="no_lead">No Lead</SelectItem>
-                      {customerLeads.map((lead) => (
-                        <SelectItem key={lead.id} value={lead.id}>
-                          {lead.source} - {lead.status} ({format(new Date(lead.createdAt), "dd MMM")})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      disabled={!customerId || customerLeads.length === 0}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder={!customerId ? "Select a customer first" : customerLeads.length === 0 ? "No leads found" : "Select a lead"} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="no_lead">No Lead (Walk-in)</SelectItem>
+                        {customerLeads.map((lead) => (
+                          <SelectItem key={lead.id} value={lead.id}>
+                            {lead.source} - {lead.status} ({format(new Date(lead.createdAt), "dd MMM")})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {field.value === "no_lead" && (
+                      <p className="text-[0.8rem] text-muted-foreground">
+                        A new "Walk-in" lead will be automatically created and marked as Closed Won.
+                      </p>
+                    )}
+                  </>
                 )}
                 <FormMessage />
               </FormItem>

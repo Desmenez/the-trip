@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { BookingStatus, Prisma, VisaStatus } from "@prisma/client";
+import { calculateCommission } from "@/lib/services/commission-calculator";
+import { autoUpdateLeadToClosedWon } from "@/lib/services/lead-sync";
 
 export async function GET(request: Request) {
   const session = await getServerSession(authOptions);
@@ -162,6 +164,7 @@ export async function POST(req: Request) {
     } = body;
 
     let finalCustomerId = customerId;
+    let finalLeadId = leadId;
 
     // If leadId is provided but customerId is missing, try to find customer from lead
     if (leadId && !finalCustomerId) {
@@ -212,21 +215,35 @@ export async function POST(req: Request) {
         agentId = lead.agentId;
       }
     }
-    // If still no agentId, and the creator is an AGENT, maybe assign them? 
-    // For now, let's stick to explicit assignment or lead inheritance.
-    // If the user is an AGENT creating a booking directly, they should probably be the agent.
+    // If still no agentId, and the creator is an AGENT, assign them
     if (!agentId && session.user.role === "AGENT") {
-        agentId = session.user.id;
+      agentId = session.user.id;
     }
 
     // Use transaction to ensure data integrity
     const booking = await prisma.$transaction(async (tx) => {
-      // 1. Create Booking with 0 paidAmount initially
+      // 1. Auto-create Lead for walk-in if no leadId provided
+      if (!finalLeadId && agentId) {
+        const newLead = await tx.lead.create({
+          data: {
+            customerId: finalCustomerId,
+            agentId,
+            source: "WALKIN",
+            status: "CLOSED_WON",
+            notes: "Auto-created from walk-in booking",
+            lastActivityAt: new Date(),
+            closedAt: new Date(),
+          },
+        });
+        finalLeadId = newLead.id;
+      }
+
+      // 2. Create Booking with 0 paidAmount initially
       const newBooking = await tx.booking.create({
         data: {
           customerId: finalCustomerId,
           tripId,
-          leadId,
+          leadId: finalLeadId,
           agentId,
           totalAmount: finalTotalAmount,
           paidAmount: 0, // Will be updated if there's a payment
@@ -235,19 +252,19 @@ export async function POST(req: Request) {
         },
       });
 
-      // 2. If paidAmount is provided, create a Payment record
+      // 3. If paidAmount is provided, create a Payment record
       const initialPaidAmount = parseFloat(paidAmount || 0);
       if (initialPaidAmount > 0) {
         await tx.payment.create({
           data: {
             bookingId: newBooking.id,
             amount: initialPaidAmount,
-            method: "OTHER", // Default or need input? Let's default to OTHER for now or add to input
+            method: "OTHER", // Default or need input
             note: "Initial payment at booking creation",
           },
         });
 
-        // 3. Update Booking paidAmount
+        // Update Booking paidAmount
         await tx.booking.update({
           where: { id: newBooking.id },
           data: { paidAmount: initialPaidAmount },
@@ -256,8 +273,28 @@ export async function POST(req: Request) {
         newBooking.paidAmount = new Prisma.Decimal(initialPaidAmount);
       }
 
+      // 4. Auto-update Lead status to CLOSED_WON if leadId is provided
+      if (finalLeadId) {
+        await tx.lead.update({
+          where: { id: finalLeadId },
+          data: {
+            status: "CLOSED_WON",
+            closedAt: new Date(),
+            lastActivityAt: new Date(),
+          },
+        });
+      }
+
       return newBooking;
     });
+
+    // 5. Calculate and create Commission (outside transaction for better error handling)
+    try {
+      await calculateCommission(booking.id);
+    } catch (commissionError) {
+      console.error("[COMMISSION_CALCULATION_ERROR]", commissionError);
+      // Don't fail the booking creation if commission calculation fails
+    }
 
     return NextResponse.json(booking);
   } catch (error) {

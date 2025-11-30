@@ -106,38 +106,100 @@ export async function PUT(
       }
     }
 
-    const booking = await prisma.booking.update({
-      where: {
-        id: id,
-      },
-      data: updateData as {
-        customerId?: string;
-        tripId?: string;
-        totalAmount?: number;
-        status?: "PENDING" | "CONFIRMED" | "CANCELLED" | "COMPLETED" | "REFUNDED";
-        visaStatus?: "NOT_REQUIRED" | "PENDING" | "APPROVED" | "REJECTED";
-        agentId?: string;
-      },
-      include: {
-        customer: {
-          select: {
-            firstNameTh: true,
-            lastNameTh: true,
-            firstNameEn: true,
-            lastNameEn: true,
-            email: true,
+    const booking = await prisma.$transaction(async (tx) => {
+      // Get current booking to check leadId
+      const currentBooking = await tx.booking.findUnique({
+        where: { id },
+        select: { leadId: true, status: true },
+      });
+
+      // Update booking
+      const updatedBooking = await tx.booking.update({
+        where: {
+          id: id,
+        },
+        data: updateData as {
+          customerId?: string;
+          tripId?: string;
+          totalAmount?: number;
+          status?: "PENDING" | "CONFIRMED" | "CANCELLED" | "COMPLETED" | "REFUNDED";
+          visaStatus?: "NOT_REQUIRED" | "PENDING" | "APPROVED" | "REJECTED";
+          agentId?: string;
+        },
+        include: {
+          customer: {
+            select: {
+              firstNameTh: true,
+              lastNameTh: true,
+              firstNameEn: true,
+              lastNameEn: true,
+              email: true,
+            },
+          },
+          trip: {
+            select: {
+              name: true,
+              destination: true,
+              startDate: true,
+              endDate: true,
+            },
           },
         },
-        trip: {
-          select: {
-            name: true,
-            destination: true,
-            startDate: true,
-            endDate: true,
-          },
-        },
-      },
+      });
+
+      // Handle Lead status sync based on booking status changes
+      if (currentBooking?.leadId && updateData.status) {
+        const newStatus = updateData.status;
+        
+        // If booking is cancelled or refunded, check if lead should be CLOSED_LOST
+        if (["CANCELLED", "REFUNDED"].includes(newStatus)) {
+          // Check if there are other active bookings for this lead
+          const activeBookings = await tx.booking.count({
+            where: {
+              leadId: currentBooking.leadId,
+              id: { not: id }, // Exclude current booking
+              status: {
+                in: ["PENDING", "CONFIRMED", "COMPLETED"],
+              },
+            },
+          });
+
+          // If no other active bookings, mark lead as CLOSED_LOST
+          if (activeBookings === 0) {
+            await tx.lead.update({
+              where: { id: currentBooking.leadId },
+              data: {
+                status: "CLOSED_LOST",
+                closedAt: new Date(),
+                lastActivityAt: new Date(),
+              },
+            });
+          }
+        }
+        // If booking is confirmed, mark lead as CLOSED_WON
+        else if (newStatus === "CONFIRMED" && currentBooking.status !== "CONFIRMED") {
+          await tx.lead.update({
+            where: { id: currentBooking.leadId },
+            data: {
+              status: "CLOSED_WON",
+              closedAt: new Date(),
+              lastActivityAt: new Date(),
+            },
+          });
+        }
+      }
+
+      return updatedBooking;
     });
+
+    // Update commission status if needed
+    try {
+      const { updateCommissionStatus } = await import("@/lib/services/commission-calculator");
+      await updateCommissionStatus(id);
+    } catch (commissionError) {
+      console.error("[COMMISSION_UPDATE_ERROR]", commissionError);
+      // Don't fail the booking update if commission update fails
+    }
 
     return NextResponse.json(booking);
   } catch (error) {

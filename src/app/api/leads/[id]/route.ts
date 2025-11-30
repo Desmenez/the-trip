@@ -85,25 +85,56 @@ export async function PUT(
       notes,
     } = body;
 
+    // Check if lead has active bookings
+    const activeBookings = await prisma.booking.count({
+      where: {
+        leadId: id,
+        status: {
+          in: ["PENDING", "CONFIRMED", "COMPLETED"],
+        },
+      },
+    });
+
+    // Prevent manual status change to CLOSED_WON/CLOSED_LOST if has active bookings
+    if (activeBookings > 0 && status && ["CLOSED_WON", "CLOSED_LOST"].includes(status)) {
+      return new NextResponse(
+        "Cannot manually change status to CLOSED_WON or CLOSED_LOST when there are active bookings. Status is managed automatically.",
+        { status: 400 }
+      );
+    }
+
+    // Prepare update data
+    const updateData: any = {
+      customerId: customerId || undefined,
+      source: source || undefined,
+      potentialValue:
+        typeof potentialValue === "number"
+          ? potentialValue
+          : potentialValue
+          ? parseFloat(potentialValue)
+          : undefined,
+      destinationInterest:
+        destinationInterest !== undefined ? destinationInterest : undefined,
+      travelDateEstimate: travelDateEstimate
+        ? new Date(travelDateEstimate)
+        : undefined,
+      notes: notes !== undefined ? notes : undefined,
+      lastActivityAt: new Date(), // Always update activity timestamp
+    };
+
+    // Add status if provided
+    if (status) {
+      updateData.status = status;
+      
+      // Set closedAt when status changes to CLOSED_WON or CLOSED_LOST
+      if (["CLOSED_WON", "CLOSED_LOST", "ABANDONED"].includes(status)) {
+        updateData.closedAt = new Date();
+      }
+    }
+
     const updatedLead = await prisma.lead.update({
       where: { id },
-      data: {
-        customerId: customerId || undefined,
-        source: source || undefined,
-        status: status || undefined,
-        potentialValue:
-          typeof potentialValue === "number"
-            ? potentialValue
-            : potentialValue
-            ? parseFloat(potentialValue)
-            : undefined,
-        destinationInterest:
-          destinationInterest !== undefined ? destinationInterest : undefined,
-        travelDateEstimate: travelDateEstimate
-          ? new Date(travelDateEstimate)
-          : undefined,
-        notes: notes !== undefined ? notes : undefined,
-      },
+      data: updateData,
     });
 
     return NextResponse.json(updatedLead);
@@ -112,5 +143,4 @@ export async function PUT(
     return new NextResponse("Internal Error", { status: 500 });
   }
 }
-
 

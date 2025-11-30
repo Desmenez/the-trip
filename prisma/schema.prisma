@@ -118,10 +118,12 @@ enum LeadSource {
 
 enum LeadStatus {
   NEW
+  CONTACTED
   QUOTED
-  FOLLOW_UP
+  NEGOTIATING
   CLOSED_WON
   CLOSED_LOST
+  ABANDONED
 }
 
 model Lead {
@@ -138,7 +140,12 @@ model Lead {
   travelDateEstimate  DateTime?
   notes               String?    @db.Text
 
-  bookings Booking[]
+  // Activity tracking
+  lastActivityAt DateTime  @default(now())
+  closedAt       DateTime?
+
+  bookings    Booking[]
+  commissions Commission[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -307,6 +314,12 @@ enum CommissionStatus {
   PAID
 }
 
+enum CommissionType {
+  SALES    // จากการหา Lead
+  SERVICE  // จากการดูแล Booking
+  WALKIN   // จาก Walk-in (ไม่มี Lead)
+}
+
 model Commission {
   id         String   @id @default(uuid())
   agentId    String
@@ -315,10 +328,15 @@ model Commission {
   bookingId  String
   booking    Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
 
+  leadId     String?
+  lead       Lead?    @relation(fields: [leadId], references: [id], onDelete: SetNull)
+
+  type       CommissionType   @default(SALES)
   rate       Decimal  @db.Decimal(5, 2)
   amount     Decimal  @db.Decimal(10, 2)
 
   status     CommissionStatus @default(PENDING)
+  note       String?  @db.Text
 
   createdAt  DateTime @default(now())
   paidAt     DateTime?

@@ -12,24 +12,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Check, ChevronsUpDown, CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSearchCustomers, useCustomer } from "@/app/dashboard/customers/hooks/use-customers";
-import {
-  LEAD_STATUS_VALUES,
-  LEAD_STATUS_LABELS,
-  LEAD_SOURCE_VALUES,
-  LEAD_SOURCE_LABELS,
-} from "@/lib/constants/lead";
+import { LEAD_STATUS_VALUES, LEAD_STATUS_LABELS, LEAD_SOURCE_VALUES, LEAD_SOURCE_LABELS, MANUAL_LEAD_STATUSES } from "@/lib/constants/lead";
+import { validateStatusChange, getStatusChangeDescription } from "@/lib/constants/lead-status-rules";
+import { StatusChangeDialog } from "./status-change-dialog";
 import type { Lead } from "../hooks/use-leads";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertTriangle } from "lucide-react";
 
 const formSchema = z.object({
   customerId: z.string().min(1, { message: "Customer is required" }),
@@ -54,6 +46,19 @@ interface LeadFormProps {
 export function LeadForm({ mode, initialData, onSubmit, onCancel, isLoading }: LeadFormProps) {
   const [customerSearchOpen, setCustomerSearchOpen] = useState(false);
   const [customerSearchQuery, setCustomerSearchQuery] = useState("");
+  const [statusChangeDialog, setStatusChangeDialog] = useState<{
+    open: boolean;
+    currentStatus: string;
+    newStatus: string;
+    validation: ReturnType<typeof validateStatusChange>;
+  } | null>(null);
+  const [pendingStatusChange, setPendingStatusChange] = useState<string | null>(null);
+  
+  // Check if lead has active bookings
+  const hasActiveBookings = initialData?.bookings?.some((booking) =>
+    ["PENDING", "CONFIRMED", "COMPLETED"].includes(booking.status)
+  ) || false;
+  
   const form = useForm<LeadFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -86,14 +91,11 @@ export function LeadForm({ mode, initialData, onSubmit, onCancel, isLoading }: L
   const customerId = form.watch("customerId");
 
   // Search customers
-  const { data: searchResults = [], isLoading: isSearching } = useSearchCustomers(
-    customerSearchQuery,
-    10
-  );
+  const { data: searchResults = [], isLoading: isSearching } = useSearchCustomers(customerSearchQuery, 10);
 
   // Fetch selected customer if not in search results
   const { data: selectedCustomerData } = useCustomer(
-    customerId && !searchResults.find((c) => c.id === customerId) ? customerId : undefined
+    customerId && !searchResults.find((c) => c.id === customerId) ? customerId : undefined,
   );
 
   // Find selected customer to display name
@@ -113,6 +115,16 @@ export function LeadForm({ mode, initialData, onSubmit, onCancel, isLoading }: L
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+        {/* Alert for active bookings */}
+        {hasActiveBookings && mode === "edit" && (
+          <Alert>
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              This lead has active bookings. Status changes are managed automatically by the system.
+            </AlertDescription>
+          </Alert>
+        )}
+        
         <div className="grid grid-cols-2 gap-4">
           <FormField
             control={form.control}
@@ -142,26 +154,76 @@ export function LeadForm({ mode, initialData, onSubmit, onCancel, isLoading }: L
           <FormField
             control={form.control}
             name="status"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Status</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={disabled}>
-                  <FormControl>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {LEAD_STATUS_VALUES.map((status) => (
-                      <SelectItem key={status} value={status}>
-                        {LEAD_STATUS_LABELS[status]}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
+            render={({ field }) => {
+              const handleStatusChange = (newStatus: string) => {
+                const currentStatus = initialData?.status || field.value || "NEW";
+
+                // If status hasn't changed, do nothing
+                if (currentStatus === newStatus) {
+                  return;
+                }
+
+                // When creating new lead, only allow NEW status
+                if (!initialData && mode === "create" && newStatus !== "NEW") {
+                  return;
+                }
+
+                // Validate status change for existing leads
+                const validation = validateStatusChange(currentStatus, newStatus, hasActiveBookings);
+
+                if (!validation.allowed) {
+                  // Show warning but don't allow change
+                  if (validation.warning) {
+                    alert(validation.warning);
+                  }
+                  return;
+                }
+
+                // If validation requires dialog (warning or reason), show dialog
+                if (validation.warning || validation.requiresReason) {
+                  setStatusChangeDialog({
+                    open: true,
+                    currentStatus,
+                    newStatus,
+                    validation,
+                  });
+                  setPendingStatusChange(newStatus);
+                } else {
+                  // Allow direct change
+                  field.onChange(newStatus);
+                }
+              };
+
+              // In create mode, only allow NEW status
+              // In edit mode, filter out system statuses if has active bookings
+              const availableStatuses =
+                mode === "create" && !initialData
+                  ? LEAD_STATUS_VALUES.filter((status) => status === "NEW")
+                  : hasActiveBookings
+                  ? [...MANUAL_LEAD_STATUSES]
+                  : LEAD_STATUS_VALUES.filter((status) => status !== "ABANDONED"); // Never allow manual ABANDONED
+
+              return (
+                <FormItem>
+                  <FormLabel>Status</FormLabel>
+                  <Select onValueChange={handleStatusChange} value={field.value} disabled={disabled || hasActiveBookings}>
+                    <FormControl>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {availableStatuses.map((status) => (
+                        <SelectItem key={status} value={status}>
+                          {LEAD_STATUS_LABELS[status]}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              );
+            }}
           />
         </div>
 
@@ -189,10 +251,7 @@ export function LeadForm({ mode, initialData, onSubmit, onCancel, isLoading }: L
                       <Button
                         variant="outline"
                         role="combobox"
-                        className={cn(
-                          "w-full justify-between",
-                          !field.value && "text-muted-foreground"
-                        )}
+                        className={cn("w-full justify-between", !field.value && "text-muted-foreground")}
                       >
                         {selectedCustomer
                           ? `${selectedCustomer.firstNameTh} ${selectedCustomer.lastNameTh} (${selectedCustomer.firstNameEn} ${selectedCustomer.lastNameEn})`
@@ -210,9 +269,7 @@ export function LeadForm({ mode, initialData, onSubmit, onCancel, isLoading }: L
                       />
                       <CommandList>
                         {isSearching ? (
-                          <div className="py-6 text-center text-sm text-muted-foreground">
-                            Searching...
-                          </div>
+                          <div className="text-muted-foreground py-6 text-center text-sm">Searching...</div>
                         ) : searchResults.length === 0 ? (
                           <CommandEmpty>
                             {customerSearchQuery ? "No customers found." : "Start typing to search..."}
@@ -232,14 +289,14 @@ export function LeadForm({ mode, initialData, onSubmit, onCancel, isLoading }: L
                                 <Check
                                   className={cn(
                                     "mr-2 h-4 w-4",
-                                    customer.id === field.value ? "opacity-100" : "opacity-0"
+                                    customer.id === field.value ? "opacity-100" : "opacity-0",
                                   )}
                                 />
                                 <div className="flex flex-col">
                                   <span className="font-medium">
                                     {customer.firstNameTh} {customer.lastNameTh}
                                   </span>
-                                  <span className="text-xs text-muted-foreground">
+                                  <span className="text-muted-foreground text-xs">
                                     {customer.firstNameEn} {customer.lastNameEn}
                                     {customer.email && ` • ${customer.email}`}
                                     {customer.phone && ` • ${customer.phone}`}
@@ -366,6 +423,39 @@ export function LeadForm({ mode, initialData, onSubmit, onCancel, isLoading }: L
           </div>
         )}
       </form>
+
+      {/* Status Change Dialog */}
+      {statusChangeDialog && (
+        <StatusChangeDialog
+          open={statusChangeDialog.open}
+          onOpenChange={(open) => {
+            if (!open) {
+              setStatusChangeDialog(null);
+              setPendingStatusChange(null);
+            }
+          }}
+          onConfirm={(reason) => {
+            if (pendingStatusChange) {
+              form.setValue("status", pendingStatusChange);
+              // Optionally store reason in notes if provided
+              if (reason) {
+                const currentNotes = form.getValues("notes") || "";
+                const timestamp = new Date().toLocaleString("th-TH");
+                const statusChangeNote = `\n\n[${timestamp}] เปลี่ยน status: ${reason}`;
+                form.setValue("notes", currentNotes + statusChangeNote);
+              }
+            }
+            setStatusChangeDialog(null);
+            setPendingStatusChange(null);
+          }}
+          currentStatus={statusChangeDialog.currentStatus}
+          newStatus={statusChangeDialog.newStatus}
+          warning={statusChangeDialog.validation.warning}
+          requiresReason={statusChangeDialog.validation.requiresReason}
+          description={getStatusChangeDescription(statusChangeDialog.currentStatus, statusChangeDialog.newStatus)}
+          isChanging={isLoading}
+        />
+      )}
     </Form>
   );
 }
