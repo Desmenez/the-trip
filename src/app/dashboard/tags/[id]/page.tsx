@@ -7,24 +7,15 @@ import { ArrowLeft, Pencil } from "lucide-react";
 import { useTag } from "../hooks/use-tags";
 import { TagForm } from "../_components/tag-form";
 import Link from "next/link";
+import { Loading } from "@/components/page/loading";
 
-export default function TagDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default function TagDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const { id: tagId } = use(params);
   const { data: tag, isLoading: isLoadingTag, error: tagError } = useTag(tagId);
 
   if (isLoadingTag) {
-    return (
-      <div className="mx-auto max-w-2xl space-y-8 p-8">
-        <div className="flex h-64 items-center justify-center">
-          <p className="text-muted-foreground">Loading tag...</p>
-        </div>
-      </div>
-    );
+    return <Loading />;
   }
 
   if (tagError || !tag) {
@@ -65,5 +56,3 @@ export default function TagDetailPage({
     </div>
   );
 }
-
-

@@ -14,7 +14,7 @@ import { CustomerFilter } from "./_components/customer-filter";
 import { Loading } from "@/components/page/loading";
 
 import { useCustomers, type Customer } from "./hooks/use-customers";
-import { mapCustomerParamsToQuery, useCustomerParams } from "./hooks/use-customer-params";
+import { mapCustomerParamsToQuery, useCustomerParams } from "./hooks/use-customers-params";
 // --------------------
 // columns
 // --------------------

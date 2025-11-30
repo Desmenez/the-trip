@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useCreateTag, useAllTags } from "../hooks/use-tags";
 import { TagForm, type TagFormValues } from "../_components/tag-form";
+import { toast } from "sonner";
 
 export default function CreateTagPage() {
   const router = useRouter();
@@ -16,9 +17,8 @@ export default function CreateTagPage() {
       await createTagMutation.mutateAsync(values);
       router.push("/dashboard/tags");
       router.refresh();
-    } catch (error) {
-      // Error is already handled in the mutation's onError
-      console.error(error);
+    } catch {
+      toast.error("Failed to create tag");
     }
   }
 
@@ -43,4 +43,3 @@ export default function CreateTagPage() {
     </div>
   );
 }
-

@@ -1,4 +1,3 @@
-// hooks/use-customer-params.ts
 "use client";
 
 import { useListQueryParams } from "@/hooks/use-list-query-params";
@@ -20,21 +19,14 @@ export function useCustomerParams() {
 }
 
 export function mapCustomerParamsToQuery(params: CustomerListParams) {
-    const {
-      page,
-      pageSize,
-      search,
-      type,
-      passportExpiryFrom,
-      passportExpiryTo,
-    } = params;
-  
-    return {
-      page,
-      pageSize,
-      search: search || undefined,
-      type: type === "ALL" ? undefined : type,
-      passportExpiryFrom: passportExpiryFrom || undefined,
-      passportExpiryTo: passportExpiryTo || undefined,
-    };
-  }
+  const { page, pageSize, search, type, passportExpiryFrom, passportExpiryTo } = params;
+
+  return {
+    page,
+    pageSize,
+    search: search || undefined,
+    type: type === "ALL" ? undefined : type,
+    passportExpiryFrom: passportExpiryFrom || undefined,
+    passportExpiryTo: passportExpiryTo || undefined,
+  };
+}

@@ -129,10 +129,10 @@ async function reorderTags(tags: { id: string; order: number }[]): Promise<void>
 }
 
 // Hook to fetch tags with pagination
-export function useTags(page: number, pageSize: number, search?: string) {
+export function useTags(params: { page: number, pageSize: number, search?: string }) {
   return useQuery({
-    queryKey: tagKeys.list(page, pageSize, search),
-    queryFn: () => fetchTags(page, pageSize, search),
+    queryKey: tagKeys.list(params.page, params.pageSize, params.search),
+    queryFn: () => fetchTags(params.page, params.pageSize, params.search),
     staleTime: 30 * 1000, // 30 seconds
   });
 }

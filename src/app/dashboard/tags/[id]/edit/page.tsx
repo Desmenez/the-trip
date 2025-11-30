@@ -6,12 +6,10 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useTag, useUpdateTag, useAllTags } from "../../hooks/use-tags";
 import { TagForm, type TagFormValues } from "../../_components/tag-form";
+import { toast } from "sonner";
+import { Loading } from "@/components/page/loading";
 
-export default function EditTagPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default function EditTagPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const resolvedParams = use(params);
   const tagId = resolvedParams.id;
@@ -28,20 +26,13 @@ export default function EditTagPage({
       });
       router.push("/dashboard/tags");
       router.refresh();
-    } catch (error) {
-      // Error is already handled in the mutation's onError
-      console.error(error);
+    } catch {
+      toast.error("Failed to update tag");
     }
   }
 
   if (isLoadingTag) {
-    return (
-      <div className="mx-auto max-w-2xl space-y-8 p-8">
-        <div className="flex h-64 items-center justify-center">
-          <p className="text-muted-foreground">Loading tag data...</p>
-        </div>
-      </div>
-    );
+    return <Loading />;
   }
 
   if (tagError) {
@@ -64,22 +55,22 @@ export default function EditTagPage({
       </div>
 
       <div className="bg-card rounded-md border p-6">
-          <TagForm
-            mode="edit"
-            initialData={
-              tag
-                ? {
-                    name: tag.name || "",
-                    order: tag.order,
-                  }
-                : undefined
-            }
-            onSubmit={handleSubmit}
-            onCancel={() => router.back()}
-            isLoading={updateTagMutation.isPending || isLoadingTags}
-            allTagsForPosition={allTags || []}
-            currentTagId={tagId}
-          />
+        <TagForm
+          mode="edit"
+          initialData={
+            tag
+              ? {
+                  name: tag.name || "",
+                  order: tag.order,
+                }
+              : undefined
+          }
+          onSubmit={handleSubmit}
+          onCancel={() => router.back()}
+          isLoading={updateTagMutation.isPending || isLoadingTags}
+          allTagsForPosition={allTags || []}
+          currentTagId={tagId}
+        />
       </div>
     </div>
   );
