@@ -35,7 +35,8 @@ export async function GET(request: Request) {
       include: {
         agent: {
           select: {
-            name: true,
+            firstName: true,
+            lastName: true,
           },
         },
       },
@@ -109,7 +110,8 @@ export async function POST(req: Request) {
       include: {
         agent: {
           select: {
-            name: true,
+            firstName: true,
+            lastName: true,
           },
         },
       },

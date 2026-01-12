@@ -8,6 +8,7 @@ import {
   Bell,
   type LucideIcon,
   UserStar,
+  User,
 } from "lucide-react";
 
 export interface NavSubItem {
@@ -80,13 +81,34 @@ export const sidebarItems: NavGroup[] = [
   },
   {
     id: 2,
-    label: "Admin",
+    label: "User management",
     items: [
       {
-        title: "Admin Management",
+        title: "Users",
         url: "/dashboard/admin",
         icon: UserStar,
-        roles: ["ADMIN"],
+        roles: ["SUPER_ADMIN", "ADMIN"],
+      },
+      {
+        title: "Customer",
+        url: "/dashboard/customers",
+        icon: User,
+      },
+      {
+        title: "Family",
+        url: "/dashboard/family",
+        icon: Users,
+      },
+    ],
+  },
+  {
+    id: 3,
+    label: "Trip management",
+    items: [
+      {
+        title: "Trip",
+        url: "/dashboard/trips",
+        icon: Plane,
       },
     ],
   },

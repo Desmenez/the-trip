@@ -18,7 +18,8 @@ export async function GET(req: Request) {
       select: {
         id: true,
         email: true,
-        name: true,
+        firstName: true,
+        lastName: true,
         resetTokenExpiry: true,
       },
     });
@@ -35,7 +36,8 @@ export async function GET(req: Request) {
     return NextResponse.json({
       valid: true,
       email: user.email,
-      name: user.name,
+      firstName: user.firstName,
+      lastName: user.lastName,
     });
   } catch (error) {
     console.error("[VERIFY_RESET_TOKEN]", error);

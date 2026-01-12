@@ -57,7 +57,7 @@ export default function AdminPage() {
   }
 
   // Show unauthorized message if not ADMIN
-  if (!session || session.user.role !== "ADMIN") {
+  if (!session || !["SUPER_ADMIN", "ADMIN"].includes(session.user.role)) {
     return <AccessDenied />;
   }
 
@@ -66,7 +66,7 @@ export default function AdminPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Admin Management</h1>
         <Button onClick={handleCreateUser}>
-          <Plus className="mr-2 h-4 w-4" /> Add User
+          <Plus className="mr-2 h-4 w-4" /> Add Staff
         </Button>
       </div>
 

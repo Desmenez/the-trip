@@ -52,7 +52,8 @@ export default async function Layout({ children }: Readonly<{ children: ReactNod
             },
             select: {
               id: true,
-              name: true,
+              firstName: true,
+              lastName: true,
               email: true,
               role: true,
               isActive: true,

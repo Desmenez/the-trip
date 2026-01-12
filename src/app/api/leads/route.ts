@@ -106,7 +106,8 @@ export async function GET(request: Request) {
         customer: true,
         agent: {
           select: {
-            name: true,
+            firstName: true,
+            lastName: true,
             email: true,
           },
         },

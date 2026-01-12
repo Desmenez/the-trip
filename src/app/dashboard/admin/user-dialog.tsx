@@ -22,28 +22,34 @@ interface UserDialogProps {
 export function UserDialog({ open, onOpenChange, user, onSaved }: UserDialogProps) {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    name: "",
+    firstName: "",
+    lastName: "",
     email: "",
-    role: "ADMIN",
-    commissionRate: "",
+    phoneNumber: "",
+    role: "STAFF",
+    commissionPerHead: "0.00",
     isActive: true,
   });
 
   useEffect(() => {
     if (user) {
       setFormData({
-        name: user.name,
+        firstName: user.firstName,
+        lastName: user.lastName,
         email: user.email,
+        phoneNumber: user.phoneNumber || "",
         role: user.role,
-        commissionRate: user.commissionRate ? user.commissionRate.toString() : "",
+        commissionPerHead: user.commissionPerHead ? user.commissionPerHead.toString() : "0.00",
         isActive: user.isActive,
       });
     } else {
       setFormData({
-        name: "",
+        firstName: "",
+        lastName: "",
         email: "",
-        role: "ADMIN",
-        commissionRate: "",
+        phoneNumber: "",
+        role: "STAFF",
+        commissionPerHead: "0.00",
         isActive: true,
       });
     }
@@ -67,19 +73,21 @@ export function UserDialog({ open, onOpenChange, user, onSaved }: UserDialogProp
 
       if (!res.ok) {
         const error = await res.text();
-        throw new Error(error);
+        toast.error(error);
+        return;
       }
 
       toast.success(user ? "User updated" : "User created");
       onSaved();
     } catch (error) {
-      console.error(error);
       const errorMessage = error instanceof Error ? error.message : "Something went wrong";
       toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
   };
+
+  console.log({ user });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -88,25 +96,42 @@ export function UserDialog({ open, onOpenChange, user, onSaved }: UserDialogProp
           <DialogTitle>{user ? "Edit User" : "Add User"}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {user && (
+            <div className="grid gap-2">
+              <Label htmlFor="isActive">Active</Label>
+              <Switch
+                id="isActive"
+                checked={formData.isActive}
+                onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
+              />
+            </div>
+          )}
           <div className="grid gap-2">
-            <Label htmlFor="isActive">Active</Label>
-            <Switch
-              id="isActive"
-              checked={formData.isActive}
-              onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
-            />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="name">Name</Label>
+            <Label htmlFor="firstName" required>
+              First Name
+            </Label>
             <Input
-              id="name"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              id="firstName"
+              value={formData.firstName}
+              onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
               required
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="lastName" required>
+              Last Name
+            </Label>
+            <Input
+              id="lastName"
+              value={formData.lastName}
+              onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+              required
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="email" required>
+              Email
+            </Label>
             <Input
               id="email"
               type="email"
@@ -116,14 +141,25 @@ export function UserDialog({ open, onOpenChange, user, onSaved }: UserDialogProp
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="role">Role</Label>
+            <Label htmlFor="phoneNumber">Phone Number</Label>
+            <Input
+              id="phoneNumber"
+              type="tel"
+              value={formData.phoneNumber}
+              onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="role" required>
+              Role
+            </Label>
             <Select value={formData.role} onValueChange={(value) => setFormData({ ...formData, role: value })}>
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select role" />
               </SelectTrigger>
               <SelectContent>
                 {ROLE_VALUES.map((role) => {
-                  if (role === "ADMIN" && user?.role !== "ADMIN") {
+                  if (role === "SUPER_ADMIN" && user?.role !== "SUPER_ADMIN") {
                     return null;
                   }
                   return (
@@ -135,16 +171,18 @@ export function UserDialog({ open, onOpenChange, user, onSaved }: UserDialogProp
               </SelectContent>
             </Select>
           </div>
-          <div className="grid gap-2">
-            <Label htmlFor="commissionRate">Commission Rate (%)</Label>
-            <Input
-              id="commissionRate"
-              type="number"
-              step="0.01"
-              value={formData.commissionRate}
-              onChange={(e) => setFormData({ ...formData, commissionRate: e.target.value })}
-            />
-          </div>
+          {formData.role === "SALES" && (
+            <div className="grid gap-2">
+              <Label htmlFor="commissionPerHead">Commission Per Head</Label>
+              <Input
+                id="commissionPerHead"
+                type="number"
+                step="0.01"
+                value={formData.commissionPerHead}
+                onChange={(e) => setFormData({ ...formData, commissionPerHead: e.target.value })}
+              />
+            </div>
+          )}
           <DialogFooter>
             <Button type="submit" disabled={loading}>
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

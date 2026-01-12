@@ -23,7 +23,8 @@ export function AccountProfile({
 }: {
   readonly currentUser: {
     readonly id: string;
-    readonly name: string;
+    readonly firstName: string;
+    readonly lastName: string;
     readonly email: string;
     readonly role: string;
   };
@@ -39,17 +40,17 @@ export function AccountProfile({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Avatar className="size-9 cursor-pointer rounded-lg">
-          <AvatarFallback className="rounded-lg">{getInitials(currentUser.name)}</AvatarFallback>
+          <AvatarFallback className="rounded-lg">{getInitials(currentUser.firstName + " " + currentUser.lastName)}</AvatarFallback>
         </Avatar>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="min-w-56 space-y-1 rounded-lg" side="bottom" align="end" sideOffset={4}>
         {/* Current User Info */}
         <div className="flex items-center gap-2 px-2 py-2">
           <Avatar className="size-9 rounded-lg">
-            <AvatarFallback className="rounded-lg">{getInitials(currentUser.name)}</AvatarFallback>
+            <AvatarFallback className="rounded-lg">{getInitials(currentUser.firstName + " " + currentUser.lastName)}</AvatarFallback>
           </Avatar>
           <div className="grid flex-1 text-left text-sm leading-tight">
-            <span className="truncate font-semibold">{currentUser.name}</span>
+            <span className="truncate font-semibold">{currentUser.firstName + " " + currentUser.lastName}</span>
             <span className="text-muted-foreground truncate text-xs">{currentUser.email}</span>
             <span className="truncate text-xs capitalize">
               {ROLE_LABELS[currentUser.role as keyof typeof ROLE_LABELS] || currentUser.role}

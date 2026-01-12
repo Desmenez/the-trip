@@ -12,24 +12,26 @@ export async function PATCH(req: Request) {
 
   try {
     const body = await req.json();
-    const { name } = body;
+    const { firstName, lastName } = body;
 
-    if (!name || name.trim() === "") {
-      return new NextResponse("Name is required", { status: 400 });
+    if (!firstName || firstName.trim() === "" || !lastName || lastName.trim() === "") {
+      return new NextResponse("First name and last name are required", { status: 400 });
     }
 
     // Update user name
     const user = await prisma.user.update({
       where: { id: session.user.id },
       data: {
-        name: name.trim(),
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
       },
       select: {
         id: true,
-        name: true,
+        firstName: true,
+        lastName: true,
         email: true,
         role: true,
-        commissionRate: true,
+        commissionPerHead: true,
         isActive: true,
         createdAt: true,
       },
@@ -38,11 +40,10 @@ export async function PATCH(req: Request) {
     return NextResponse.json({
       ...user,
       role: user.role.toString(),
-      commissionRate: user.commissionRate ? Number(user.commissionRate) : null,
+      commissionPerHead: user.commissionPerHead ? Number(user.commissionPerHead) : null,
     });
   } catch (error) {
     console.error("[UPDATE_PROFILE]", error);
     return new NextResponse("Internal Error", { status: 500 });
   }
 }
-

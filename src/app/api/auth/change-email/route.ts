@@ -56,7 +56,7 @@ export async function POST(req: Request) {
     // Send verification email to new email address
     const verifyUrl = await sendEmailVerificationEmail(
       user.email,
-      user.name,
+      `${user.firstName} ${user.lastName}`,
       resetToken,
       newEmail
     );

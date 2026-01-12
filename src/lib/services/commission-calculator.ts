@@ -27,7 +27,7 @@ export async function getCommissionAgent(booking: Booking): Promise<{
         agent: {
           select: {
             id: true,
-            commissionRate: true,
+            commissionPerHead: true,
           },
         },
       },
@@ -36,8 +36,8 @@ export async function getCommissionAgent(booking: Booking): Promise<{
     if (lead && lead.agent) {
       return {
         agentId: lead.agent.id,
-        commissionRate: lead.agent.commissionRate
-          ? new Decimal(lead.agent.commissionRate.toString()).toNumber()
+        commissionRate: lead.agent.commissionPerHead
+          ? new Decimal(lead.agent.commissionPerHead.toString()).toNumber()
           : 0,
         type: "SALES",
       };
@@ -50,15 +50,15 @@ export async function getCommissionAgent(booking: Booking): Promise<{
       where: { id: booking.agentId },
       select: {
         id: true,
-        commissionRate: true,
+        commissionPerHead: true,
       },
     });
 
     if (agent) {
       return {
         agentId: agent.id,
-        commissionRate: agent.commissionRate
-          ? new Decimal(agent.commissionRate.toString()).toNumber()
+        commissionRate: agent.commissionPerHead
+          ? new Decimal(agent.commissionPerHead.toString()).toNumber()
           : 0,
         type: booking.leadId ? "SERVICE" : "WALKIN",
       };
@@ -80,11 +80,18 @@ export async function calculateCommission(bookingId: string) {
       agentId: true,
       totalAmount: true,
       paidAmount: true,
+      status: true,
     },
   });
 
   if (!booking) {
     throw new Error("Booking not found");
+  }
+
+  // Commission is only calculated for COMPLETED bookings
+  if (booking.status !== "COMPLETED") {
+    console.log(`Booking ${bookingId} is not COMPLETED, skipping commission calculation`);
+    return null;
   }
 
   // Check if commission already exists
@@ -108,11 +115,12 @@ export async function calculateCommission(bookingId: string) {
   const { agentId, commissionRate, type } = commissionInfo;
 
   // Calculate commission amount
-  const totalAmount = new Decimal(booking.totalAmount.toString());
-  const rate = new Decimal(commissionRate);
-  const amount = totalAmount.mul(rate).div(100);
+  // commissionPerHead is a fixed amount per booking (not a percentage)
+  // Use commissionPerHead as fixed amount per completed booking
+  const amount = new Decimal(commissionRate);
 
-  // Determine initial status
+  // Determine initial status based on payment
+  const totalAmount = new Decimal(booking.totalAmount.toString());
   const paidAmount = new Decimal(booking.paidAmount.toString());
   const isFullyPaid = paidAmount.gte(totalAmount);
   const status: CommissionStatus = isFullyPaid ? "APPROVED" : "PENDING";

@@ -81,6 +81,8 @@ These serve as the fallback; there is no separate default.css file. */
   --sidebar-ring: oklch(0.708 0 0);
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
+  --success: oklch(0.7 0.15 142.5);
+  --success-foreground: oklch(0.2 0.05 142.5);
 }
 
 .dark {
@@ -115,6 +117,8 @@ These serve as the fallback; there is no separate default.css file. */
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+  --success: oklch(0.55 0.15 142.5);
+  --success-foreground: oklch(0.95 0.02 142.5);
 }
 
 @layer utilities {

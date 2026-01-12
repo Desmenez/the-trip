@@ -3,10 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 
-export async function GET(
-  req: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions);
 
   if (!session) {
@@ -25,7 +22,7 @@ export async function GET(
         passports: true,
         interactions: {
           orderBy: { date: "desc" },
-          include: { agent: { select: { name: true } } },
+          include: { agent: { select: { firstName: true, lastName: true } } },
         },
         leads: {
           orderBy: { updatedAt: "desc" },
@@ -60,10 +57,7 @@ export async function GET(
   }
 }
 
-export async function PUT(
-  req: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions);
 
   if (!session) {

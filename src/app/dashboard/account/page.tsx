@@ -61,7 +61,7 @@ interface CommissionBooking {
 }
 
 interface CommissionData {
-  commissionRate: number;
+  commissionRate: number; // This is now commissionPerHead (fixed amount per booking)
   totalSales: number;
   totalCommission: number;
   totalBookings: number;
@@ -331,8 +331,14 @@ export default function AccountPage() {
                       <div className="flex items-start gap-3">
                         <Percent className="mt-0.5 h-5 w-5 text-muted-foreground" />
                         <div className="flex-1 space-y-1">
-                          <p className="text-sm font-medium text-muted-foreground">Commission Rate</p>
-                          <p className="text-sm">{userInfo.commissionRate}%</p>
+                          <p className="text-sm font-medium text-muted-foreground">Commission Per Booking</p>
+                          <p className="text-sm">
+                            {new Intl.NumberFormat("th-TH", {
+                              style: "currency",
+                              currency: "THB",
+                              maximumFractionDigits: 0,
+                            }).format(userInfo.commissionRate)}
+                          </p>
                         </div>
                       </div>
                     )}
@@ -511,8 +517,14 @@ export default function AccountPage() {
                   <div className="grid gap-4 md:grid-cols-3">
                     <Card>
                       <CardHeader className="pb-2">
-                        <CardDescription>Commission Rate</CardDescription>
-                        <CardTitle className="text-2xl">{commissionData.commissionRate || 0}%</CardTitle>
+                        <CardDescription>Commission Per Booking</CardDescription>
+                        <CardTitle className="text-2xl">
+                          {new Intl.NumberFormat("th-TH", {
+                            style: "currency",
+                            currency: "THB",
+                            maximumFractionDigits: 0,
+                          }).format(commissionData.commissionRate || 0)}
+                        </CardTitle>
                       </CardHeader>
                     </Card>
                     <Card>

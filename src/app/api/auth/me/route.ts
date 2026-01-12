@@ -15,10 +15,11 @@ export async function GET() {
       where: { id: session.user.id },
       select: {
         id: true,
-        name: true,
+        firstName: true,
+        lastName: true,
         email: true,
         role: true,
-        commissionRate: true,
+        commissionPerHead: true,
         isActive: true,
         createdAt: true,
       },
@@ -31,7 +32,7 @@ export async function GET() {
     return NextResponse.json({
       ...user,
       role: user.role.toString(),
-      commissionRate: user.commissionRate ? Number(user.commissionRate) : null,
+      commissionPerHead: user.commissionPerHead ? Number(user.commissionPerHead) : null,
     });
   } catch (error) {
     console.error("[ME_GET]", error);

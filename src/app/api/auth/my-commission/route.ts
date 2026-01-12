@@ -17,9 +17,10 @@ export async function GET() {
       where: { id: session.user.id },
       select: {
         id: true,
-        name: true,
+        firstName: true,
+        lastName: true,
         email: true,
-        commissionRate: true,
+        commissionPerHead: true,
       },
     });
 
@@ -27,13 +28,12 @@ export async function GET() {
       return new NextResponse("User not found", { status: 404 });
     }
 
-    // Query bookings where the user is the assigned agent
+    // Query COMPLETED bookings where the user is the assigned agent
+    // Commission is only calculated for COMPLETED bookings
     const bookings = await prisma.booking.findMany({
       where: {
         agentId: session.user.id,
-        status: {
-          in: ["CONFIRMED", "COMPLETED"] as BookingStatus[],
-        },
+        status: "COMPLETED" as BookingStatus,
       },
       select: {
         id: true,
@@ -59,24 +59,16 @@ export async function GET() {
 
     console.log("bookings", bookings);
 
-    // Calculate commission using decimal.js for precision
-    // Rule: Commission is calculated based on Total Sales of bookings that are fully paid (or meet specific criteria)
-    // For now, let's assume we count all CONFIRMED/COMPLETED bookings, 
-    // OR strictly follow the user's snippet: "if (paid >= total)"
-    
-    const totalSales = bookings.reduce((sum, booking) => {
-      const paidAmount = new Decimal(booking.paidAmount.toString());
-      const totalAmount = new Decimal(booking.totalAmount.toString());
-      
-      // Only count if fully paid
-      if (paidAmount.gte(totalAmount)) {
-        return sum.plus(totalAmount);
-      }
-      return sum;
-    }, new Decimal(0));
+    // Calculate commission: fixed amount per completed booking
+    // commissionPerHead is a fixed amount, not a percentage
+    const commissionPerHead = user.commissionPerHead ? new Decimal(user.commissionPerHead.toString()) : new Decimal(0);
+    const completedBookingsCount = bookings.length;
+    const totalCommission = commissionPerHead.mul(completedBookingsCount);
 
-    const commissionRate = user.commissionRate ? new Decimal(user.commissionRate.toString()) : new Decimal(0);
-    const totalCommission = totalSales.mul(commissionRate).div(100);
+    // Calculate total sales for display
+    const totalSales = bookings.reduce((sum, booking) => {
+      return sum.plus(new Decimal(booking.totalAmount.toString()));
+    }, new Decimal(0));
 
     // Get bookings with details
     const bookingDetails = bookings.map((booking) => {
@@ -84,8 +76,8 @@ export async function GET() {
       const totalAmount = new Decimal(booking.totalAmount.toString());
       const isFullyPaid = paidAmount.gte(totalAmount);
       
-      // Calculate potential commission for this booking
-      const potentialCommission = totalAmount.mul(commissionRate).div(100);
+      // Commission per booking is fixed amount (commissionPerHead)
+      const commission = commissionPerHead.toNumber();
       
       return {
         id: booking.id,
@@ -94,8 +86,8 @@ export async function GET() {
         destination: booking.trip.destination,
         totalAmount: totalAmount.toNumber(),
         paidAmount: paidAmount.toNumber(),
-        commission: isFullyPaid ? potentialCommission.toNumber() : 0, // Only show commission if fully paid?
-        isEligible: isFullyPaid,
+        commission: commission, // Fixed amount per completed booking
+        isEligible: true, // All COMPLETED bookings are eligible
         createdAt: booking.createdAt,
       };
     });
@@ -104,7 +96,7 @@ export async function GET() {
     bookingDetails.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
     return NextResponse.json({
-      commissionRate: commissionRate.toNumber(),
+      commissionRate: commissionPerHead.toNumber(), // This is now the fixed amount, not a rate
       totalSales: totalSales.toNumber(),
       totalCommission: totalCommission.toNumber(),
       totalBookings: bookingDetails.length,

@@ -25,7 +25,8 @@ export async function GET(
         customer: true,
         agent: {
           select: {
-            name: true,
+            firstName: true,
+            lastName: true,
             email: true,
           },
         },

@@ -1,17 +1,11 @@
 "use client";
 
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Edit, Loader2 } from "lucide-react";
 import { User } from "./types";
+import { formatDecimal } from "@/lib/utils";
 
 interface UsersTableProps {
   users: User[];
@@ -37,7 +31,7 @@ export function UsersTable({ users, loading, onEdit }: UsersTableProps) {
             <TableHead>Email</TableHead>
             <TableHead>Role</TableHead>
             <TableHead>Status</TableHead>
-            <TableHead className="text-right">Commission Rate</TableHead>
+            <TableHead className="text-right">Commission Per Head</TableHead>
             <TableHead className="text-right">Total Commission</TableHead>
             <TableHead className="w-[100px]">Actions</TableHead>
           </TableRow>
@@ -45,14 +39,16 @@ export function UsersTable({ users, loading, onEdit }: UsersTableProps) {
         <TableBody>
           {users.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={7} className="text-center h-24">
+              <TableCell colSpan={7} className="h-24 text-center">
                 No users found.
               </TableCell>
             </TableRow>
           ) : (
             users.map((user) => (
               <TableRow key={user.id}>
-                <TableCell className="font-medium">{user.name}</TableCell>
+                <TableCell className="font-medium">
+                  {user.firstName} {user.lastName}
+                </TableCell>
                 <TableCell>{user.email}</TableCell>
                 <TableCell>
                   <Badge variant="outline">{user.role}</Badge>
@@ -63,7 +59,7 @@ export function UsersTable({ users, loading, onEdit }: UsersTableProps) {
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right">
-                  {user.commissionRate ? `${user.commissionRate}%` : "-"}
+                  {user.commissionPerHead ? `${formatDecimal(user.commissionPerHead)}` : "-"}
                 </TableCell>
                 <TableCell className="text-right">
                   {user.totalCommission !== undefined

@@ -86,7 +86,7 @@ export async function GET(req: Request) {
         },
         include: {
           agent: {
-            select: { name: true },
+            select: { firstName: true, lastName: true },
           },
         },
         skip: (page - 1) * pageSize,

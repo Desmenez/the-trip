@@ -9,7 +9,7 @@ import Decimal from "decimal.js";
 export async function GET() {
   const session = await getServerSession(authOptions);
 
-  if (!session || session.user.role !== "ADMIN") {
+  if (!session || (session.user.role !== "ADMIN" && session.user.role !== "SUPER_ADMIN")) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
 
@@ -17,11 +17,13 @@ export async function GET() {
     const users = await prisma.user.findMany({
       select: {
         id: true,
-        name: true,
+        firstName: true,
+        lastName: true,
         email: true,
+        phoneNumber: true,
         role: true,
         isActive: true,
-        commissionRate: true,
+        commissionPerHead: true,
         createdAt: true,
         leads: {
           select: {
@@ -42,15 +44,14 @@ export async function GET() {
     });
 
     const usersWithCommission = users.map((user) => {
-      const totalSales = user.leads.reduce((acc, lead) => {
-        const leadTotal = lead.bookings.reduce((sum, booking) => {
-          return sum.plus(new Decimal(booking.totalAmount.toString()));
-        }, new Decimal(0));
-        return acc.plus(leadTotal);
-      }, new Decimal(0));
+      // Count completed bookings from leads
+      const completedBookingsCount = user.leads.reduce((acc, lead) => {
+        return acc + lead.bookings.length;
+      }, 0);
 
-      const commissionRate = user.commissionRate ? new Decimal(user.commissionRate.toString()) : new Decimal(0);
-      const totalCommission = totalSales.mul(commissionRate).div(100);
+      // Calculate commission: fixed amount per completed booking
+      const commissionPerHead = user.commissionPerHead ? new Decimal(user.commissionPerHead) : new Decimal(0);
+      const totalCommission = commissionPerHead.mul(completedBookingsCount);
 
       // Remove leads from the response to keep it clean, or keep it if needed.
       // For the table, we just need the calculated value.
@@ -72,15 +73,15 @@ export async function GET() {
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
 
-  if (!session || session.user.role !== "ADMIN") {
+  if (!session || (session.user.role !== "ADMIN" && session.user.role !== "SUPER_ADMIN")) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
 
   try {
     const body = await req.json();
-    const { name, email, password, role, commissionRate } = body;
+    const { firstName, lastName, email, phoneNumber, role, commissionPerHead } = body;
 
-    if (!name || !email || !role) {
+    if (!firstName || !lastName || !email || !role) {
       return new NextResponse("Missing required fields", { status: 400 });
     }
 
@@ -94,6 +95,16 @@ export async function POST(req: Request) {
       return new NextResponse("User already exists", { status: 409 });
     }
 
+    const existingPhoneNumber = await prisma.user.findUnique({
+      where: {
+        phoneNumber,
+      },
+    });
+
+    if (existingPhoneNumber) {
+      return new NextResponse("Phone number already exists", { status: 409 });
+    }
+
     // Generate reset token
     const resetToken = crypto.randomBytes(32).toString("hex");
     const resetTokenExpiry = new Date();
@@ -102,11 +113,13 @@ export async function POST(req: Request) {
     // Create user without password (password is optional in schema)
     const user = await prisma.user.create({
       data: {
-        name,
+        firstName,
+        lastName,
         email,
+        phoneNumber: phoneNumber || null,
         // password is omitted - user will set it via reset password link
         role,
-        commissionRate: commissionRate ? new Decimal(commissionRate).toNumber() : null,
+        commissionPerHead: commissionPerHead ? new Decimal(commissionPerHead) : null,
         isActive: true,
         resetToken,
         resetTokenExpiry,
@@ -116,7 +129,8 @@ export async function POST(req: Request) {
     // Send reset password email
     let resetUrl: string | undefined;
     try {
-      resetUrl = await sendResetPasswordEmail(user.email, user.name, resetToken);
+      const fullName = `${user.firstName} ${user.lastName}`;
+      resetUrl = await sendResetPasswordEmail(user.email, fullName, resetToken);
     } catch (emailError) {
       console.error("Failed to send reset password email:", emailError);
       // Don't fail user creation if email fails

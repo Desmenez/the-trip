@@ -11,26 +11,31 @@ datasource db {
 
 // 1. Staff & Authentication
 enum Role {
+  SUPER_ADMIN
   ADMIN
-  AGENT
+  SALES
+  STAFF
 }
 
 model User {
-  id               String    @id @default(uuid())
-  email            String    @unique
-  password         String?
-  name             String
-  role             Role      @default(AGENT)
-  commissionRate   Decimal?  @db.Decimal(5, 2) // Percentage, e.g., 5.00
-  isActive         Boolean   @default(true)
-  resetToken       String?   @unique
-  resetTokenExpiry DateTime?
+  id          String  @id @default(uuid())
+  password    String?
+  firstName   String
+  lastName    String
+  email       String  @unique
+  phoneNumber String? @unique
+
+  role              Role      @default(STAFF)
+  commissionPerHead Decimal?  @db.Decimal(10, 2) // Amount, e.g., 1000.00
+  isActive          Boolean   @default(true)
+  resetToken        String?   @unique
+  resetTokenExpiry  DateTime?
 
   leads         Lead[]
   tasks         Task[]
   interactions  Interaction[]
   notifications Notification[]
-  bookings      Booking[]     @relation("AgentBookings")
+  bookings      Booking[]      @relation("AgentBookings")
   commissions   Commission[]
 
   createdAt DateTime @default(now())
@@ -199,8 +204,8 @@ model Booking {
   paymentDueDate DateTime?
   visaStatus     VisaStatus @default(NOT_REQUIRED)
 
-  agentId    String?
-  agent      User?     @relation("AgentBookings", fields: [agentId], references: [id])
+  agentId String?
+  agent   User?   @relation("AgentBookings", fields: [agentId], references: [id])
 
   payments    Payment[]
   commissions Commission[]
@@ -296,16 +301,16 @@ enum PaymentMethod {
 }
 
 model Payment {
-  id         String   @id @default(uuid())
-  bookingId  String
-  booking    Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  id        String  @id @default(uuid())
+  bookingId String
+  booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
 
-  amount     Decimal  @db.Decimal(10, 2)
-  paidAt     DateTime @default(now())
-  method     PaymentMethod
-  note       String?  @db.Text
+  amount Decimal       @db.Decimal(10, 2)
+  paidAt DateTime      @default(now())
+  method PaymentMethod
+  note   String?       @db.Text
 
-  createdAt  DateTime @default(now())
+  createdAt DateTime @default(now())
 }
 
 enum CommissionStatus {
@@ -315,29 +320,29 @@ enum CommissionStatus {
 }
 
 enum CommissionType {
-  SALES    // จากการหา Lead
-  SERVICE  // จากการดูแล Booking
-  WALKIN   // จาก Walk-in (ไม่มี Lead)
+  SALES // จากการหา Lead
+  SERVICE // จากการดูแล Booking
+  WALKIN // จาก Walk-in (ไม่มี Lead)
 }
 
 model Commission {
-  id         String   @id @default(uuid())
-  agentId    String
-  agent      User     @relation(fields: [agentId], references: [id])
+  id      String @id @default(uuid())
+  agentId String
+  agent   User   @relation(fields: [agentId], references: [id])
 
-  bookingId  String
-  booking    Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  bookingId String
+  booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
 
-  leadId     String?
-  lead       Lead?    @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  leadId String?
+  lead   Lead?   @relation(fields: [leadId], references: [id], onDelete: SetNull)
 
-  type       CommissionType   @default(SALES)
-  rate       Decimal  @db.Decimal(5, 2)
-  amount     Decimal  @db.Decimal(10, 2)
+  type   CommissionType @default(SALES)
+  rate   Decimal        @db.Decimal(5, 2)
+  amount Decimal        @db.Decimal(10, 2)
 
-  status     CommissionStatus @default(PENDING)
-  note       String?  @db.Text
+  status CommissionStatus @default(PENDING)
+  note   String?          @db.Text
 
-  createdAt  DateTime @default(now())
-  paidAt     DateTime?
+  createdAt DateTime  @default(now())
+  paidAt    DateTime?
 }

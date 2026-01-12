@@ -6,13 +6,10 @@ import bcrypt from "bcryptjs";
 import { Prisma } from "@prisma/client";
 import Decimal from "decimal.js";
 
-export async function PATCH(
-  req: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions);
 
-  if (!session || session.user.role !== "ADMIN") {
+  if (!session || (session.user.role !== "ADMIN" && session.user.role !== "SUPER_ADMIN")) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
 
@@ -23,11 +20,13 @@ export async function PATCH(
     }
 
     const body = await req.json();
-    const { name, email, role, isActive, commissionRate, password } = body;
+    const { firstName, lastName, email, phoneNumber, role, isActive, commissionRate, password } = body;
 
     const updateData: Prisma.UserUpdateInput = {
-      name,
+      firstName,
+      lastName,
       email,
+      phoneNumber: phoneNumber !== undefined ? phoneNumber || null : undefined,
       role,
     };
 
@@ -38,9 +37,9 @@ export async function PATCH(
 
     // Handle commissionRate - allow "0" to be parsed as 0, not null
     if (commissionRate !== undefined && commissionRate !== null && commissionRate !== "") {
-      updateData.commissionRate = new Decimal(commissionRate.toString()).toNumber();
+      updateData.commissionPerHead = new Decimal(commissionRate);
     } else if (commissionRate === "" || commissionRate === null) {
-      updateData.commissionRate = null;
+      updateData.commissionPerHead = null;
     }
 
     // Handle password - only update if provided

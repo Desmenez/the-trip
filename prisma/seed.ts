@@ -1,8 +1,9 @@
-import 'dotenv/config';
-import { PrismaClient, Role } from '@prisma/client';
-import { Pool } from 'pg';
-import { PrismaPg } from '@prisma/adapter-pg';
-import bcrypt from 'bcryptjs';
+import "dotenv/config";
+import { PrismaClient, Role } from "@prisma/client";
+import { Pool } from "pg";
+import { PrismaPg } from "@prisma/adapter-pg";
+import bcrypt from "bcryptjs";
+import Decimal from "decimal.js";
 
 const connectionString = `${process.env.DATABASE_URL}`;
 const pool = new Pool({ connectionString });
@@ -10,26 +11,45 @@ const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
-  const adminEmail = 'admin@gmail.com';
-  const agentEmail = 'agent@gmail.com';
-  const password = await bcrypt.hash('Example1', 10);
+  const superAdminEmail = "superadmin@gmail.com";
+  const adminEmail = "admin@gmail.com";
+  const staffEmail = "staff@gmail.com";
+  const salesEmail = "sales@gmail.com";
+  const password = await bcrypt.hash("Example1", 10);
 
   const admin = await prisma.user.createMany({
     data: [
       {
-        email: adminEmail,
+        email: superAdminEmail,
         password: password,
-        name: 'Admin',
-        role: Role.ADMIN,
-        commissionRate: 10,
+        firstName: "Super",
+        lastName: "Admin",
+        role: Role.SUPER_ADMIN,
         isActive: true,
       },
       {
-        email: agentEmail,
+        email: adminEmail,
         password: password,
-        name: 'Agent',
-        role: Role.AGENT,
-        commissionRate: 10,
+        firstName: "Admin",
+        lastName: "Admin",
+        role: Role.ADMIN,
+        isActive: true,
+      },
+      {
+        email: staffEmail,
+        password: password,
+        firstName: "Staff",
+        lastName: "Staff",
+        role: Role.STAFF,
+        isActive: true,
+      },
+      {
+        email: salesEmail,
+        password: password,
+        firstName: "Sales",
+        lastName: "Sales",
+        role: Role.SALES,
+        commissionPerHead: new Decimal(500),
         isActive: true,
       },
     ],

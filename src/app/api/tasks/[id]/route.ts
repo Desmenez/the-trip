@@ -3,10 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 
-export async function PUT(
-  req: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions);
 
   if (!session) {
@@ -41,7 +38,7 @@ export async function PUT(
       data: updateData,
       include: {
         agent: {
-          select: { name: true },
+          select: { firstName: true, lastName: true },
         },
       },
     });
@@ -53,10 +50,7 @@ export async function PUT(
   }
 }
 
-export async function DELETE(
-  req: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions);
 
   if (!session) {
@@ -76,4 +70,3 @@ export async function DELETE(
     return new NextResponse("Internal Error", { status: 500 });
   }
 }
-

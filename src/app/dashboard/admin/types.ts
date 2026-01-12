@@ -2,11 +2,13 @@ import { Role } from "@/lib/constants/role";
 
 export interface User {
   id: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
+  phoneNumber?: string | null;
   role: Role;
   isActive: boolean;
-  commissionRate: number | null;
+  commissionPerHead: number | null;
   totalCommission?: number;
   createdAt?: string;
 }
