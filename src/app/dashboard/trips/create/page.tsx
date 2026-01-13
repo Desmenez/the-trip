@@ -16,8 +16,8 @@ export default function NewTripPage() {
       router.push("/dashboard/trips");
       router.refresh();
     } catch (error) {
-      // Error is already handled in the mutation's onError
-      console.error(error);
+      // Error will be handled by form component's handleSubmit
+      throw error;
     }
   }
 
@@ -27,7 +27,7 @@ export default function NewTripPage() {
         <Button variant="ghost" size="icon" onClick={() => router.back()}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h2 className="text-3xl font-bold tracking-tight">New Trip Package</h2>
+        <h2 className="text-3xl font-bold tracking-tight">Trip</h2>
       </div>
 
       <div className="rounded-md border p-6 bg-card">

@@ -200,6 +200,11 @@ model Lead {
 }
 
 // 4. Trip & Booking Management
+enum TripType {
+  GROUP_TOUR
+  PRIVATE_TOUR
+}
+
 enum BookingStatus {
   PENDING
   CONFIRMED
@@ -216,14 +221,31 @@ enum VisaStatus {
 }
 
 model Trip {
-  id          String   @id @default(uuid())
-  name        String
-  destination String
-  startDate   DateTime
-  endDate     DateTime
-  maxCapacity Int
-  description String?  @db.Text
-  price       Decimal? @db.Decimal(10, 2)
+  id String @id @default(uuid())
+
+  type TripType @default(GROUP_TOUR)
+  code String   @unique
+
+  name String
+
+  startDate DateTime
+  endDate   DateTime
+
+  pax Int @default(1)
+  foc Int @default(1)
+
+  tl String?
+  tg String?
+
+  staff String?
+
+  standardPrice       Decimal @default(0) @db.Decimal(10, 2)
+  extraPricePerPerson Decimal @default(0) @db.Decimal(10, 2)
+
+  note String? @db.Text
+
+  airlineAndAirportId String
+  airlineAndAirport   AirlineAndAirport @relation(fields: [airlineAndAirportId], references: [id])
 
   bookings Booking[]
 
@@ -415,4 +437,17 @@ model CustomerFamily {
   createdAt DateTime @default(now())
 
   @@id([customerId, familyId])
+}
+
+// 9. Airline and Airport Management (IATA)
+model AirlineAndAirport {
+  id String @id @default(uuid())
+
+  code String @unique
+  name String
+
+  trips Trip[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

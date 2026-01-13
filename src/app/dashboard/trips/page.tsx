@@ -133,6 +133,13 @@ export default function TripsPage() {
   const columns: ColumnDef<Trip>[] = useMemo(
     () => [
       {
+        accessorKey: "code",
+        header: "Code",
+        cell: ({ row }) => (
+          <div className="font-mono font-medium">{row.original.code}</div>
+        ),
+      },
+      {
         accessorKey: "name",
         header: "Trip Name",
         cell: ({ row }) => (
@@ -140,8 +147,16 @@ export default function TripsPage() {
         ),
       },
       {
-        accessorKey: "destination",
-        header: "Destination",
+        accessorKey: "type",
+        header: "Type",
+        cell: ({ row }) => {
+          const type = row.original.type;
+          return (
+            <Badge variant={type === "GROUP_TOUR" ? "default" : "secondary"}>
+              {type === "GROUP_TOUR" ? "Group Tour" : "Private Tour"}
+            </Badge>
+          );
+        },
       },
       {
         accessorKey: "dates",
@@ -157,18 +172,29 @@ export default function TripsPage() {
         },
       },
       {
-        accessorKey: "capacity",
-        header: "Capacity",
+        accessorKey: "pax",
+        header: "PAX/FOC",
         cell: ({ row }) => {
           const trip = row.original;
-          const isFull = trip._count.bookings >= trip.maxCapacity;
           return (
-            <div className="flex items-center gap-2">
-              <span>
-                {trip._count.bookings} / {trip.maxCapacity}
-              </span>
-              {isFull && <Badge variant="destructive">Full</Badge>}
+            <div>
+              {trip.pax} / {trip.foc}
             </div>
+          );
+        },
+      },
+      {
+        accessorKey: "airlineAndAirport",
+        header: "Airline/Airport",
+        cell: ({ row }) => {
+          const airlineAndAirport = row.original.airlineAndAirport;
+          return airlineAndAirport ? (
+            <div>
+              <div className="font-mono text-xs">{airlineAndAirport.code}</div>
+              <div className="text-muted-foreground text-xs">{airlineAndAirport.name}</div>
+            </div>
+          ) : (
+            "-"
           );
         },
       },
@@ -176,12 +202,12 @@ export default function TripsPage() {
         accessorKey: "price",
         header: "Price",
         cell: ({ row }) => {
-          const price = row.original.price;
-          return price
+          const standardPrice = row.original.standardPrice;
+          return standardPrice
             ? new Intl.NumberFormat("th-TH", {
                 style: "currency",
                 currency: "THB",
-              }).format(parseFloat(price))
+              }).format(parseFloat(standardPrice))
             : "-";
         },
       },

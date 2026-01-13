@@ -99,7 +99,7 @@ export function UserDialog({ open, onOpenChange, user, onSaved }: UserDialogProp
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{user ? "Edit User" : "Add User"}</DialogTitle>
+          <DialogTitle>Staff</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">

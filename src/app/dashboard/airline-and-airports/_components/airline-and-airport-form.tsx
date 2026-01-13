@@ -1,0 +1,108 @@
+"use client";
+
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Button } from "@/components/ui/button";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { airlineAndAirportFormSchema, AirlineAndAirportFormValues } from "../hooks/use-airline-and-airports";
+
+interface AirlineAndAirportFormProps {
+  mode: "create" | "edit";
+  initialData?: Partial<AirlineAndAirportFormValues>;
+  onSubmit: (values: AirlineAndAirportFormValues) => Promise<void>;
+  onCancel?: () => void;
+  isLoading?: boolean;
+  onError?: (error: Error) => void;
+}
+
+export function AirlineAndAirportForm({
+  mode,
+  initialData,
+  onSubmit,
+  onCancel,
+  isLoading = false,
+  onError,
+}: AirlineAndAirportFormProps) {
+  const form = useForm<AirlineAndAirportFormValues>({
+    resolver: zodResolver(airlineAndAirportFormSchema),
+    defaultValues: {
+      code: initialData?.code ?? "",
+      name: initialData?.name ?? "",
+    },
+  });
+
+  // Reset form when initialData changes (for edit mode)
+  useEffect(() => {
+    if (initialData) {
+      form.reset({
+        code: initialData.code ?? "",
+        name: initialData.name ?? "",
+      });
+    }
+  }, [initialData, form]);
+
+  async function handleSubmit(values: AirlineAndAirportFormValues) {
+    try {
+      await onSubmit(values);
+    } catch (error) {
+      if (error instanceof Error) {
+        const fieldError = error as Error & { field?: string };
+        if (fieldError.field) {
+          form.setError(fieldError.field as keyof AirlineAndAirportFormValues, {
+            type: "server",
+            message: error.message,
+          });
+        } else if (onError) {
+          onError(error);
+        }
+      }
+    }
+  }
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+        <FormField
+          control={form.control}
+          name="code"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel required>Code (IATA)</FormLabel>
+              <FormControl>
+                <Input placeholder="BKK, TG, etc." {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel required>Name</FormLabel>
+              <FormControl>
+                <Input placeholder="Bangkok Suvarnabhumi Airport, Thai Airways, etc." {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <div className="flex justify-end gap-4">
+          {onCancel && (
+            <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
+              Cancel
+            </Button>
+          )}
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? "Saving..." : mode === "create" ? "Create" : "Update"}
+          </Button>
+        </div>
+      </form>
+    </Form>
+  );
+}

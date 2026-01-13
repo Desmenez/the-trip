@@ -212,13 +212,20 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
             <TripForm
               mode="view"
               initialData={{
+                type: trip.type,
+                code: trip.code,
                 name: trip.name,
-                destination: trip.destination,
                 startDate: trip.startDate.split("T")[0],
                 endDate: trip.endDate.split("T")[0],
-                maxCapacity: trip.maxCapacity.toString(),
-                price: trip.price || "",
-                description: trip.description || "",
+                pax: trip.pax.toString(),
+                foc: trip.foc.toString(),
+                tl: trip.tl || "",
+                tg: trip.tg || "",
+                staff: trip.staff || "",
+                standardPrice: trip.standardPrice || "0",
+                extraPricePerPerson: trip.extraPricePerPerson || "0",
+                note: trip.note || "",
+                airlineAndAirportId: trip.airlineAndAirportId,
               }}
             />
           </CardContent>

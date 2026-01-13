@@ -159,7 +159,7 @@ export const sidebarItems: NavGroup[] = [
       },
       {
         title: "IATA code",
-        url: "/dashboard/iata-codes",
+        url: "/dashboard/airline-and-airports",
         icon: MapPin,
       },
     ],

@@ -5,8 +5,9 @@ import { prisma } from "@/lib/prisma";
 import crypto from "crypto";
 import { sendResetPasswordEmail } from "@/lib/email";
 import Decimal from "decimal.js";
+import { Prisma } from "@prisma/client";
 
-export async function GET() {
+export async function GET(req: Request) {
   const session = await getServerSession(authOptions);
 
   if (!session || (session.user.role !== "ADMIN" && session.user.role !== "SUPER_ADMIN")) {
@@ -14,7 +15,43 @@ export async function GET() {
   }
 
   try {
+    const { searchParams } = new URL(req.url);
+    const search = searchParams.get("search") || "";
+
+    // Build where clause for search
+    const where: Prisma.UserWhereInput = search.trim().length > 0
+      ? {
+          OR: [
+            {
+              firstName: {
+                contains: search,
+                mode: "insensitive" as const,
+              },
+            },
+            {
+              lastName: {
+                contains: search,
+                mode: "insensitive" as const,
+              },
+            },
+            {
+              email: {
+                contains: search,
+                mode: "insensitive" as const,
+              },
+            },
+            {
+              phoneNumber: {
+                contains: search,
+                mode: "insensitive" as const,
+              },
+            },
+          ],
+        }
+      : {};
+
     const users = await prisma.user.findMany({
+      where,
       select: {
         id: true,
         firstName: true,

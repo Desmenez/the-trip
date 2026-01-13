@@ -29,10 +29,10 @@ export function UsersTable({ users, loading, onEdit }: UsersTableProps) {
           <TableRow>
             <TableHead>Name</TableHead>
             <TableHead>Email</TableHead>
+            <TableHead>Phone Number</TableHead>
             <TableHead>Role</TableHead>
-            <TableHead>Status</TableHead>
             <TableHead className="text-right">Commission Per Head</TableHead>
-            <TableHead className="text-right">Total Commission</TableHead>
+            <TableHead>Status</TableHead>
             <TableHead className="w-[100px]">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -50,25 +50,17 @@ export function UsersTable({ users, loading, onEdit }: UsersTableProps) {
                   {user.firstName} {user.lastName}
                 </TableCell>
                 <TableCell>{user.email}</TableCell>
+                <TableCell>{user.phoneNumber}</TableCell>
                 <TableCell>
                   <Badge variant="outline">{user.role}</Badge>
+                </TableCell>
+                <TableCell className="text-right">
+                  {user.commissionPerHead ? `${formatDecimal(user.commissionPerHead)}` : "-"}
                 </TableCell>
                 <TableCell>
                   <Badge variant={user.isActive ? "default" : "destructive"}>
                     {user.isActive ? "Active" : "Inactive"}
                   </Badge>
-                </TableCell>
-                <TableCell className="text-right">
-                  {user.commissionPerHead ? `${formatDecimal(user.commissionPerHead)}` : "-"}
-                </TableCell>
-                <TableCell className="text-right">
-                  {user.totalCommission !== undefined
-                    ? new Intl.NumberFormat("th-TH", {
-                        style: "currency",
-                        currency: "THB",
-                        maximumFractionDigits: 0,
-                      }).format(user.totalCommission)
-                    : "-"}
                 </TableCell>
                 <TableCell>
                   <Button variant="ghost" size="icon" onClick={() => onEdit(user)}>

@@ -24,8 +24,8 @@ export default function EditTripPage({ params }: { params: Promise<{ id: string 
       router.push("/dashboard/trips");
       router.refresh();
     } catch (error) {
-      // Error is already handled in the mutation's onError
-      console.error(error);
+      // Error will be handled by form component's handleSubmit
+      throw error;
     }
   }
 
@@ -62,13 +62,20 @@ export default function EditTripPage({ params }: { params: Promise<{ id: string 
         <TripForm
           mode="edit"
           initialData={{
+            type: trip.type,
+            code: trip.code,
             name: trip.name,
-            destination: trip.destination,
             startDate: trip.startDate.split("T")[0],
             endDate: trip.endDate.split("T")[0],
-            maxCapacity: trip.maxCapacity.toString(),
-            price: trip.price || "",
-            description: trip.description || "",
+            pax: trip.pax.toString(),
+            foc: trip.foc.toString(),
+            tl: trip.tl || "",
+            tg: trip.tg || "",
+            staff: trip.staff || "",
+            standardPrice: trip.standardPrice || "0",
+            extraPricePerPerson: trip.extraPricePerPerson || "0",
+            note: trip.note || "",
+            airlineAndAirportId: trip.airlineAndAirportId,
           }}
           onSubmit={handleSubmit}
           onCancel={() => router.back()}

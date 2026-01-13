@@ -3,26 +3,47 @@ import { toast } from "sonner";
 import z from "zod";
 
 export const tripFormSchema = z.object({
+  type: z.enum(["GROUP_TOUR", "PRIVATE_TOUR"], {
+    message: "Type is required",
+  }),
+  code: z.string().min(1, { message: "Trip code is required" }),
   name: z.string().min(1, { message: "Trip name is required" }),
-  destination: z.string().min(1, { message: "Destination is required" }),
   startDate: z.string().min(1, { message: "Start date is required" }),
   endDate: z.string().min(1, { message: "End date is required" }),
-  maxCapacity: z.string().min(1, { message: "Max capacity is required" }),
-  price: z.string().optional(),
-  description: z.string().optional(),
+  pax: z.string().min(1, { message: "PAX is required" }),
+  foc: z.string().min(1, { message: "FOC is required" }),
+  tl: z.string().optional(),
+  tg: z.string().optional(),
+  staff: z.string().optional(),
+  standardPrice: z.string().min(1, { message: "Standard price is required" }),
+  extraPricePerPerson: z.string().min(1, { message: "Extra price per person is required" }),
+  note: z.string().optional(),
+  airlineAndAirportId: z.string().min(1, { message: "Airline/Airport is required" }),
 });
 
 export type TripFormValues = z.infer<typeof tripFormSchema>;
 
 export interface Trip {
   id: string;
+  type: "GROUP_TOUR" | "PRIVATE_TOUR";
+  code: string;
   name: string;
-  destination: string;
   startDate: string;
   endDate: string;
-  maxCapacity: number;
-  description: string | null;
-  price: string | null; // Prisma Decimal is serialized as string
+  pax: number;
+  foc: number;
+  tl: string | null;
+  tg: string | null;
+  staff: string | null;
+  standardPrice: string; // Prisma Decimal is serialized as string
+  extraPricePerPerson: string; // Prisma Decimal is serialized as string
+  note: string | null;
+  airlineAndAirportId: string;
+  airlineAndAirport: {
+    id: string;
+    code: string;
+    name: string;
+  };
   _count: {
     bookings: number;
   };
@@ -104,8 +125,10 @@ async function createTrip(data: TripFormValues): Promise<Trip> {
   });
 
   if (!res.ok) {
-    const error = await res.json();
-    throw new Error(error.message || "Failed to create trip");
+    const error = await res.json().catch(() => ({ message: "Failed to create trip" }));
+    const errorWithField = new Error(error.message || "Failed to create trip");
+    (errorWithField as any).field = error.field;
+    throw errorWithField;
   }
 
   return res.json();
@@ -122,8 +145,10 @@ async function updateTrip({ id, data }: { id: string; data: TripFormValues }): P
   });
 
   if (!res.ok) {
-    const error = await res.json();
-    throw new Error(error.message || "Failed to update trip");
+    const error = await res.json().catch(() => ({ message: "Failed to update trip" }));
+    const errorWithField = new Error(error.message || "Failed to update trip");
+    (errorWithField as any).field = error.field;
+    throw errorWithField;
   }
 
   return res.json();
@@ -165,8 +190,11 @@ export function useCreateTrip() {
       queryClient.invalidateQueries({ queryKey: tripKeys.all });
       toast.success("Trip created successfully");
     },
-    onError: (error: Error) => {
-      toast.error(error.message || "Failed to create trip");
+    onError: (error: Error & { field?: string }) => {
+      // Only show toast if error doesn't have a field (field errors are shown in form)
+      if (!error.field) {
+        toast.error(error.message || "Failed to create trip");
+      }
     },
   });
 }
@@ -184,8 +212,11 @@ export function useUpdateTrip() {
       queryClient.setQueryData(tripKeys.detail(variables.id), data);
       toast.success("Trip updated successfully");
     },
-    onError: (error: Error) => {
-      toast.error(error.message || "Failed to update trip");
+    onError: (error: Error & { field?: string }) => {
+      // Only show toast if error doesn't have a field (field errors are shown in form)
+      if (!error.field) {
+        toast.error(error.message || "Failed to update trip");
+      }
     },
   });
 }

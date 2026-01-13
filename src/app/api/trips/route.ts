@@ -24,10 +24,20 @@ export async function GET(request: Request) {
     const searchFilter: Prisma.TripWhereInput =
       search.trim().length > 0
         ? {
-            name: {
-              contains: search,
-              mode: "insensitive" as const,
-            },
+            OR: [
+              {
+                name: {
+                  contains: search,
+                  mode: "insensitive" as const,
+                },
+              },
+              {
+                code: {
+                  contains: search,
+                  mode: "insensitive" as const,
+                },
+              },
+            ],
           }
         : {};
 
@@ -57,6 +67,7 @@ export async function GET(request: Request) {
         startDate: "asc",
       },
       include: {
+        airlineAndAirport: true,
         _count: {
           select: { bookings: true },
         },
@@ -85,21 +96,63 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json();
-    const { name, destination, startDate, endDate, maxCapacity, description, price } = body;
+    const {
+      type,
+      code,
+      name,
+      startDate,
+      endDate,
+      pax,
+      foc,
+      tl,
+      tg,
+      staff,
+      standardPrice,
+      extraPricePerPerson,
+      note,
+      airlineAndAirportId,
+    } = body;
 
-    if (!name || !destination || !startDate || !endDate || !maxCapacity) {
-      return new NextResponse("Missing required fields", { status: 400 });
+    if (!code || !name || !startDate || !endDate || !airlineAndAirportId) {
+      return new NextResponse("Missing required fields: code, name, startDate, endDate, airlineAndAirportId", {
+        status: 400,
+      });
+    }
+
+    // Check if code already exists
+    const existingTrip = await prisma.trip.findUnique({
+      where: { code },
+    });
+
+    if (existingTrip) {
+      return NextResponse.json(
+        { message: "Trip code already exists", field: "code" },
+        { status: 409 }
+      );
     }
 
     const trip = await prisma.trip.create({
       data: {
+        type: type || "GROUP_TOUR",
+        code,
         name,
-        destination,
         startDate: new Date(startDate),
         endDate: new Date(endDate),
-        maxCapacity: parseInt(maxCapacity),
-        description,
-        price: price ? parseFloat(price) : null,
+        pax: pax ? parseInt(pax) : 1,
+        foc: foc ? parseInt(foc) : 1,
+        tl: tl || null,
+        tg: tg || null,
+        staff: staff || null,
+        standardPrice: standardPrice ? parseFloat(standardPrice) : 0,
+        extraPricePerPerson: extraPricePerPerson ? parseFloat(extraPricePerPerson) : 0,
+        note: note || null,
+        airlineAndAirportId,
+      },
+      include: {
+        airlineAndAirport: true,
+        _count: {
+          select: { bookings: true },
+        },
       },
     });
 
