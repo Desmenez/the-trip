@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Pencil, Eye, Search, X, CalendarIcon } from "lucide-react";
+import { Plus, Edit, Eye, Search, X, CalendarIcon } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
 import { DataTable } from "@/components/data-table/data-table";
@@ -15,11 +15,7 @@ import { useTrips, type Trip } from "./hooks/use-trips";
 import { Input } from "@/components/ui/input";
 import { useDebounce } from "@/hooks/use-debounce";
 import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 
 export default function TripsPage() {
@@ -48,13 +44,7 @@ export default function TripsPage() {
 
   // Function to update URL params
   const updateSearchParams = useCallback(
-    (updates: {
-      page?: number;
-      pageSize?: number;
-      search?: string;
-      startDateFrom?: string;
-      startDateTo?: string;
-    }) => {
+    (updates: { page?: number; pageSize?: number; search?: string; startDateFrom?: string; startDateTo?: string }) => {
       const params = new URLSearchParams(searchParams.toString());
 
       if (updates.page !== undefined) {
@@ -100,7 +90,7 @@ export default function TripsPage() {
       const newUrl = params.toString() ? `?${params.toString()}` : "";
       router.push(`/dashboard/trips${newUrl}`, { scroll: false });
     },
-    [searchParams, router]
+    [searchParams, router],
   );
 
   // Sync debounced search to URL (skip if clearing)
@@ -135,16 +125,12 @@ export default function TripsPage() {
       {
         accessorKey: "code",
         header: "Code",
-        cell: ({ row }) => (
-          <div className="font-mono font-medium">{row.original.code}</div>
-        ),
+        cell: ({ row }) => <div className="font-mono font-medium">{row.original.code}</div>,
       },
       {
         accessorKey: "name",
         header: "Trip Name",
-        cell: ({ row }) => (
-          <div className="font-medium">{row.original.name}</div>
-        ),
+        cell: ({ row }) => <div className="font-medium">{row.original.name}</div>,
       },
       {
         accessorKey: "type",
@@ -165,8 +151,7 @@ export default function TripsPage() {
           const trip = row.original;
           return (
             <div>
-              {format(new Date(trip.startDate), "dd MMM")} -{" "}
-              {format(new Date(trip.endDate), "dd MMM yyyy")}
+              {format(new Date(trip.startDate), "dd MMM")} - {format(new Date(trip.endDate), "dd MMM yyyy")}
             </div>
           );
         },
@@ -223,24 +208,22 @@ export default function TripsPage() {
             </Link>
             <Link href={`/dashboard/trips/${row.original.id}/edit`}>
               <Button variant="ghost" size="sm" onClick={(e) => e.stopPropagation()}>
-                <Pencil className="h-4 w-4" />
+                <Edit className="h-4 w-4" />
               </Button>
             </Link>
           </div>
         ),
       },
     ],
-    []
+    [],
   );
 
   // Use TanStack Query to fetch trips
-  const { data: tripsResponse, isLoading, error } = useTrips(
-    page,
-    pageSize,
-    searchQuery || undefined,
-    startDateFrom || undefined,
-    startDateTo || undefined
-  );
+  const {
+    data: tripsResponse,
+    isLoading,
+    error,
+  } = useTrips(page, pageSize, searchQuery || undefined, startDateFrom || undefined, startDateTo || undefined);
 
   const trips = useMemo(() => tripsResponse?.data ?? [], [tripsResponse?.data]);
   const total = tripsResponse?.total ?? 0;
@@ -277,14 +260,14 @@ export default function TripsPage() {
     (newPageIndex: number) => {
       updateSearchParams({ page: newPageIndex + 1 });
     },
-    [updateSearchParams]
+    [updateSearchParams],
   );
 
   const handlePageSizeChange = useCallback(
     (newPageSize: number) => {
       updateSearchParams({ pageSize: newPageSize, page: 1 }); // Reset to page 1 when changing page size
     },
-    [updateSearchParams]
+    [updateSearchParams],
   );
 
   if (isLoading) {
@@ -312,9 +295,7 @@ export default function TripsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Trips</h2>
-          <p className="text-muted-foreground">
-            Manage your travel packages and capacity.
-          </p>
+          <p className="text-muted-foreground">Manage your travel packages and capacity.</p>
         </div>
         <Link href="/dashboard/trips/create">
           <Button>
@@ -332,19 +313,14 @@ export default function TripsPage() {
               variant="outline"
               className={cn(
                 "w-[260px] justify-start text-left font-normal",
-                !startDateFrom && !startDateTo && "text-muted-foreground"
+                !startDateFrom && !startDateTo && "text-muted-foreground",
               )}
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
               {startDateFrom || startDateTo ? (
                 <span className="truncate">
-                  {startDateFrom
-                    ? format(new Date(startDateFrom), "dd MMM yyyy")
-                    : "..."}{" "}
-                  -{" "}
-                  {startDateTo
-                    ? format(new Date(startDateTo), "dd MMM yyyy")
-                    : "..."}
+                  {startDateFrom ? format(new Date(startDateFrom), "dd MMM yyyy") : "..."} -{" "}
+                  {startDateTo ? format(new Date(startDateTo), "dd MMM yyyy") : "..."}
                 </span>
               ) : (
                 "Trip start date range"
@@ -361,12 +337,8 @@ export default function TripsPage() {
                 to: startDateTo ? new Date(startDateTo) : undefined,
               }}
               onSelect={(range) => {
-                const from = range?.from
-                  ? format(range.from, "yyyy-MM-dd")
-                  : "";
-                const to = range?.to
-                  ? format(range.to, "yyyy-MM-dd")
-                  : "";
+                const from = range?.from ? format(range.from, "yyyy-MM-dd") : "";
+                const to = range?.to ? format(range.to, "yyyy-MM-dd") : "";
                 setStartDateFrom(from);
                 setStartDateTo(to);
                 updateSearchParams({
@@ -383,11 +355,11 @@ export default function TripsPage() {
         </Popover>
 
         <div className="relative w-80">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
           <Input
             type="text"
             placeholder="Search trip name..."
-            className="pl-9 pr-9"
+            className="pr-9 pl-9"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
           />
@@ -395,7 +367,7 @@ export default function TripsPage() {
             <Button
               variant="ghost"
               size="icon"
-              className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2"
+              className="absolute top-1/2 right-1 h-7 w-7 -translate-y-1/2"
               onClick={() => {
                 isClearing.current = true;
                 setSearchInput("");

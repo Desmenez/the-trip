@@ -3,7 +3,7 @@
 import { useMemo, useCallback } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import Link from "next/link";
-import { Plus, Pencil, Eye } from "lucide-react";
+import { Plus, Edit, Eye } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/data-table/data-table";
@@ -55,7 +55,7 @@ const customerColumns: ColumnDef<Customer>[] = [
         </Link>
         <Link href={`/dashboard/customers/${row.original.id}/edit`}>
           <Button variant="ghost" size="sm" onClick={(e) => e.stopPropagation()}>
-            <Pencil className="h-4 w-4" />
+            <Edit className="h-4 w-4" />
           </Button>
         </Link>
       </div>

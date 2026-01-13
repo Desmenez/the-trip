@@ -100,8 +100,8 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
     });
 
     if (tripsCount > 0) {
-      return new NextResponse(
-        `Cannot delete: This airline/airport is used in ${tripsCount} trip(s)`,
+      return NextResponse.json(
+        { message: "Deleted unsuccessfully. This IATA code is in use" },
         { status: 400 }
       );
     }

@@ -97,8 +97,8 @@ async function createAirlineAndAirport(
 
   if (!res.ok) {
     const error = await res.json().catch(() => ({ message: "Failed to create airline/airport" }));
-    const errorWithField = new Error(error.message || "Failed to create airline/airport");
-    (errorWithField as any).field = error.field;
+    const errorWithField = new Error(error.message || "Failed to create airline/airport") as Error & { field?: string };
+    errorWithField.field = error.field;
     throw errorWithField;
   }
 
@@ -123,8 +123,8 @@ async function updateAirlineAndAirport({
 
   if (!res.ok) {
     const error = await res.json().catch(() => ({ message: "Failed to update airline/airport" }));
-    const errorWithField = new Error(error.message || "Failed to update airline/airport");
-    (errorWithField as any).field = error.field;
+    const errorWithField = new Error(error.message || "Failed to update airline/airport") as Error & { field?: string };
+    errorWithField.field = error.field;
     throw errorWithField;
   }
 
@@ -138,7 +138,7 @@ async function deleteAirlineAndAirport(id: string): Promise<void> {
   });
 
   if (!res.ok) {
-    const error = await res.json();
+    const error = await res.json().catch(() => ({ message: "Failed to delete airline/airport" }));
     throw new Error(error.message || "Failed to delete airline/airport");
   }
 }

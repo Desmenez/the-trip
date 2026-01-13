@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Pencil, Eye, Search, X, CalendarIcon } from "lucide-react";
+import { Plus, Edit, Eye, Search, X, CalendarIcon } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
 import { DataTable } from "@/components/data-table/data-table";
@@ -15,19 +15,9 @@ import { useBookings, type Booking } from "./hooks/use-bookings";
 import { Input } from "@/components/ui/input";
 import { useDebounce } from "@/hooks/use-debounce";
 import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function BookingsPage() {
   const router = useRouter();
@@ -129,7 +119,7 @@ export default function BookingsPage() {
       const newUrl = params.toString() ? `?${params.toString()}` : "";
       router.push(`/dashboard/bookings${newUrl}`, { scroll: false });
     },
-    [searchParams, router]
+    [searchParams, router],
   );
 
   // Sync debounced search to URL (skip if we're clearing)
@@ -210,7 +200,7 @@ export default function BookingsPage() {
         cell: ({ row }) => (
           <div className="flex flex-col">
             <span>{row.original.trip.name}</span>
-            <span className="text-xs text-muted-foreground">{row.original.trip.destination}</span>
+            <span className="text-muted-foreground text-xs">{row.original.trip.destination}</span>
           </div>
         ),
       },
@@ -222,9 +212,7 @@ export default function BookingsPage() {
       {
         accessorKey: "status",
         header: "Status",
-        cell: ({ row }) => (
-          <Badge className={getStatusColor(row.original.status)}>{row.original.status}</Badge>
-        ),
+        cell: ({ row }) => <Badge className={getStatusColor(row.original.status)}>{row.original.status}</Badge>,
       },
       {
         accessorKey: "visaStatus",
@@ -242,11 +230,7 @@ export default function BookingsPage() {
           <div className="flex flex-col text-sm">
             <span>Total: {row.original.totalAmount.toLocaleString()}</span>
             <span
-              className={
-                row.original.paidAmount >= row.original.totalAmount
-                  ? "text-green-600"
-                  : "text-yellow-600"
-              }
+              className={row.original.paidAmount >= row.original.totalAmount ? "text-green-600" : "text-yellow-600"}
             >
               Paid: {row.original.paidAmount.toLocaleString()}
             </span>
@@ -265,25 +249,29 @@ export default function BookingsPage() {
             </Link>
             <Link href={`/dashboard/bookings/${row.original.id}/edit`}>
               <Button variant="ghost" size="sm" onClick={(e) => e.stopPropagation()}>
-                <Pencil className="h-4 w-4" />
+                <Edit className="h-4 w-4" />
               </Button>
             </Link>
           </div>
         ),
       },
     ],
-    []
+    [],
   );
 
   // Use TanStack Query to fetch bookings
-  const { data: bookingsResponse, isLoading, error } = useBookings(
+  const {
+    data: bookingsResponse,
+    isLoading,
+    error,
+  } = useBookings(
     page,
     pageSize,
     searchQuery || undefined,
     status !== "ALL" ? status : undefined,
     visaStatus !== "ALL" ? visaStatus : undefined,
     tripStartDateFrom || undefined,
-    tripStartDateTo || undefined
+    tripStartDateTo || undefined,
   );
 
   const bookings = useMemo(() => bookingsResponse?.data ?? [], [bookingsResponse?.data]);
@@ -321,14 +309,14 @@ export default function BookingsPage() {
     (newPageIndex: number) => {
       updateSearchParams({ page: newPageIndex + 1 });
     },
-    [updateSearchParams]
+    [updateSearchParams],
   );
 
   const handlePageSizeChange = useCallback(
     (newPageSize: number) => {
       updateSearchParams({ pageSize: newPageSize, page: 1 }); // Reset to page 1 when changing page size
     },
-    [updateSearchParams]
+    [updateSearchParams],
   );
 
   if (isLoading) {
@@ -415,19 +403,14 @@ export default function BookingsPage() {
               variant="outline"
               className={cn(
                 "w-[260px] justify-start text-left font-normal",
-                !tripStartDateFrom && !tripStartDateTo && "text-muted-foreground"
+                !tripStartDateFrom && !tripStartDateTo && "text-muted-foreground",
               )}
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
               {tripStartDateFrom || tripStartDateTo ? (
                 <span className="truncate">
-                  {tripStartDateFrom
-                    ? format(new Date(tripStartDateFrom), "dd MMM yyyy")
-                    : "..."}{" "}
-                  -{" "}
-                  {tripStartDateTo
-                    ? format(new Date(tripStartDateTo), "dd MMM yyyy")
-                    : "..."}
+                  {tripStartDateFrom ? format(new Date(tripStartDateFrom), "dd MMM yyyy") : "..."} -{" "}
+                  {tripStartDateTo ? format(new Date(tripStartDateTo), "dd MMM yyyy") : "..."}
                 </span>
               ) : (
                 "Trip start date range"
@@ -444,12 +427,8 @@ export default function BookingsPage() {
                 to: tripStartDateTo ? new Date(tripStartDateTo) : undefined,
               }}
               onSelect={(range) => {
-                const from = range?.from
-                  ? format(range.from, "yyyy-MM-dd")
-                  : "";
-                const to = range?.to
-                  ? format(range.to, "yyyy-MM-dd")
-                  : "";
+                const from = range?.from ? format(range.from, "yyyy-MM-dd") : "";
+                const to = range?.to ? format(range.to, "yyyy-MM-dd") : "";
                 setTripStartDateFrom(from);
                 setTripStartDateTo(to);
                 updateSearchParams({
@@ -466,11 +445,11 @@ export default function BookingsPage() {
         </Popover>
 
         <div className="relative w-80">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
           <Input
             type="text"
             placeholder="Search customer name (TH/EN)..."
-            className="pl-9 pr-9"
+            className="pr-9 pl-9"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
           />
@@ -478,7 +457,7 @@ export default function BookingsPage() {
             <Button
               variant="ghost"
               size="icon"
-              className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2"
+              className="absolute top-1/2 right-1 h-7 w-7 -translate-y-1/2"
               onClick={() => {
                 isClearing.current = true;
                 setSearchInput("");

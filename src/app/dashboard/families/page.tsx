@@ -3,7 +3,7 @@
 import { useMemo, useCallback } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import Link from "next/link";
-import { Plus, Pencil, Eye } from "lucide-react";
+import { Plus, Edit, Eye } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/data-table/data-table";
@@ -33,7 +33,11 @@ const familyColumns: ColumnDef<Family>[] = [
     cell: ({ row }) => {
       const family = row.original;
       const memberCount = family.customers?.length || 0;
-      return <div>{memberCount} {memberCount === 1 ? "member" : "members"}</div>;
+      return (
+        <div>
+          {memberCount} {memberCount === 1 ? "member" : "members"}
+        </div>
+      );
     },
   },
   {
@@ -58,7 +62,7 @@ const familyColumns: ColumnDef<Family>[] = [
         </Link>
         <Link href={`/dashboard/families/${row.original.id}/edit`}>
           <Button variant="ghost" size="sm" onClick={(e) => e.stopPropagation()}>
-            <Pencil className="h-4 w-4" />
+            <Edit className="h-4 w-4" />
           </Button>
         </Link>
       </div>

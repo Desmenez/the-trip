@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useCallback, useState } from "react";
+import { useMemo, useCallback, useState } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
-import { Plus, Pencil, Trash2, Eye } from "lucide-react";
+import { Plus, Edit, Trash2, Eye } from "lucide-react";
 import Link from "next/link";
 import { DataTable } from "@/components/data-table/data-table";
 import { useDataTableInstance } from "@/hooks/use-data-table-instance";
@@ -70,7 +70,7 @@ export default function TagsPage() {
             </Link>
             <Link href={`/dashboard/tags/${row.original.id}/edit`}>
               <Button variant="ghost" size="sm">
-                <Pencil className="h-4 w-4" />
+                <Edit className="h-4 w-4" />
               </Button>
             </Link>
             <Button
@@ -88,7 +88,7 @@ export default function TagsPage() {
         ),
       },
     ],
-    []
+    [],
   );
 
   // --------------------
@@ -127,21 +127,21 @@ export default function TagsPage() {
     (newPageIndex: number) => {
       setParams({ page: newPageIndex + 1 });
     },
-    [setParams]
+    [setParams],
   );
 
   const handlePageSizeChange = useCallback(
     (newPageSize: number) => {
       setParams({ pageSize: newPageSize, page: 1 });
     },
-    [setParams]
+    [setParams],
   );
 
   const handleSearchChange = useCallback(
     (newSearch: string) => {
       setParams({ search: newSearch, page: 1 });
     },
-    [setParams]
+    [setParams],
   );
 
   const handleDelete = useCallback(
@@ -154,7 +154,7 @@ export default function TagsPage() {
         toast.error("Failed to delete tag");
       }
     },
-    [deleteTagMutation]
+    [deleteTagMutation],
   );
 
   const handleReorder = useCallback(
@@ -169,7 +169,7 @@ export default function TagsPage() {
         toast.error("Failed to reorder tags");
       }
     },
-    [reorderTagsMutation]
+    [reorderTagsMutation],
   );
 
   if (isLoading) {
@@ -207,12 +207,7 @@ export default function TagsPage() {
 
       <div className="relative flex flex-col gap-4 overflow-auto">
         <div className="overflow-hidden rounded-md border">
-          <DataTable
-            table={table}
-            columns={withDndColumn(columns)}
-            dndEnabled={true}
-            onReorder={handleReorder}
-          />
+          <DataTable table={table} columns={withDndColumn(columns)} dndEnabled={true} onReorder={handleReorder} />
         </div>
         <DataTablePagination
           table={table}
