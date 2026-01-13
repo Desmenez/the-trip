@@ -45,11 +45,17 @@ export function TagForm({
 }: TagFormProps) {
   const readOnly = mode === "view";
 
+  // Calculate default order for create mode (last position + 1)
+  const maxOrder = allTagsForPosition.length > 0 
+    ? Math.max(...allTagsForPosition.map((t) => t.order))
+    : -1;
+  const defaultOrderForCreate = maxOrder + 1;
+
   const form = useForm<TagFormValues>({
     resolver: zodResolver(tagFormSchema),
     defaultValues: {
       name: "",
-      order: undefined,
+      order: mode === "create" ? defaultOrderForCreate : undefined,
     },
   });
 
@@ -83,7 +89,7 @@ export function TagForm({
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Tag Name *</FormLabel>
+              <FormLabel required>Tag Name</FormLabel>
               <FormControl>
                 <Input placeholder="VIP, Corporate, etc." {...field} disabled={readOnly} />
               </FormControl>
@@ -124,7 +130,9 @@ export function TagForm({
                       ? field.value.toString()
                       : mode === "edit" && currentTag
                         ? currentTag.order.toString()
-                        : "end"
+                        : mode === "create"
+                          ? defaultOrderForCreate.toString()
+                          : "end"
                   }
                   onValueChange={(value) => {
                     if (value === "end") {
@@ -136,24 +144,26 @@ export function TagForm({
                   disabled={isLoading}
                 >
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select position" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
                     {mode === "edit" && currentTag && (
                       <SelectItem value={currentTag.order.toString()}>
-                        Keep current position ({currentTag.order})
+                        {(currentTag.order + 1).toString()}
                       </SelectItem>
                     )}
                     {sortedOtherTags.map((tag) => (
                       <SelectItem key={tag.id} value={tag.order.toString()}>
-                        {mode === "create"
-                          ? `Insert at position ${tag.order} (before "${tag.name}")`
-                          : `Position ${tag.order} (before "${tag.name}")`}
+                        {(tag.order + 1).toString()}
                       </SelectItem>
                     ))}
-                    {mode === "create" && <SelectItem value="end">End (after all tags)</SelectItem>}
+                    {mode === "create" && (
+                      <SelectItem value={defaultOrderForCreate.toString()}>
+                        {(defaultOrderForCreate + 1).toString()}
+                      </SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
 

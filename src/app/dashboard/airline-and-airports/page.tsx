@@ -26,7 +26,7 @@ import { mapAirlineAndAirportParamsToQuery, useAirlineAndAirportParams } from ".
 const airlineAndAirportColumns: ColumnDef<AirlineAndAirport>[] = [
   {
     accessorKey: "code",
-    header: "Code",
+    header: "IATA code",
     cell: ({ row }) => {
       return <div className="font-medium">{row.original.code}</div>;
     },

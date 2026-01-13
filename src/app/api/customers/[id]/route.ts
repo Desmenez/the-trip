@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { FoodAllergyType } from "@prisma/client";
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions);
@@ -22,10 +23,6 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
         addresses: true,
         passports: true,
         foodAllergies: true,
-        interactions: {
-          orderBy: { date: "desc" },
-          include: { agent: { select: { firstName: true, lastName: true } } },
-        },
         leads: {
           orderBy: { updatedAt: "desc" },
         },
@@ -47,9 +44,10 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
       where: {
         relatedCustomerId: id,
       },
-      orderBy: {
-        dueDate: "asc",
-      },
+      orderBy: [
+        { deadline: "asc" },
+        { createdAt: "desc" },
+      ],
     });
 
     return NextResponse.json({ ...customer, tasks });
@@ -76,7 +74,6 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       firstNameEn,
       lastNameEn,
       title,
-      nickname,
       email,
       phoneNumber,
       lineId,
@@ -103,11 +100,10 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
           firstNameEn,
           lastNameEn,
           title: title || null,
-          nickname: nickname || null,
           email: email || null,
           phoneNumber: phoneNumber || null,
           lineId: lineId || null,
-          dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
+          dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : undefined,
           note: note || null,
         },
       });
@@ -140,7 +136,13 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
         // Create new addresses
         if (addresses.length > 0) {
           await tx.address.createMany({
-            data: addresses.map((addr: any) => ({
+            data: (addresses as Array<{
+              address: string;
+              province: string;
+              district: string;
+              subDistrict: string;
+              postalCode: string;
+            }>).map((addr) => ({
               customerId: id,
               address: addr.address,
               province: addr.province,
@@ -162,13 +164,20 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
         // Create new passports
         if (passports.length > 0) {
           // If setting any as primary, unset others first
-          const hasPrimary = passports.some((p: any) => p.isPrimary);
+          const hasPrimary = (passports as Array<{ isPrimary?: boolean }>).some((p) => p.isPrimary);
           if (hasPrimary) {
             // This is handled in the create below
           }
 
           await tx.passport.createMany({
-            data: passports.map((p: any) => ({
+            data: (passports as Array<{
+              passportNumber: string;
+              issuingCountry: string;
+              issuingDate: string | Date;
+              expiryDate: string | Date;
+              imageUrl?: string | null;
+              isPrimary?: boolean;
+            }>).map((p) => ({
               customerId: id,
               passportNumber: p.passportNumber,
               issuingCountry: p.issuingCountry,
@@ -191,9 +200,12 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
         // Create new food allergies
         if (foodAllergies.length > 0) {
           await tx.foodAllergy.createMany({
-            data: foodAllergies.map((fa: any) => ({
+            data: (foodAllergies as Array<{
+              types: string[];
+              note?: string | null;
+            }>).map((fa) => ({
               customerId: id,
-              types: fa.types,
+              types: fa.types as FoodAllergyType[],
               note: fa.note || null,
             })),
           });

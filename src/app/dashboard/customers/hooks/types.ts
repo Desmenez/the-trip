@@ -2,18 +2,18 @@
 
 export interface RawTask {
   id: string;
-  title: string;
-  dueDate: string | Date;
-  isCompleted: boolean;
-  priority: string | number;
+  topic: string;
+  deadline: string | Date | null;
+  status: "TODO" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
+  contact: "CALL" | "LINE" | "MESSENGER" | null;
 }
 
 export interface ClientTask {
   id: string;
-  title: string;
-  dueDate: string;
-  isCompleted: boolean;
-  priority: string;
+  topic: string;
+  deadline: string | null;
+  status: "TODO" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
+  contact: "CALL" | "LINE" | "MESSENGER" | null;
 }
 
 export interface RawBooking {

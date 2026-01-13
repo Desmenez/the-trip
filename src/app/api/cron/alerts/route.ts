@@ -33,12 +33,6 @@ export async function GET() {
                 lead: true,
               },
             },
-            interactions: {
-              orderBy: {
-                date: "desc",
-              },
-              take: 1,
-            },
           },
         },
       },
@@ -58,8 +52,6 @@ export async function GET() {
         agentId = passport.customer.leads[0]?.agentId;
       } else if (passport.customer.bookings.length > 0 && passport.customer.bookings[0]?.lead) {
         agentId = passport.customer.bookings[0].lead.agentId;
-      } else if (passport.customer.interactions.length > 0) {
-        agentId = passport.customer.interactions[0]?.agentId;
       }
 
       if (agentId) {
@@ -117,12 +109,6 @@ export async function GET() {
                   },
                   take: 1,
                 },
-                interactions: {
-                  orderBy: {
-                    date: "desc",
-                  },
-                  take: 1,
-                },
               },
             },
             lead: true,
@@ -146,8 +132,6 @@ export async function GET() {
           agentId = booking.lead.agentId;
         } else if (booking.customer.leads.length > 0) {
           agentId = booking.customer.leads[0]?.agentId;
-        } else if (booking.customer.interactions.length > 0) {
-          agentId = booking.customer.interactions[0]?.agentId;
         }
 
         if (agentId) {

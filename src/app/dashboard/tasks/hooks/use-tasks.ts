@@ -3,12 +3,14 @@ import { toast } from "sonner";
 import z from "zod";
 
 export const taskFormSchema = z.object({
-  topic: z.string().min(1, "Topic is required"),
+  topic: z.string().min(1, "Please fill in the information."),
   description: z.string().optional(),
   deadline: z.date().optional(),
   status: z.enum(["TODO", "IN_PROGRESS", "COMPLETED", "CANCELLED"]).optional(),
-  contact: z.enum(["CALL", "LINE", "MESSENGER"]).optional().nullable(),
-  relatedCustomerId: z.string().optional().nullable(),
+  contact: z.enum(["CALL", "LINE", "MESSENGER"], {
+    message: "Contact is required",
+  }),
+  relatedCustomerId: z.string({ message: "Please select a customer." }).min(1, "Please select a customer."),
   userId: z.string().optional().nullable(),
 });
 
@@ -51,23 +53,10 @@ export interface TasksResponse {
 export const taskKeys = {
   all: ["tasks"] as const,
   lists: () => [...taskKeys.all, "list"] as const,
-  list: (
-    page: number,
-    pageSize: number,
-    customerId?: string,
-    status?: string,
-    contact?: string,
-    userId?: string
-  ) =>
-    [
-      ...taskKeys.lists(),
-      page,
-      pageSize,
-      customerId,
-      status,
-      contact,
-      userId,
-    ] as const,
+  list: (page: number, pageSize: number, customerId?: string, status?: string, contact?: string, userId?: string) =>
+    [...taskKeys.lists(), page, pageSize, customerId, status, contact, userId] as const,
+  details: () => [...taskKeys.all, "detail"] as const,
+  detail: (id: string) => [...taskKeys.details(), id] as const,
 };
 
 // Fetch tasks
@@ -77,7 +66,7 @@ async function fetchTasks(
   customerId?: string,
   status?: string,
   contact?: string,
-  userId?: string
+  userId?: string,
 ): Promise<TasksResponse> {
   const params = new URLSearchParams({
     page: page.toString(),
@@ -87,15 +76,12 @@ async function fetchTasks(
   if (customerId) {
     params.set("customerId", customerId);
   }
-
   if (status) {
     params.set("status", status);
   }
-
   if (contact) {
     params.set("contact", contact);
   }
-
   if (userId) {
     params.set("userId", userId);
   }
@@ -104,6 +90,17 @@ async function fetchTasks(
 
   if (!response.ok) {
     throw new Error("Failed to fetch tasks");
+  }
+
+  return response.json();
+}
+
+// Fetch single task
+async function fetchTask(id: string): Promise<Task> {
+  const response = await fetch(`/api/tasks/${id}`);
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch task");
   }
 
   return response.json();
@@ -136,10 +133,7 @@ async function createTask(data: TaskFormValues): Promise<Task> {
 }
 
 // Update task
-async function updateTask(
-  id: string,
-  data: Partial<TaskFormValues>
-): Promise<Task> {
+async function updateTask(id: string, data: Partial<TaskFormValues>): Promise<Task> {
   const updateData: {
     topic?: string;
     description?: string | null;
@@ -149,7 +143,7 @@ async function updateTask(
     relatedCustomerId?: string | null;
     userId?: string | null;
   } = {};
-  
+
   if (data.topic !== undefined) updateData.topic = data.topic;
   if (data.description !== undefined) updateData.description = data.description || null;
   if (data.deadline !== undefined) {
@@ -195,7 +189,7 @@ export function useTasks(
   customerId?: string,
   status?: string,
   contact?: string,
-  userId?: string
+  userId?: string,
 ) {
   return useQuery({
     queryKey: taskKeys.list(page, pageSize, customerId, status, contact, userId),
@@ -204,26 +198,24 @@ export function useTasks(
   });
 }
 
+// Hook for fetching single task
+export function useTask(id: string | undefined) {
+  return useQuery({
+    queryKey: taskKeys.detail(id!),
+    queryFn: () => fetchTask(id!),
+    enabled: !!id,
+    staleTime: 30 * 1000, // 30 seconds
+  });
+}
+
 // Hook for creating task
-export function useCreateTask(customerId?: string) {
+export function useCreateTask() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: TaskFormValues) => createTask({ ...data, relatedCustomerId: customerId }),
+    mutationFn: createTask,
     onSuccess: () => {
-      // Invalidate all task lists for this customer
-      if (customerId) {
-        queryClient.invalidateQueries({
-          queryKey: taskKeys.lists(),
-          predicate: (query) => {
-            const key = query.queryKey;
-            return key.includes("tasks") && key.includes("list");
-          },
-        });
-      } else {
-        queryClient.invalidateQueries({ queryKey: taskKeys.lists() });
-      }
-      queryClient.invalidateQueries({ queryKey: ["customers", customerId] });
+      queryClient.invalidateQueries({ queryKey: taskKeys.all });
       toast.success("Task created successfully");
     },
     onError: (error: Error) => {
@@ -233,25 +225,14 @@ export function useCreateTask(customerId?: string) {
 }
 
 // Hook for updating task
-export function useUpdateTask(customerId?: string) {
+export function useUpdateTask() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, ...data }: { id: string } & Parameters<typeof updateTask>[1]) =>
-      updateTask(id, data),
-    onSuccess: () => {
-      if (customerId) {
-        queryClient.invalidateQueries({
-          queryKey: taskKeys.lists(),
-          predicate: (query) => {
-            const key = query.queryKey;
-            return key.includes("tasks") && key.includes("list");
-          },
-        });
-      } else {
-        queryClient.invalidateQueries({ queryKey: taskKeys.lists() });
-      }
-      queryClient.invalidateQueries({ queryKey: ["customers", customerId] });
+    mutationFn: ({ id, ...data }: { id: string } & Partial<TaskFormValues>) => updateTask(id, data),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: taskKeys.all });
+      queryClient.invalidateQueries({ queryKey: taskKeys.detail(data.id) });
       toast.success("Task updated successfully");
     },
     onError: (error: Error) => {
@@ -261,24 +242,13 @@ export function useUpdateTask(customerId?: string) {
 }
 
 // Hook for deleting task
-export function useDeleteTask(customerId?: string) {
+export function useDeleteTask() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: deleteTask,
     onSuccess: () => {
-      if (customerId) {
-        queryClient.invalidateQueries({
-          queryKey: taskKeys.lists(),
-          predicate: (query) => {
-            const key = query.queryKey;
-            return key.includes("tasks") && key.includes("list");
-          },
-        });
-      } else {
-        queryClient.invalidateQueries({ queryKey: taskKeys.lists() });
-      }
-      queryClient.invalidateQueries({ queryKey: ["customers", customerId] });
+      queryClient.invalidateQueries({ queryKey: taskKeys.all });
       toast.success("Task deleted successfully");
     },
     onError: (error: Error) => {
@@ -286,4 +256,3 @@ export function useDeleteTask(customerId?: string) {
     },
   });
 }
-

@@ -4,10 +4,10 @@ import z from "zod";
 
 export const airlineAndAirportFormSchema = z.object({
   code: z.string().min(1, {
-    message: "Code is required.",
+    message: "Please fill in the information.",
   }),
   name: z.string().min(1, {
-    message: "Name is required.",
+    message: "Please fill in the information.",
   }),
 });
 

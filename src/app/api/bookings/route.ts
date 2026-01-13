@@ -123,7 +123,6 @@ export async function GET(request: Request) {
         trip: {
           select: {
             name: true,
-            destination: true,
             startDate: true,
             endDate: true,
           },
@@ -187,7 +186,7 @@ export async function POST(req: Request) {
     // Get trip to use its price if totalAmount is not provided
     const trip = await prisma.trip.findUnique({
       where: { id: tripId },
-      select: { price: true },
+      select: { standardPrice: true },
     });
 
     if (!trip) {
@@ -198,8 +197,8 @@ export async function POST(req: Request) {
     let finalTotalAmount: number;
     if (totalAmount && parseFloat(totalAmount) > 0) {
       finalTotalAmount = parseFloat(totalAmount);
-    } else if (trip.price) {
-      finalTotalAmount = Number(trip.price);
+    } else if (trip.standardPrice) {
+      finalTotalAmount = Number(trip.standardPrice);
     } else {
       return new NextResponse("Total amount is required (trip has no price)", { status: 400 });
     }

@@ -3,22 +3,21 @@
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
-import { FamilyForm } from "../_components/family-form";
-import { FamilyFormValues } from "../hooks/use-families";
-import { useCreateFamily } from "../hooks/use-families";
+import { TaskFormValues, useCreateTask } from "../hooks/use-tasks";
+import { TaskForm } from "../_components/task-form";
 import { toast } from "sonner";
 
-export default function NewFamilyPage() {
+export default function CreateTaskPage() {
   const router = useRouter();
-  const createFamilyMutation = useCreateFamily();
+  const createTaskMutation = useCreateTask();
 
-  async function handleSubmit(values: FamilyFormValues) {
+  async function handleSubmit(values: TaskFormValues) {
     try {
-      await createFamilyMutation.mutateAsync(values);
-      router.push("/dashboard/families");
+      await createTaskMutation.mutateAsync(values);
+      router.push("/dashboard/tasks");
       router.refresh();
     } catch {
-      toast.error("Failed to create family");
+      toast.error("Failed to create task");
     }
   }
 
@@ -28,15 +27,15 @@ export default function NewFamilyPage() {
         <Button variant="ghost" size="icon" onClick={() => router.back()}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h2 className="text-3xl font-bold tracking-tight">Family</h2>
+        <h2 className="text-3xl font-bold tracking-tight">Task</h2>
       </div>
 
       <div className="bg-card rounded-md border p-6">
-        <FamilyForm
+        <TaskForm
           mode="create"
           onSubmit={handleSubmit}
           onCancel={() => router.back()}
-          isLoading={createFamilyMutation.isPending}
+          isLoading={createTaskMutation.isPending}
         />
       </div>
     </div>

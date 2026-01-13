@@ -38,11 +38,13 @@ export function CustomerTasks({ customerId }: CustomerTasksProps) {
   const form = useForm<TaskFormValues>({
     resolver: zodResolver(taskFormSchema),
     defaultValues: {
-      title: "",
+      topic: "",
       description: "",
-      dueDate: undefined as Date | undefined,
-      priority: "MEDIUM" as "LOW" | "MEDIUM" | "HIGH",
+      deadline: undefined as Date | undefined,
+      status: "TODO" as "TODO" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED",
+      contact: null,
       relatedCustomerId: customerId,
+      userId: null,
     },
   });
 
@@ -65,11 +67,13 @@ export function CustomerTasks({ customerId }: CustomerTasksProps) {
         {
           onSuccess: () => {
             form.reset({
-              title: "",
+              topic: "",
               description: "",
-              dueDate: undefined,
-              priority: "MEDIUM",
+              deadline: undefined,
+              status: "TODO",
+              contact: null,
               relatedCustomerId: customerId,
+              userId: null,
             });
           },
         }
@@ -78,11 +82,12 @@ export function CustomerTasks({ customerId }: CustomerTasksProps) {
     [customerId, createTask, form]
   );
 
-  const handleToggleComplete = useCallback(
+  const handleToggleStatus = useCallback(
     (task: Task) => {
+      const newStatus = task.status === "COMPLETED" ? "TODO" : "COMPLETED";
       updateTask.mutate({
         id: task.id,
-        isCompleted: !task.isCompleted,
+        status: newStatus,
       });
     },
     [updateTask]
@@ -111,16 +116,16 @@ export function CustomerTasks({ customerId }: CustomerTasksProps) {
 
   const isLoadingData = isLoading || createTask.isPending || updateTask.isPending || deleteTaskMutation.isPending;
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case "HIGH":
-        return "destructive";
-      case "MEDIUM":
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "COMPLETED":
         return "default";
-      case "LOW":
+      case "IN_PROGRESS":
         return "secondary";
+      case "CANCELLED":
+        return "destructive";
       default:
-        return "secondary";
+        return "outline";
     }
   };
 
@@ -132,11 +137,11 @@ export function CustomerTasks({ customerId }: CustomerTasksProps) {
           <form onSubmit={form.handleSubmit(handleAddTask)} className="flex gap-4">
             <FormField
               control={form.control}
-              name="title"
+              name="topic"
               render={({ field }) => (
                 <FormItem className="flex-1">
                   <FormControl>
-                    <Input placeholder="Task title..." {...field} />
+                    <Input placeholder="Task topic..." {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -144,7 +149,7 @@ export function CustomerTasks({ customerId }: CustomerTasksProps) {
             />
             <FormField
               control={form.control}
-              name="dueDate"
+              name="deadline"
               render={({ field }) => (
                 <FormItem>
                   <Popover>
@@ -177,27 +182,6 @@ export function CustomerTasks({ customerId }: CustomerTasksProps) {
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="priority"
-              render={({ field }) => (
-                <FormItem>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger className="w-[140px]">
-                        <SelectValue placeholder="Priority" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="LOW">Low</SelectItem>
-                      <SelectItem value="MEDIUM">Medium</SelectItem>
-                      <SelectItem value="HIGH">High</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
             <Button type="submit" disabled={isLoadingData}>
               Add
             </Button>
@@ -222,26 +206,33 @@ export function CustomerTasks({ customerId }: CustomerTasksProps) {
                 className="flex items-center gap-4 p-3 border rounded-md hover:bg-muted/50"
               >
                 <Checkbox
-                  checked={task.isCompleted}
-                  onCheckedChange={() => handleToggleComplete(task)}
+                  checked={task.status === "COMPLETED"}
+                  onCheckedChange={() => handleToggleStatus(task)}
                   disabled={isLoadingData}
                 />
                 <div className="flex-1">
                   <p
                     className={`text-sm font-medium ${
-                      task.isCompleted ? "line-through text-muted-foreground" : ""
+                      task.status === "COMPLETED" ? "line-through text-muted-foreground" : ""
                     }`}
                   >
-                    {task.title}
+                    {task.topic}
                   </p>
-                  <div className="flex items-center text-xs text-muted-foreground mt-1">
-                    <CalendarIcon className="h-3 w-3 mr-1" />
-                    {format(new Date(task.dueDate), "PP")}
-                  </div>
+                  {task.deadline && (
+                    <div className="flex items-center text-xs text-muted-foreground mt-1">
+                      <CalendarIcon className="h-3 w-3 mr-1" />
+                      {format(new Date(task.deadline), "PP")}
+                    </div>
+                  )}
                 </div>
-                <Badge variant={getPriorityColor(task.priority)} className="text-xs">
-                  {task.priority}
+                <Badge variant={getStatusColor(task.status)} className="text-xs">
+                  {task.status}
                 </Badge>
+                {task.contact && (
+                  <Badge variant="outline" className="text-xs">
+                    {task.contact}
+                  </Badge>
+                )}
                 <Button
                   variant="ghost"
                   size="sm"

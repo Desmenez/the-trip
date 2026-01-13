@@ -33,7 +33,6 @@ export async function GET(
         trip: {
           select: {
             name: true,
-            destination: true,
             startDate: true,
             endDate: true,
           },
@@ -99,10 +98,10 @@ export async function PUT(
       // If tripId is being updated and totalAmount is not provided, use trip.price
       const trip = await prisma.trip.findUnique({
         where: { id: tripId },
-        select: { price: true },
+        select: { standardPrice: true },
       });
-      if (trip && trip.price) {
-        updateData.totalAmount = Number(trip.price);
+      if (trip && trip.standardPrice) {
+        updateData.totalAmount = Number(trip.standardPrice);
       }
     }
 
@@ -139,7 +138,6 @@ export async function PUT(
           trip: {
             select: {
               name: true,
-              destination: true,
               startDate: true,
               endDate: true,
             },

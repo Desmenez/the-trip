@@ -51,7 +51,6 @@ export async function GET() {
         trip: {
           select: {
             name: true,
-            destination: true,
           },
         },
       },
@@ -75,15 +74,14 @@ export async function GET() {
       const paidAmount = new Decimal(booking.paidAmount.toString());
       const totalAmount = new Decimal(booking.totalAmount.toString());
       const isFullyPaid = paidAmount.gte(totalAmount);
-      
+
       // Commission per booking is fixed amount (commissionPerHead)
       const commission = commissionPerHead.toNumber();
-      
+
       return {
         id: booking.id,
         customerName: `${booking.customer.firstNameTh} ${booking.customer.lastNameTh}`,
         tripName: booking.trip.name,
-        destination: booking.trip.destination,
         totalAmount: totalAmount.toNumber(),
         paidAmount: paidAmount.toNumber(),
         commission: commission, // Fixed amount per completed booking
@@ -107,4 +105,3 @@ export async function GET() {
     return new NextResponse("Internal Error", { status: 500 });
   }
 }
-

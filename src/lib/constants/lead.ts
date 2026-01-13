@@ -1,18 +1,9 @@
-// Lead enum values - synced with prisma/schema.prisma
-// Update this file when LeadStatus or LeadSource enum changes in schema
+// Lead enum values - synced with prisma/schema.prisma via Prisma enums
+// Importing Prisma enums keeps this file aligned with schema automatically
+import { LeadStatus, LeadSource } from "@prisma/client";
 
-// LeadStatus enum values (must match prisma/schema.prisma)
-export const LEAD_STATUS_VALUES = [
-  "NEW",
-  "CONTACTED",
-  "QUOTED",
-  "NEGOTIATING",
-  "CLOSED_WON",
-  "CLOSED_LOST",
-  "ABANDONED",
-] as const;
-
-export type LeadStatus = (typeof LEAD_STATUS_VALUES)[number];
+// LeadStatus enum values (derived from Prisma)
+export const LEAD_STATUS_VALUES = Object.values(LeadStatus) as LeadStatus[];
 
 // LeadStatus display labels mapping
 export const LEAD_STATUS_LABELS: Record<LeadStatus, string> = {
@@ -26,10 +17,10 @@ export const LEAD_STATUS_LABELS: Record<LeadStatus, string> = {
 };
 
 // Manual Lead Statuses (Agent can control)
-export const MANUAL_LEAD_STATUSES = ["NEW", "CONTACTED", "QUOTED", "NEGOTIATING"] as const;
+export const MANUAL_LEAD_STATUSES: LeadStatus[] = ["NEW", "CONTACTED", "QUOTED", "NEGOTIATING"];
 
 // System Lead Statuses (System manages automatically)
-export const SYSTEM_LEAD_STATUSES = ["CLOSED_WON", "CLOSED_LOST", "ABANDONED"] as const;
+export const SYSTEM_LEAD_STATUSES: LeadStatus[] = ["CLOSED_WON", "CLOSED_LOST", "ABANDONED"];
 
 // Helper function to get lead status label
 export function getLeadStatusLabel(status: string): string {
@@ -38,18 +29,16 @@ export function getLeadStatusLabel(status: string): string {
 
 // Helper function to check if status is manual
 export function isManualLeadStatus(status: string): boolean {
-  return MANUAL_LEAD_STATUSES.includes(status as any);
+  return MANUAL_LEAD_STATUSES.includes(status as LeadStatus);
 }
 
 // Helper function to check if status is system-managed
 export function isSystemLeadStatus(status: string): boolean {
-  return SYSTEM_LEAD_STATUSES.includes(status as any);
+  return SYSTEM_LEAD_STATUSES.includes(status as LeadStatus);
 }
 
-// LeadSource enum values (must match prisma/schema.prisma)
-export const LEAD_SOURCE_VALUES = ["WEBSITE", "WALKIN", "REFERRAL", "SOCIAL", "LINE", "OTHER"] as const;
-
-export type LeadSource = (typeof LEAD_SOURCE_VALUES)[number];
+// LeadSource enum values (derived from Prisma)
+export const LEAD_SOURCE_VALUES = Object.values(LeadSource) as LeadSource[];
 
 // LeadSource display labels mapping
 export const LEAD_SOURCE_LABELS: Record<LeadSource, string> = {

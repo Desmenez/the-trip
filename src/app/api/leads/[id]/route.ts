@@ -2,11 +2,9 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { Prisma } from "@prisma/client";
 
-export async function GET(
-  _request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions);
 
   if (!session) {
@@ -35,7 +33,6 @@ export async function GET(
             trip: {
               select: {
                 name: true,
-                destination: true,
                 startDate: true,
                 endDate: true,
               },
@@ -59,10 +56,7 @@ export async function GET(
   }
 }
 
-export async function PUT(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions);
 
   if (!session) {
@@ -76,15 +70,7 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const {
-      customerId,
-      source,
-      status,
-      potentialValue,
-      destinationInterest,
-      travelDateEstimate,
-      notes,
-    } = body;
+    const { customerId, source, status, potentialValue, destinationInterest, travelDateEstimate, notes } = body;
 
     // Check if lead has active bookings
     const activeBookings = await prisma.booking.count({
@@ -100,25 +86,18 @@ export async function PUT(
     if (activeBookings > 0 && status && ["CLOSED_WON", "CLOSED_LOST"].includes(status)) {
       return new NextResponse(
         "Cannot manually change status to CLOSED_WON or CLOSED_LOST when there are active bookings. Status is managed automatically.",
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     // Prepare update data
-    const updateData: any = {
-      customerId: customerId || undefined,
+    const updateData: Prisma.LeadUpdateInput = {
+      customer: customerId ? { connect: { id: customerId } } : undefined,
       source: source || undefined,
       potentialValue:
-        typeof potentialValue === "number"
-          ? potentialValue
-          : potentialValue
-          ? parseFloat(potentialValue)
-          : undefined,
-      destinationInterest:
-        destinationInterest !== undefined ? destinationInterest : undefined,
-      travelDateEstimate: travelDateEstimate
-        ? new Date(travelDateEstimate)
-        : undefined,
+        typeof potentialValue === "number" ? potentialValue : potentialValue ? parseFloat(potentialValue) : undefined,
+      destinationInterest: destinationInterest !== undefined ? destinationInterest : undefined,
+      travelDateEstimate: travelDateEstimate ? new Date(travelDateEstimate) : undefined,
       notes: notes !== undefined ? notes : undefined,
       lastActivityAt: new Date(), // Always update activity timestamp
     };
@@ -126,7 +105,7 @@ export async function PUT(
     // Add status if provided
     if (status) {
       updateData.status = status;
-      
+
       // Set closedAt when status changes to CLOSED_WON or CLOSED_LOST
       if (["CLOSED_WON", "CLOSED_LOST", "ABANDONED"].includes(status)) {
         updateData.closedAt = new Date();
@@ -144,4 +123,3 @@ export async function PUT(
     return new NextResponse("Internal Error", { status: 500 });
   }
 }
-

@@ -156,11 +156,10 @@ export async function POST(req: Request) {
         firstNameEn,
         lastNameEn,
         title: title || undefined,
-        nickname: nickname || undefined,
         email: email || undefined,
         phoneNumber: phoneNumber || undefined,
         lineId: lineId || undefined,
-        dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : undefined,
+        dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : new Date(),
         note: note || undefined,
         tags:
           tagIds && tagIds.length > 0

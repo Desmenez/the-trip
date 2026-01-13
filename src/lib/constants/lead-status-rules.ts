@@ -1,5 +1,5 @@
 // Lead status change validation rules
-import type { LeadStatus } from "./lead";
+import { LeadStatus } from "@prisma/client";
 import { isSystemLeadStatus, isManualLeadStatus } from "./lead";
 
 export interface StatusChangeResult {

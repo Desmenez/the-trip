@@ -14,7 +14,7 @@ import { useTagsParams, mapTagsParamsToQuery } from "./hooks/use-tags-params";
 import { toast } from "sonner";
 import { Loading } from "@/components/page/loading";
 import { TagSearch } from "./_components/tag-search";
-import { DeleteTagDialog } from "./_components/delete-tag-dialog";
+import { DeleteDialog } from "@/app/dashboard/_components/delete-dialog";
 
 interface Tag {
   id: string;
@@ -220,11 +220,13 @@ export default function TagsPage() {
         />
       </div>
 
-      <DeleteTagDialog
+      <DeleteDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
         onConfirm={() => deletingId && handleDelete(deletingId)}
         isDeleting={deleteTagMutation.isPending}
+        title="Are you sure?"
+        description="This action cannot be undone. This will permanently delete the tag and remove it from all customers."
       />
     </div>
   );

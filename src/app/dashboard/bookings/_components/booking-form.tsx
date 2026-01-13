@@ -193,8 +193,8 @@ export function BookingForm({
   const handleTripChange = (tripId: string) => {
     form.setValue("tripId", tripId);
     const selectedTrip = trips.find((t) => t.id === tripId);
-    if (selectedTrip && selectedTrip.price) {
-      form.setValue("totalAmount", selectedTrip.price.toString());
+    if (selectedTrip && selectedTrip.standardPrice) {
+      form.setValue("totalAmount", selectedTrip.standardPrice.toString());
     }
   };
 
@@ -350,7 +350,7 @@ export function BookingForm({
                     </Select>
                     {field.value === "no_lead" && (
                       <p className="text-[0.8rem] text-muted-foreground">
-                        A new "Walk-in" lead will be automatically created and marked as Closed Won.
+                        A new &quot;Walk-in&quot; lead will be automatically created and marked as Closed Won.
                       </p>
                     )}
                   </>
@@ -429,9 +429,9 @@ export function BookingForm({
                   </FormControl>
                   <SelectContent>
                     {trips.map((trip) => (
-                      <SelectItem key={trip.id} value={trip.id} disabled={trip._count.bookings >= trip.maxCapacity}>
+                      <SelectItem key={trip.id} value={trip.id} disabled={trip._count.bookings >= trip.pax}>
                         {trip.name} ({format(new Date(trip.startDate), "dd MMM")} - {format(new Date(trip.endDate), "dd MMM")}) 
-                        {trip._count.bookings >= trip.maxCapacity ? " [FULL]" : ""}
+                        {trip._count.bookings >= trip.pax ? " [FULL]" : ""}
                       </SelectItem>
                     ))}
                   </SelectContent>

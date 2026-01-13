@@ -19,12 +19,40 @@ export async function GET(req: Request) {
     const skip = (page - 1) * pageSize;
 
     // Build where clause
-    const where: any = {};
+    const where: {
+      OR?: Array<{
+        name?: { contains: string; mode: "insensitive" };
+        customers?: {
+          some: {
+            customer: {
+              OR: Array<{
+                firstNameTh?: { contains: string; mode: "insensitive" };
+                lastNameTh?: { contains: string; mode: "insensitive" };
+                firstNameEn?: { contains: string; mode: "insensitive" };
+                lastNameEn?: { contains: string; mode: "insensitive" };
+              }>;
+            };
+          };
+        };
+      }>;
+    } = {};
     if (search) {
       where.OR = [
         { name: { contains: search, mode: "insensitive" } },
-        { email: { contains: search, mode: "insensitive" } },
-        { phoneNumber: { contains: search, mode: "insensitive" } },
+        {
+          customers: {
+            some: {
+              customer: {
+                OR: [
+                  { firstNameTh: { contains: search, mode: "insensitive" } },
+                  { lastNameTh: { contains: search, mode: "insensitive" } },
+                  { firstNameEn: { contains: search, mode: "insensitive" } },
+                  { lastNameEn: { contains: search, mode: "insensitive" } },
+                ],
+              },
+            },
+          },
+        },
       ];
     }
 

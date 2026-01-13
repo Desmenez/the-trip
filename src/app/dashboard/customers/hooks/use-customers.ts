@@ -124,10 +124,10 @@ export interface FoodAllergy {
 
 interface CustomerTask {
   id: string;
-  title: string;
-  dueDate: string;
-  isCompleted: boolean;
-  priority: string;
+  topic: string;
+  deadline: string | null;
+  status: "TODO" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
+  contact: "CALL" | "LINE" | "MESSENGER" | null;
 }
 
 interface CustomerLeadSummary {
@@ -159,7 +159,6 @@ interface CustomerDetail extends Customer {
   addresses: Address[];
   passports: Passport[];
   foodAllergies: FoodAllergy[];
-  interactions: unknown[];
   leads: CustomerLeadSummary[];
   bookings: CustomerBookingSummary[];
   tasks: CustomerTask[];

@@ -2,7 +2,6 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CustomerInteractions } from "@/app/dashboard/customers/_components/customer-interactions";
 import { CustomerTasks } from "@/app/dashboard/customers/_components/customer-tasks";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -26,11 +25,11 @@ export function CustomerTabs({
 }: CustomerTabsProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const activeTab = searchParams.get("tab") || "interactions";
+  const activeTab = searchParams.get("tab") || "tasks";
 
   const handleTabChange = (value: string) => {
     const params = new URLSearchParams(searchParams.toString());
-    if (value === "interactions") {
+    if (value === "tasks") {
       params.delete("tab");
     } else {
       params.set("tab", value);
@@ -41,16 +40,11 @@ export function CustomerTabs({
 
   return (
     <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-      <TabsList className="grid w-full grid-cols-4">
-        <TabsTrigger value="interactions">Interactions</TabsTrigger>
+      <TabsList className="grid w-full grid-cols-3">
         <TabsTrigger value="tasks">Tasks</TabsTrigger>
         <TabsTrigger value="leads">Leads</TabsTrigger>
         <TabsTrigger value="bookings">Bookings</TabsTrigger>
       </TabsList>
-
-      <TabsContent value="interactions" className="mt-6">
-        <CustomerInteractions customerId={customerId} />
-      </TabsContent>
 
       <TabsContent value="tasks" className="mt-6">
         <CustomerTasks customerId={customerId} />

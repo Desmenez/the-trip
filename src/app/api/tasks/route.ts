@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { TaskStatus, ContactType, Prisma } from "@prisma/client";
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
@@ -12,31 +13,54 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json();
-    const { title, description, dueDate, priority, relatedCustomerId } = body;
+    const { topic, description, deadline, status, contact, relatedCustomerId, userId } = body;
 
-    if (!title || !dueDate) {
-      return new NextResponse("Title and Due Date are required", { status: 400 });
+    if (!topic) {
+      return new NextResponse("Topic is required", { status: 400 });
     }
 
     const task = await prisma.task.create({
       data: {
-        agentId: session.user.id,
-        title,
-        description,
-        dueDate: new Date(dueDate),
-        priority: priority || "MEDIUM",
-        relatedCustomerId,
+        topic,
+        description: description || null,
+        deadline: deadline ? new Date(deadline) : null,
+        status: (status && Object.values(TaskStatus).includes(status as TaskStatus))
+          ? (status as TaskStatus)
+          : TaskStatus.TODO,
+        contact: (contact && Object.values(ContactType).includes(contact as ContactType))
+          ? (contact as ContactType)
+          : null,
+        relatedCustomerId: relatedCustomerId || null,
+        userId: userId || session.user.id,
+      },
+      include: {
+        relatedCustomer: {
+          select: {
+            id: true,
+            firstNameTh: true,
+            lastNameTh: true,
+            firstNameEn: true,
+            lastNameEn: true,
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
       },
     });
 
-    // Create notification for the agent
+    // Create notification for the user
     await prisma.notification.create({
       data: {
-        userId: session.user.id,
+        userId: userId || session.user.id,
         type: "SYSTEM",
         title: "New Task Created",
-        message: `Task "${title}" has been created successfully.`,
-        link: relatedCustomerId ? `/dashboard/customers/${relatedCustomerId}?tab=tasks` : undefined,
+        message: `Task "${topic}" has been created successfully.`,
+        link: relatedCustomerId ? `/dashboard/customers/${relatedCustomerId}?tab=tasks` : "/dashboard/tasks",
         entityId: task.id,
       },
     });
@@ -60,33 +84,49 @@ export async function GET(req: Request) {
     const page = parseInt(searchParams.get("page") || "1", 10);
     const pageSize = parseInt(searchParams.get("pageSize") || "10", 10);
     const customerId = searchParams.get("customerId") || "";
-    const isCompleted = searchParams.get("isCompleted");
+    const status = searchParams.get("status");
+    const contact = searchParams.get("contact");
+    const userId = searchParams.get("userId");
 
-    const where: {
-      agentId: string;
-      relatedCustomerId?: string;
-      isCompleted?: boolean;
-    } = {
-      agentId: session.user.id,
+    // Build where clause with proper types
+    const where: Prisma.TaskWhereInput = {
+      ...(userId
+        ? { userId }
+        : !["SUPER_ADMIN", "ADMIN"].includes(session.user.role)
+          ? { userId: session.user.id }
+          : {}),
+      ...(customerId ? { relatedCustomerId: customerId } : {}),
+      ...(status && Object.values(TaskStatus).includes(status as TaskStatus)
+        ? { status: status as TaskStatus }
+        : {}),
+      ...(contact && Object.values(ContactType).includes(contact as ContactType)
+        ? { contact: contact as ContactType }
+        : {}),
     };
-
-    if (customerId) {
-      where.relatedCustomerId = customerId;
-    }
-
-    if (isCompleted !== null && isCompleted !== undefined) {
-      where.isCompleted = isCompleted === "true";
-    }
 
     const [tasks, total] = await Promise.all([
       prisma.task.findMany({
         where,
-        orderBy: {
-          dueDate: "asc",
-        },
+        orderBy: [
+          { deadline: "asc" },
+          { createdAt: "desc" },
+        ],
         include: {
-          agent: {
-            select: { firstName: true, lastName: true },
+          relatedCustomer: {
+            select: {
+              id: true,
+              firstNameTh: true,
+              lastNameTh: true,
+              firstNameEn: true,
+              lastNameEn: true,
+            },
+          },
+          user: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+            },
           },
         },
         skip: (page - 1) * pageSize,
