@@ -15,7 +15,7 @@ export async function GET() {
       customerCount,
       activeLeadsCount,
       pendingBookingsCount,
-      totalRevenue,
+      bookingsForRevenue,
       recentLeads,
       recentBookings
     ] = await Promise.all([
@@ -29,16 +29,35 @@ export async function GET() {
       }),
       prisma.booking.count({
         where: {
-          status: "PENDING",
+          paymentStatus: "DEPOSIT_PENDING",
         },
       }),
-      prisma.booking.aggregate({
-        _sum: {
-          totalAmount: true,
-        },
+      prisma.booking.findMany({
         where: {
-          status: {
-            in: ["CONFIRMED", "COMPLETED"],
+          paymentStatus: {
+            in: ["DEPOSIT_PAID", "FULLY_PAID"],
+          },
+        },
+        include: {
+          trip: {
+            select: {
+              standardPrice: true,
+            },
+          },
+          firstPayment: {
+            select: {
+              amount: true,
+            },
+          },
+          secondPayment: {
+            select: {
+              amount: true,
+            },
+          },
+          thirdPayment: {
+            select: {
+              amount: true,
+            },
           },
         },
       }),
@@ -54,11 +73,19 @@ export async function GET() {
       }),
     ]);
 
+    // Calculate total revenue from paid amounts
+    const totalRevenue = bookingsForRevenue.reduce((sum, booking) => {
+      const firstAmount = booking.firstPayment ? Number(booking.firstPayment.amount) : 0;
+      const secondAmount = booking.secondPayment ? Number(booking.secondPayment.amount) : 0;
+      const thirdAmount = booking.thirdPayment ? Number(booking.thirdPayment.amount) : 0;
+      return sum + firstAmount + secondAmount + thirdAmount;
+    }, 0);
+
     return NextResponse.json({
       customerCount,
       activeLeadsCount,
       pendingBookingsCount,
-      totalRevenue: totalRevenue._sum.totalAmount || 0,
+      totalRevenue,
       recentLeads,
       recentBookings,
     });

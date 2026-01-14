@@ -30,7 +30,16 @@ export async function GET() {
               },
               take: 1,
               include: {
-                lead: true,
+                salesUser: {
+                  select: {
+                    id: true,
+                  },
+                },
+                agent: {
+                  select: {
+                    id: true,
+                  },
+                },
               },
             },
           },
@@ -50,8 +59,10 @@ export async function GET() {
       
       if (passport.customer.leads.length > 0) {
         agentId = passport.customer.leads[0]?.agentId;
-      } else if (passport.customer.bookings.length > 0 && passport.customer.bookings[0]?.lead) {
-        agentId = passport.customer.bookings[0].lead.agentId;
+      } else if (passport.customer.bookings.length > 0) {
+        const booking = passport.customer.bookings[0];
+        // Use salesUser (SALES role) or agent from booking
+        agentId = booking.salesUser?.id || booking.agent?.id;
       }
 
       if (agentId) {
@@ -98,7 +109,9 @@ export async function GET() {
       include: {
         bookings: {
           where: {
-            status: "CONFIRMED",
+            paymentStatus: {
+              in: ["DEPOSIT_PAID", "FULLY_PAID"],
+            },
           },
           include: {
             customer: {
@@ -111,7 +124,16 @@ export async function GET() {
                 },
               },
             },
-            lead: true,
+            salesUser: {
+              select: {
+                id: true,
+              },
+            },
+            agent: {
+              select: {
+                id: true,
+              },
+            },
           },
         },
       },
@@ -123,13 +145,15 @@ export async function GET() {
       for (const booking of trip.bookings) {
         // Determine the agent to notify
         // Strategy:
-        // 1. Use agent from booking's lead
-        // 2. If no booking lead, use agent from customer's most recent lead
-        // 3. If no lead, use agent from customer's most recent interaction
+        // 1. Use salesUser (SALES role) from booking
+        // 2. If no salesUser, use agent from booking
+        // 3. If no booking agent, use agent from customer's most recent lead
         let agentId: string | undefined;
         
-        if (booking.lead) {
-          agentId = booking.lead.agentId;
+        if (booking.salesUser?.id) {
+          agentId = booking.salesUser.id;
+        } else if (booking.agent?.id) {
+          agentId = booking.agent.id;
         } else if (booking.customer.leads.length > 0) {
           agentId = booking.customer.leads[0]?.agentId;
         }

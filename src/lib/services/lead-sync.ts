@@ -1,21 +1,18 @@
 import { prisma } from "@/lib/prisma";
-import { LeadStatus, BookingStatus } from "@prisma/client";
+import { LeadStatus, PaymentStatus } from "@prisma/client";
 import { MANUAL_LEAD_STATUSES, SYSTEM_LEAD_STATUSES } from "@/lib/constants/lead";
 
 /**
- * Sync Lead status based on associated Bookings
+ * Sync Lead status based on associated Bookings (through customer)
  * @param leadId - Lead ID to sync
  */
 export async function syncLeadStatusFromBooking(leadId: string) {
   const lead = await prisma.lead.findUnique({
     where: { id: leadId },
-    include: {
-      bookings: {
-        select: {
-          id: true,
-          status: true,
-        },
-      },
+    select: {
+      id: true,
+      customerId: true,
+      status: true,
     },
   });
 
@@ -23,12 +20,30 @@ export async function syncLeadStatusFromBooking(leadId: string) {
     throw new Error("Lead not found");
   }
 
-  // Check if all bookings are completed
-  const allCompleted = lead.bookings.length > 0 && 
-    lead.bookings.every((booking) => booking.status === "COMPLETED");
+  // If lead doesn't have a customer, can't sync from bookings
+  if (!lead.customerId) {
+    return lead.status;
+  }
 
-  // If all bookings are completed → COMPLETED
-  if (allCompleted && lead.status !== "COMPLETED") {
+  // Find bookings for this customer
+  const bookings = await prisma.booking.findMany({
+    where: {
+      customerId: lead.customerId,
+    },
+    select: {
+      paymentStatus: true,
+    },
+  });
+
+  if (bookings.length === 0) {
+    return lead.status;
+  }
+
+  // Check if all bookings are fully paid (equivalent to completed)
+  const allFullyPaid = bookings.every((booking) => booking.paymentStatus === "FULLY_PAID");
+
+  // If all bookings are fully paid → COMPLETED
+  if (allFullyPaid && lead.status !== "COMPLETED") {
     await prisma.lead.update({
       where: { id: leadId },
       data: {
@@ -38,12 +53,12 @@ export async function syncLeadStatusFromBooking(leadId: string) {
     return "COMPLETED";
   }
 
-  // If has active booking (confirmed or pending) → BOOKED
-  const hasConfirmedOrPending = lead.bookings.some((booking) =>
-    ["PENDING", "CONFIRMED"].includes(booking.status)
+  // If has active booking (deposit paid or fully paid) → BOOKED
+  const hasActiveBooking = bookings.some((booking) =>
+    ["DEPOSIT_PAID", "FULLY_PAID"].includes(booking.paymentStatus)
   );
 
-  if (hasConfirmedOrPending && lead.status !== "BOOKED") {
+  if (hasActiveBooking && lead.status !== "BOOKED") {
     await prisma.lead.update({
       where: { id: leadId },
       data: {
@@ -53,11 +68,8 @@ export async function syncLeadStatusFromBooking(leadId: string) {
     return "BOOKED";
   }
 
-  // If all bookings are cancelled/refunded → CANCELLED
-  const allCancelled = lead.bookings.length > 0 && 
-    lead.bookings.every((booking) =>
-      ["CANCELLED", "REFUNDED"].includes(booking.status)
-    );
+  // If all bookings are cancelled → CANCELLED
+  const allCancelled = bookings.every((booking) => booking.paymentStatus === "CANCELLED");
 
   if (allCancelled && lead.status !== "CANCELLED") {
     await prisma.lead.update({
@@ -103,12 +115,10 @@ export async function autoUpdateLeadToClosedWon(leadId: string) {
 export async function autoUpdateLeadToClosedLost(leadId: string) {
   const lead = await prisma.lead.findUnique({
     where: { id: leadId },
-    include: {
-      bookings: {
-        select: {
-          status: true,
-        },
-      },
+    select: {
+      id: true,
+      customerId: true,
+      status: true,
     },
   });
 
@@ -116,9 +126,24 @@ export async function autoUpdateLeadToClosedLost(leadId: string) {
     throw new Error("Lead not found");
   }
 
+  // If lead doesn't have a customer, can't check bookings
+  if (!lead.customerId) {
+    return;
+  }
+
+  // Find bookings for this customer
+  const bookings = await prisma.booking.findMany({
+    where: {
+      customerId: lead.customerId,
+    },
+    select: {
+      paymentStatus: true,
+    },
+  });
+
   // Check if there are any active bookings
-  const hasActiveBooking = lead.bookings.some((booking) =>
-    ["PENDING", "CONFIRMED", "COMPLETED"].includes(booking.status)
+  const hasActiveBooking = bookings.some((booking) =>
+    ["DEPOSIT_PAID", "FULLY_PAID"].includes(booking.paymentStatus)
   );
 
   // Only update to CANCELLED if no active bookings
@@ -176,23 +201,28 @@ export async function checkAbandonedLeads() {
 export async function canUpdateLeadStatus(leadId: string): Promise<boolean> {
   const lead = await prisma.lead.findUnique({
     where: { id: leadId },
-    include: {
-      bookings: {
-        where: {
-          status: {
-            in: ["PENDING", "CONFIRMED", "COMPLETED"] as BookingStatus[],
-          },
-        },
+    select: {
+      id: true,
+      customerId: true,
+    },
+  });
+
+  if (!lead || !lead.customerId) {
+    return true; // Can update if no customer
+  }
+
+  // Find active bookings for this customer
+  const activeBookings = await prisma.booking.findMany({
+    where: {
+      customerId: lead.customerId,
+      paymentStatus: {
+        in: ["DEPOSIT_PAID", "FULLY_PAID"] as PaymentStatus[],
       },
     },
   });
 
-  if (!lead) {
-    return false;
-  }
-
   // Cannot update if there are active bookings
-  return lead.bookings.length === 0;
+  return activeBookings.length === 0;
 }
 
 /**

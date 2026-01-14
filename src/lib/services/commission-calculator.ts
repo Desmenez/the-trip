@@ -198,9 +198,10 @@ export async function getAgentCommissionSummary(agentId: string) {
     include: {
       booking: {
         select: {
-          totalAmount: true,
-          paidAmount: true,
-          status: true,
+          paymentStatus: true,
+          firstPayment: { select: { amount: true } },
+          secondPayment: { select: { amount: true } },
+          thirdPayment: { select: { amount: true } },
         },
       },
     },

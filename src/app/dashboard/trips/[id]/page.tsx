@@ -112,25 +112,19 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
         ),
       },
       {
-        accessorKey: "status",
+        accessorKey: "paymentStatus",
         header: "Status",
-        cell: ({ row }) => <Badge variant={getStatusColor(row.original.status)}>{row.original.status}</Badge>,
-      },
-      {
-        accessorKey: "totalAmount",
-        header: "Total Amount",
-        cell: ({ row }) => formatDecimal(row.original.totalAmount),
-      },
-      {
-        accessorKey: "paidAmount",
-        header: "Paid Amount",
-        cell: ({ row }) => formatDecimal(row.original.paidAmount),
+        cell: ({ row }) => (
+          <Badge variant={getStatusColor(row.original.paymentStatus)}>{row.original.paymentStatus}</Badge>
+        ),
       },
       {
         id: "remaining",
         header: "Remaining",
         cell: ({ row }) => {
-          const remaining = Number(row.original.totalAmount) - Number(row.original.paidAmount);
+          const remaining =
+            Number(row.original.payments?.reduce((acc, curr) => acc + curr.amount, 0) ?? 0) -
+            Number(row.original.payments?.reduce((acc, curr) => acc + curr.amount, 0) ?? 0);
           return remaining > 0 ? (
             <span className="font-medium text-orange-600">{formatDecimal(remaining)}</span>
           ) : (

@@ -414,9 +414,6 @@ export function BookingForm({ mode, initialData, onSubmit, onCancel, isLoading =
     }
   }, [trips, initialData?.tripId, mode, form]);
 
-  console.log({ initialData });
-  console.log({ formValues: form.getValues() });
-
   const handleTripChange = (newTripId: string) => {
     form.setValue("tripId", newTripId);
     // Clear companion customers when trip changes
@@ -470,8 +467,6 @@ export function BookingForm({ mode, initialData, onSubmit, onCancel, isLoading =
       console.error("Failed to create customer:", error);
     }
   };
-
-  console.log({ formValues: form.getValues() });
 
   return (
     <Form {...form}>

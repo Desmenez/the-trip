@@ -70,9 +70,9 @@ export async function POST(req: Request) {
       // 4. Update Booking with paymentId
       const updateData: Prisma.BookingUpdateInput = {};
       if (paymentType === "secondPayment") {
-        updateData.secondPaymentId = payment.id as unknown as string;
+        updateData.secondPayment = { connect: { id: payment.id } };
       } else if (paymentType === "thirdPayment") {
-        updateData.thirdPaymentId = payment.id as unknown as string;
+        updateData.thirdPayment = { connect: { id: payment.id } };
       }
 
       // 5. Get all payments to calculate total paid
@@ -129,13 +129,8 @@ export async function POST(req: Request) {
         const extraSingle = bookingWithDetails.extraPriceForSingleTraveller
           ? Number(bookingWithDetails.extraPriceForSingleTraveller)
           : 0;
-        const extraBedPrice =
-          bookingWithDetails.extraBed && bookingWithDetails.extraPricePerBed
-            ? Number(bookingWithDetails.extraPricePerBed)
-            : 0;
-        const extraSeatPrice = bookingWithDetails.extraPricePerSeat
-          ? Number(bookingWithDetails.extraPricePerSeat)
-          : 0;
+        const extraBedPrice = bookingWithDetails.extraPricePerBed ? Number(bookingWithDetails.extraPricePerBed) : 0;
+        const extraSeatPrice = bookingWithDetails.extraPricePerSeat ? Number(bookingWithDetails.extraPricePerSeat) : 0;
         const extraBagPrice = bookingWithDetails.extraPricePerBag ? Number(bookingWithDetails.extraPricePerBag) : 0;
         const discount = bookingWithDetails.discountPrice ? Number(bookingWithDetails.discountPrice) : 0;
         const totalAmount = basePrice + extraSingle + extraBedPrice + extraSeatPrice + extraBagPrice - discount;

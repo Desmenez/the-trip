@@ -362,7 +362,7 @@ export default function BookingsPage() {
           value={paymentStatus}
           onValueChange={(value) => {
             setPaymentStatus(value);
-            updateSearchParams({ status: value, page: 1 });
+            updateSearchParams({ paymentStatus: value, page: 1 });
           }}
         >
           <SelectTrigger className="w-40">

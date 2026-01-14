@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { BookingForm, BookingFormValues } from "../_components/booking-form";
 import { useCreateBooking } from "../hooks/use-bookings";
+import { toast } from "sonner";
 
 export default function NewBookingPage() {
   const router = useRouter();
@@ -20,7 +21,6 @@ export default function NewBookingPage() {
         tripId: values.tripId,
         salesUserId: values.salesUserId,
         companionCustomerIds: values.companionCustomerIds,
-        agentId: values.agentId,
         note: values.note,
         extraPriceForSingleTraveller: values.extraPriceForSingleTraveller
           ? parseFloat(values.extraPriceForSingleTraveller)
@@ -43,16 +43,15 @@ export default function NewBookingPage() {
       });
       router.push("/dashboard/bookings");
       router.refresh();
-    } catch (error) {
-      // Error is already handled in the mutation's onError
-      console.error(error);
+    } catch {
+      toast.error("Failed to create booking");
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="p-8 space-y-8 max-w-2xl mx-auto">
+    <div className="mx-auto max-w-2xl space-y-8 p-8">
       <div className="flex items-center space-x-4">
         <Button variant="ghost" size="icon" onClick={() => router.back()}>
           <ArrowLeft className="h-4 w-4" />
@@ -60,7 +59,7 @@ export default function NewBookingPage() {
         <h2 className="text-3xl font-bold tracking-tight">New Booking</h2>
       </div>
 
-      <div className="rounded-md border p-6 bg-card">
+      <div className="bg-card rounded-md border p-6">
         <BookingForm
           mode="create"
           onSubmit={handleSubmit}

@@ -29,6 +29,20 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
             lastNameEn: true,
             email: true,
             phoneNumber: true,
+            bookings: {
+              include: {
+                trip: {
+                  select: {
+                    name: true,
+                    startDate: true,
+                    endDate: true,
+                  },
+                },
+              },
+              orderBy: {
+                createdAt: "desc",
+              },
+            },
           },
         },
         agent: {
@@ -47,20 +61,6 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
             email: true,
           },
         },
-        bookings: {
-          include: {
-            trip: {
-              select: {
-                name: true,
-                startDate: true,
-                endDate: true,
-              },
-            },
-          },
-          orderBy: {
-            createdAt: "desc",
-          },
-        },
       },
     });
 
@@ -68,7 +68,13 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
       return new NextResponse("Not Found", { status: 404 });
     }
 
-    return NextResponse.json(lead);
+    // Transform the response to include bookings at the lead level for backward compatibility
+    const response = {
+      ...lead,
+      bookings: lead.customer?.bookings || [],
+    };
+
+    return NextResponse.json(response);
   } catch (error) {
     console.error("[LEAD_GET]", error);
     return new NextResponse("Internal Error", { status: 500 });

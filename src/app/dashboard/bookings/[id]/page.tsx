@@ -26,24 +26,27 @@ export default function ViewBookingPage({
         tripId: booking.tripId || "",
         salesUserId: booking.salesUserId || "",
         companionCustomerIds: booking.companionCustomers?.map((c) => c.id) || [],
-        agentId: booking.agentId || "",
         note: booking.note || "",
         extraPriceForSingleTraveller: booking.extraPriceForSingleTraveller?.toString() || "",
-        roomType: booking.roomType || "DOUBLE_BED",
-        extraBed: booking.extraBed || false,
+        roomType: (booking.roomType as "DOUBLE_BED" | "TWIN_BED") || "DOUBLE_BED",
         extraPricePerBed: booking.extraPricePerBed?.toString() || "0",
         roomNote: booking.roomNote || "",
-        seatType: booking.seatType || "WINDOW",
-        seatClass: booking.seatClass || undefined,
-        extraPricePerSeat: booking.extraPricePerSeat?.toString() || "",
+        seatType: (booking.seatType as "WINDOW" | "MIDDLE" | "AISLE") ?? "WINDOW",
+        seatClass: booking.seatClass
+          ? (booking.seatClass as "FIRST_CLASS" | "BUSINESS_CLASS" | "LONG_LEG")
+          : undefined,
+        extraPricePerSeat: booking.extraPricePerSeat?.toString() ?? "",
         seatNote: booking.seatNote || "",
         extraPricePerBag: booking.extraPricePerBag?.toString() || "",
         bagNote: booking.bagNote || "",
         discountPrice: booking.discountPrice?.toString() || "",
         discountNote: booking.discountNote || "",
-        paymentStatus: booking.paymentStatus || "DEPOSIT_PENDING",
-        firstPaymentRatio: booking.firstPaymentRatio || "FIRST_PAYMENT_50",
+        paymentStatus: (booking.paymentStatus as "DEPOSIT_PENDING" | "DEPOSIT_PAID" | "FULLY_PAID" | "CANCELLED") ?? "DEPOSIT_PENDING",
+        firstPaymentRatio: (booking.firstPaymentRatio as "FIRST_PAYMENT_100" | "FIRST_PAYMENT_50" | "FIRST_PAYMENT_30") ?? "FIRST_PAYMENT_50",
         firstPaymentAmount: booking.firstPayment?.amount.toString() || "",
+        firstPaymentProof: booking.firstPaymentId && booking.payments
+          ? booking.payments.find((p) => p.id === booking.firstPaymentId)?.proofOfPayment ?? undefined
+          : undefined,
       }
     : undefined;
 

@@ -223,7 +223,6 @@ export default function AccountPage() {
       toast.success("Verification email sent to new email address");
       
       if (process.env.NODE_ENV === "development" && data.verificationUrl) {
-        console.log("Verification URL:", data.verificationUrl);
         toast.info("Check console for verification URL (development mode)");
       }
 
