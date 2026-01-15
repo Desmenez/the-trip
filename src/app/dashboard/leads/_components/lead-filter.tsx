@@ -89,56 +89,58 @@ export function LeadFilter({ onFilterChange }: LeadFilterProps) {
   };
 
   return (
-    <div className="flex items-center justify-end gap-4">
-      {/* Status filter */}
-      <Select
-        value={status}
-        onValueChange={(value) => {
-          setStatus(value);
-          pushWithParams({ status: value, page: 1 });
-        }}
-      >
-        <SelectTrigger className="w-40">
-          <SelectValue placeholder="Status" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="ALL">All Status</SelectItem>
-          {LEAD_STATUS_VALUES.map((status) => (
-            <SelectItem key={status} value={status}>
-              {LEAD_STATUS_LABELS[status]}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+    <div className="flex flex-col items-end justify-end gap-4 lg:flex-row">
+      <div className="flex w-full flex-col gap-4 lg:w-auto md:flex-row">
+        {/* Status filter */}
+        <Select
+          value={status}
+          onValueChange={(value) => {
+            setStatus(value);
+            pushWithParams({ status: value, page: 1 });
+          }}
+        >
+          <SelectTrigger className="w-full lg:w-40">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">All Status</SelectItem>
+            {LEAD_STATUS_VALUES.map((status) => (
+              <SelectItem key={status} value={status}>
+                {LEAD_STATUS_LABELS[status]}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
-      {/* Source filter */}
-      <Select
-        value={source}
-        onValueChange={(value) => {
-          setSource(value);
-          pushWithParams({ source: value, page: 1 });
-        }}
-      >
-        <SelectTrigger className="w-40">
-          <SelectValue placeholder="Source" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="ALL">All Sources</SelectItem>
-          {LEAD_SOURCE_VALUES.map((source) => (
-            <SelectItem key={source} value={source}>
-              {LEAD_SOURCE_LABELS[source]}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+        {/* Source filter */}
+        <Select
+          value={source}
+          onValueChange={(value) => {
+            setSource(value);
+            pushWithParams({ source: value, page: 1 });
+          }}
+        >
+          <SelectTrigger className="w-full lg:w-40">
+            <SelectValue placeholder="Source" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">All Sources</SelectItem>
+            {LEAD_SOURCE_VALUES.map((source) => (
+              <SelectItem key={source} value={source}>
+                {LEAD_SOURCE_LABELS[source]}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
       {/* Search by customer name */}
-      <div className="relative w-100">
+      <div className="relative w-full lg:w-100">
         <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
         <Input
           type="text"
           placeholder="Search by name, trip interest, or sales name..."
-          className="pr-9 pl-9"
+          className="w-full pr-9 pl-9 lg:w-full lg:max-w-sm"
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
         />

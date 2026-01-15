@@ -68,13 +68,13 @@ export function AirlineAndAirportFilter({ onFilterChange }: AirlineAndAirportFil
   return (
     <div className="flex items-center justify-end gap-4">
       {/* Search */}
-      <div className="relative flex-1 max-w-sm">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+      <div className="relative w-full flex-1 md:max-w-sm">
+        <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
         <Input
           placeholder="Search by code or name..."
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
-          className="pl-9"
+          className="w-full pl-9 md:w-full md:max-w-sm"
         />
       </div>
     </div>

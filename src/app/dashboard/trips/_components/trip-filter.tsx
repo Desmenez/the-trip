@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CalendarIcon, Search, X } from "lucide-react";
@@ -12,7 +11,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { useDebounce } from "@/hooks/use-debounce";
 
-interface CustomerFilterProps {
+interface TripFilterProps {
   onFilterChange?: () => void;
 }
 
@@ -20,23 +19,23 @@ type UpdateParams = {
   page?: number;
   pageSize?: number;
   search?: string;
-  passportExpiryFrom?: string;
-  passportExpiryTo?: string;
+  startDateFrom?: string;
+  startDateTo?: string;
 };
 
-export function CustomerFilter({ onFilterChange }: CustomerFilterProps) {
+export function TripFilter({ onFilterChange }: TripFilterProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   // Initial values from URL
   const searchQuery = searchParams.get("search") || "";
-  const passportExpiryFrom = searchParams.get("passportExpiryFrom") || "";
-  const passportExpiryTo = searchParams.get("passportExpiryTo") || "";
+  const startDateFromQuery = searchParams.get("startDateFrom") || "";
+  const startDateToQuery = searchParams.get("startDateTo") || "";
 
   // Local state (init จาก URL แค่ตอน mount)
   const [searchInput, setSearchInput] = useState(searchQuery);
-  const [expiryFrom, setExpiryFrom] = useState(passportExpiryFrom);
-  const [expiryTo, setExpiryTo] = useState(passportExpiryTo);
+  const [startDateFrom, setStartDateFrom] = useState(startDateFromQuery);
+  const [startDateTo, setStartDateTo] = useState(startDateToQuery);
 
   // Debounced search
   const debouncedSearch = useDebounce(searchInput, 500);
@@ -59,8 +58,8 @@ export function CustomerFilter({ onFilterChange }: CustomerFilterProps) {
     setParam("page", updates.page?.toString(), "1");
     setParam("pageSize", updates.pageSize?.toString(), "10");
     setParam("search", updates.search);
-    setParam("passportExpiryFrom", updates.passportExpiryFrom);
-    setParam("passportExpiryTo", updates.passportExpiryTo);
+    setParam("startDateFrom", updates.startDateFrom);
+    setParam("startDateTo", updates.startDateTo);
 
     const qs = params.toString();
     return qs ? `?${qs}` : "";
@@ -68,7 +67,7 @@ export function CustomerFilter({ onFilterChange }: CustomerFilterProps) {
 
   const pushWithParams = (updates: UpdateParams) => {
     const newQuery = buildQueryString(updates);
-    router.push(`/dashboard/customers${newQuery}`, { scroll: false });
+    router.push(`/dashboard/trips${newQuery}`, { scroll: false });
     onFilterChange?.();
   };
 
@@ -79,67 +78,53 @@ export function CustomerFilter({ onFilterChange }: CustomerFilterProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedSearch, searchQuery]);
 
+  // Sync URL → local state (รองรับ back/forward / external change)
+  useEffect(() => {
+    setSearchInput(searchQuery);
+    setStartDateFrom(startDateFromQuery);
+    setStartDateTo(startDateToQuery);
+  }, [searchQuery, startDateFromQuery, startDateToQuery]);
+
   return (
-    <div className="flex flex-col items-center justify-end gap-4 md:flex-row">
-      {/* Filter: Passport expiry range */}
+    <div className="flex flex-col items-end justify-end gap-4 md:flex-row">
+      {/* Filter: Trip start date range */}
       <Popover>
-        <div className="relative w-full md:w-[260px]">
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className={cn(
-                "w-full justify-start pr-8 text-left font-normal md:w-[260px]",
-                !expiryFrom && !expiryTo && "text-muted-foreground",
-              )}
-            >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {expiryFrom || expiryTo ? (
-                <span className="truncate">
-                  {expiryFrom ? format(new Date(expiryFrom), "dd MMM yyyy") : "..."} -{" "}
-                  {expiryTo ? format(new Date(expiryTo), "dd MMM yyyy") : "..."}
-                </span>
-              ) : (
-                "Passport expiry range"
-              )}
-            </Button>
-          </PopoverTrigger>
-          {(expiryFrom || expiryTo) && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute top-1/2 right-1 h-7 w-7 -translate-y-1/2"
-              onClick={(e) => {
-                e.stopPropagation();
-                setExpiryFrom("");
-                setExpiryTo("");
-                pushWithParams({
-                  passportExpiryFrom: "",
-                  passportExpiryTo: "",
-                  page: 1,
-                });
-              }}
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
-        <PopoverContent className="w-auto p-0" align="center">
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            className={cn(
+              "w-full justify-start text-left font-normal md:w-[260px]",
+              !startDateFrom && !startDateTo && "text-muted-foreground",
+            )}
+          >
+            <CalendarIcon className="mr-2 h-4 w-4" />
+            {startDateFrom || startDateTo ? (
+              <span className="truncate">
+                {startDateFrom ? format(new Date(startDateFrom), "dd MMM yyyy") : "..."} -{" "}
+                {startDateTo ? format(new Date(startDateTo), "dd MMM yyyy") : "..."}
+              </span>
+            ) : (
+              "Trip start date range"
+            )}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0" align="end">
           <Calendar
             captionLayout="dropdown"
             mode="range"
             numberOfMonths={2}
             selected={{
-              from: expiryFrom ? new Date(expiryFrom) : undefined,
-              to: expiryTo ? new Date(expiryTo) : undefined,
+              from: startDateFrom ? new Date(startDateFrom) : undefined,
+              to: startDateTo ? new Date(startDateTo) : undefined,
             }}
             onSelect={(range) => {
               const from = range?.from ? format(range.from, "yyyy-MM-dd") : "";
               const to = range?.to ? format(range.to, "yyyy-MM-dd") : "";
-              setExpiryFrom(from);
-              setExpiryTo(to);
+              setStartDateFrom(from);
+              setStartDateTo(to);
               pushWithParams({
-                passportExpiryFrom: from,
-                passportExpiryTo: to,
+                startDateFrom: from,
+                startDateTo: to,
                 page: 1,
               });
             }}
@@ -151,11 +136,12 @@ export function CustomerFilter({ onFilterChange }: CustomerFilterProps) {
       </Popover>
 
       {/* Search */}
-      <div className="relative w-full md:w-80">
+      <div className="relative w-full flex-1 md:max-w-sm">
         <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
         <Input
-          placeholder="Search by name, email, or phone..."
-          className="w-full pr-9 pl-9 md:w-80"
+          type="text"
+          placeholder="Search trip name..."
+          className="w-full pr-9 pl-9 md:w-full md:max-w-sm"
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
         />

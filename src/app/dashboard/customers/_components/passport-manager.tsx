@@ -161,7 +161,7 @@ export function PassportManager({ customerId, passports }: PassportManagerProps)
                       <div className="text-red-500">Expires: {format(new Date(passport.expiryDate), "PP")}</div>
                     </div>
                   </div>
-                  <div className="flex gap-2 opacity-0 transition-opacity group-hover:opacity-100">
+                  <div className="flex gap-2 transition-opacity md:opacity-0 md:group-hover:opacity-100">
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleView(passport)}>
                       <Eye className="h-4 w-4" />
                     </Button>

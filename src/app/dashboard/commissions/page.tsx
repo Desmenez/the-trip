@@ -234,6 +234,11 @@ export default function CommissionsPage() {
           setCreatedAtTo(value);
           updateSearchParams({ createdAtTo: value });
         }}
+        onDateRangeChange={(from, to) => {
+          setCreatedAtFrom(from);
+          setCreatedAtTo(to);
+          updateSearchParams({ createdAtFrom: from, createdAtTo: to });
+        }}
       />
 
       {/* Table */}

@@ -32,7 +32,7 @@ export function TagSearch({ search, onSearchChange }: TagSearchProps) {
   };
 
   return (
-    <div className="relative w-80">
+    <div className="relative w-full md:w-80">
       <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
       <Input
         type="text"

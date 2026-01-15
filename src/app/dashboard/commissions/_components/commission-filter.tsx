@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { format } from "date-fns";
 import { CalendarIcon, X, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -16,6 +15,7 @@ interface CommissionFilterProps {
   createdAtTo: string;
   onCreatedAtFromChange: (value: string) => void;
   onCreatedAtToChange: (value: string) => void;
+  onDateRangeChange?: (from: string, to: string) => void;
 }
 
 export function CommissionFilter({
@@ -25,10 +25,8 @@ export function CommissionFilter({
   createdAtTo,
   onCreatedAtFromChange,
   onCreatedAtToChange,
+  onDateRangeChange,
 }: CommissionFilterProps) {
-  const [fromDateOpen, setFromDateOpen] = useState(false);
-  const [toDateOpen, setToDateOpen] = useState(false);
-
   const handleClearFilters = () => {
     onSearchChange("");
     onCreatedAtFromChange("");
@@ -38,75 +36,77 @@ export function CommissionFilter({
   const hasActiveFilters = search || createdAtFrom || createdAtTo;
 
   return (
-    <div className="flex flex-wrap items-center gap-4">
-      {/* Search Input */}
-      <div className="relative flex-1 min-w-[200px]">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+    <div className="flex flex-col items-end justify-end gap-4 lg:flex-row">
+      <div className="flex w-full flex-col gap-4 lg:w-auto lg:flex-row">
+        {/* Filter: Commission created date range */}
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className={cn(
+                "w-full justify-start text-left font-normal lg:w-[320px]",
+                !createdAtFrom && !createdAtTo && "text-muted-foreground",
+              )}
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {createdAtFrom || createdAtTo ? (
+                <span className="truncate">
+                  {createdAtFrom ? format(new Date(createdAtFrom), "dd MMM yyyy") : "..."} -{" "}
+                  {createdAtTo ? format(new Date(createdAtTo), "dd MMM yyyy") : "..."}
+                </span>
+              ) : (
+                "Commission created date range"
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="end">
+            <Calendar
+              captionLayout="dropdown"
+              mode="range"
+              numberOfMonths={2}
+              selected={{
+                from: createdAtFrom ? new Date(createdAtFrom) : undefined,
+                to: createdAtTo ? new Date(createdAtTo) : undefined,
+              }}
+              onSelect={(range) => {
+                const from = range?.from ? format(range.from, "yyyy-MM-dd") : "";
+                const to = range?.to ? format(range.to, "yyyy-MM-dd") : "";
+                // Update both dates together for better UX
+                if (onDateRangeChange) {
+                  onDateRangeChange(from, to);
+                } else {
+                  onCreatedAtFromChange(from);
+                  onCreatedAtToChange(to);
+                }
+              }}
+              fromYear={2000}
+              toYear={2100}
+              initialFocus
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
+
+      {/* Search */}
+      <div className="relative w-full flex-1 lg:max-w-sm">
+        <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
         <Input
           placeholder="Search by sales user name..."
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="pl-9"
+          className="w-full pr-9 pl-9 lg:w-full lg:max-w-sm"
         />
+        {search && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute top-1/2 right-1 h-7 w-7 -translate-y-1/2"
+            onClick={() => onSearchChange("")}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        )}
       </div>
-
-      {/* Date Range From */}
-      <Popover open={fromDateOpen} onOpenChange={setFromDateOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            className={cn(
-              "w-[240px] justify-start text-left font-normal",
-              !createdAtFrom && "text-muted-foreground"
-            )}
-          >
-            <CalendarIcon className="mr-2 h-4 w-4" />
-            {createdAtFrom ? format(new Date(createdAtFrom), "PPP") : "From date"}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
-          <Calendar
-            mode="single"
-            selected={createdAtFrom ? new Date(createdAtFrom) : undefined}
-            onSelect={(date) => {
-              if (date) {
-                onCreatedAtFromChange(format(date, "yyyy-MM-dd"));
-                setFromDateOpen(false);
-              }
-            }}
-            initialFocus
-          />
-        </PopoverContent>
-      </Popover>
-
-      {/* Date Range To */}
-      <Popover open={toDateOpen} onOpenChange={setToDateOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            className={cn(
-              "w-[240px] justify-start text-left font-normal",
-              !createdAtTo && "text-muted-foreground"
-            )}
-          >
-            <CalendarIcon className="mr-2 h-4 w-4" />
-            {createdAtTo ? format(new Date(createdAtTo), "PPP") : "To date"}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
-          <Calendar
-            mode="single"
-            selected={createdAtTo ? new Date(createdAtTo) : undefined}
-            onSelect={(date) => {
-              if (date) {
-                onCreatedAtToChange(format(date, "yyyy-MM-dd"));
-                setToDateOpen(false);
-              }
-            }}
-            initialFocus
-          />
-        </PopoverContent>
-      </Popover>
 
       {/* Clear Filters */}
       {hasActiveFilters && (

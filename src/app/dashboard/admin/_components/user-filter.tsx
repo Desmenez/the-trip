@@ -3,13 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search } from "lucide-react";
 import { useDebounce } from "@/hooks/use-debounce";
 import { ROLE_LABELS, ROLE_VALUES } from "@/lib/constants/role";
@@ -55,7 +49,7 @@ export function UserFilter({ onFilterChange }: UserFilterProps) {
 
     setParam("search", updates.search);
     setParam("role", updates.role, "ALL");
-    
+
     // Reset to page 1 when filters change
     if (updates.search !== undefined || updates.role !== undefined) {
       params.set("page", "1");
@@ -85,7 +79,7 @@ export function UserFilter({ onFilterChange }: UserFilterProps) {
   }, [searchQuery, roleFilter]);
 
   return (
-    <div className="flex items-center justify-end gap-4">
+    <div className="flex flex-col items-center justify-end gap-4 md:flex-row">
       {/* Role filter */}
       <Select
         value={role}
@@ -94,7 +88,7 @@ export function UserFilter({ onFilterChange }: UserFilterProps) {
           pushWithParams({ role: value });
         }}
       >
-        <SelectTrigger className="w-40">
+        <SelectTrigger className="w-full md:w-40">
           <SelectValue placeholder="Role" />
         </SelectTrigger>
         <SelectContent>
@@ -108,8 +102,8 @@ export function UserFilter({ onFilterChange }: UserFilterProps) {
       </Select>
 
       {/* Search */}
-      <div className="relative flex-1 max-w-sm">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+      <div className="relative w-full flex-1 md:max-w-sm">
+        <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
         <Input
           placeholder="Search by name, email, phone..."
           value={searchInput}
