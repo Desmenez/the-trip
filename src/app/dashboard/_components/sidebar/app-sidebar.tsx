@@ -63,7 +63,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuItem>
             <SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:!p-1.5">
               <Link href="/dashboard">
-                <Command />
+                <picture>
+                  <img className="object-contain translate-y-2" src="/banner.webp" alt="Thai Chinese Talk" />
+                </picture>
+                {/* <Command /> */}
                 {/* <span className="text-base font-semibold">{APP_CONFIG.name}</span> */}
               </Link>
             </SidebarMenuButton>
@@ -75,9 +78,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         {/* <NavDocuments items={data.documents} /> */}
         {/* <NavSecondary items={data.navSecondary} className="mt-auto" /> */}
       </SidebarContent>
-      <SidebarFooter>
-        {/* <NavUser user={rootUser} /> */}
-      </SidebarFooter>
+      <SidebarFooter>{/* <NavUser user={rootUser} /> */}</SidebarFooter>
     </Sidebar>
   );
 }

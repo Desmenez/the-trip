@@ -3,8 +3,16 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Search } from "lucide-react";
 import { useDebounce } from "@/hooks/use-debounce";
+import { ROLE_LABELS, ROLE_VALUES } from "@/lib/constants/role";
 
 interface UserFilterProps {
   onFilterChange?: () => void;
@@ -12,6 +20,7 @@ interface UserFilterProps {
 
 type UpdateParams = {
   search?: string;
+  role?: string;
 };
 
 export function UserFilter({ onFilterChange }: UserFilterProps) {
@@ -20,9 +29,11 @@ export function UserFilter({ onFilterChange }: UserFilterProps) {
 
   // Initial values from URL
   const searchQuery = searchParams.get("search") || "";
+  const roleFilter = searchParams.get("role") || "ALL";
 
   // Local state (init จาก URL แค่ตอน mount)
   const [searchInput, setSearchInput] = useState(searchQuery);
+  const [role, setRole] = useState(roleFilter || "ALL");
 
   // Debounced search
   const debouncedSearch = useDebounce(searchInput, 500);
@@ -31,10 +42,10 @@ export function UserFilter({ onFilterChange }: UserFilterProps) {
   const buildQueryString = (updates: UpdateParams) => {
     const params = new URLSearchParams(searchParams.toString());
 
-    const setParam = (key: string, value: string | undefined) => {
+    const setParam = (key: string, value: string | undefined, defaultValue?: string) => {
       if (value === undefined) return; // ไม่แตะ key นี้ถ้าไม่ได้ส่งมา
 
-      if (value === "") {
+      if (value === "" || (defaultValue !== undefined && value === defaultValue)) {
         params.delete(key);
         return;
       }
@@ -43,6 +54,12 @@ export function UserFilter({ onFilterChange }: UserFilterProps) {
     };
 
     setParam("search", updates.search);
+    setParam("role", updates.role, "ALL");
+    
+    // Reset to page 1 when filters change
+    if (updates.search !== undefined || updates.role !== undefined) {
+      params.set("page", "1");
+    }
 
     const qs = params.toString();
     return qs ? `?${qs}` : "";
@@ -61,8 +78,35 @@ export function UserFilter({ onFilterChange }: UserFilterProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedSearch, searchQuery]);
 
+  // Sync URL → local state (รองรับ back/forward / external change)
+  useEffect(() => {
+    setSearchInput(searchQuery);
+    setRole(roleFilter || "ALL");
+  }, [searchQuery, roleFilter]);
+
   return (
     <div className="flex items-center justify-end gap-4">
+      {/* Role filter */}
+      <Select
+        value={role}
+        onValueChange={(value) => {
+          setRole(value);
+          pushWithParams({ role: value });
+        }}
+      >
+        <SelectTrigger className="w-40">
+          <SelectValue placeholder="Role" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="ALL">All Roles</SelectItem>
+          {ROLE_VALUES.map((roleValue) => (
+            <SelectItem key={roleValue} value={roleValue}>
+              {ROLE_LABELS[roleValue]}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
       {/* Search */}
       <div className="relative flex-1 max-w-sm">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />

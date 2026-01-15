@@ -15,6 +15,20 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Thai Chinese Talk - Admin",
   description: "Travel Agent CRM & Trip Management",
+  openGraph: {
+    images: ["/banner.webp"],
+    title: "Thai Chinese Talk - Admin",
+    description: "Travel Agent CRM & Trip Management",
+    siteName: "Thai Chinese Talk",
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Thai Chinese Talk - Admin",
+    description: "Travel Agent CRM & Trip Management",
+    images: ["/banner.webp"],
+  },
   robots: {
     index: false,
     follow: false,

@@ -55,7 +55,7 @@ export function UserDialog({ open, onOpenChange, user, onSaved }: UserDialogProp
         lastName: "",
         email: "",
         phoneNumber: "",
-        role: "STAFF",
+        role: undefined,
         commissionPerHead: "",
         isActive: true,
       });
@@ -82,11 +82,26 @@ export function UserDialog({ open, onOpenChange, user, onSaved }: UserDialogProp
 
       if (!res.ok) {
         const error = await res.text();
-        toast.error(error);
+
+        // Map API errors to form fields
+        if (error.toLowerCase().includes("email") && error.toLowerCase().includes("already exists")) {
+          form.setError("email", {
+            type: "server",
+            message: error,
+          });
+        } else if (error.toLowerCase().includes("phone") && error.toLowerCase().includes("already exists")) {
+          form.setError("phoneNumber", {
+            type: "server",
+            message: error,
+          });
+        } else {
+          // For other errors, show toast
+          toast.error(error);
+        }
         return;
       }
 
-      toast.success(user ? "User updated" : "User created");
+      toast.success(user ? "Updated successfully." : "Created successfully.");
       onSaved();
       onOpenChange(false);
     } catch (error) {
@@ -127,7 +142,7 @@ export function UserDialog({ open, onOpenChange, user, onSaved }: UserDialogProp
                 <FormItem>
                   <FormLabel required>First Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="John" {...field} />
+                    <Input placeholder="First Name" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -141,7 +156,7 @@ export function UserDialog({ open, onOpenChange, user, onSaved }: UserDialogProp
                 <FormItem>
                   <FormLabel required>Last Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="Doe" {...field} />
+                    <Input placeholder="Last Name" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -155,7 +170,7 @@ export function UserDialog({ open, onOpenChange, user, onSaved }: UserDialogProp
                 <FormItem>
                   <FormLabel required>Email</FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder="john@example.com" {...field} />
+                    <Input type="email" placeholder="Email" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -169,7 +184,7 @@ export function UserDialog({ open, onOpenChange, user, onSaved }: UserDialogProp
                 <FormItem>
                   <FormLabel>Phone Number</FormLabel>
                   <FormControl>
-                    <Input type="tel" placeholder="0912345678" {...field} />
+                    <Input type="tel" placeholder="Phone Number" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

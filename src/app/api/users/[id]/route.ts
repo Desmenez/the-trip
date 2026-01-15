@@ -22,6 +22,32 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     const body = await req.json();
     const { firstName, lastName, email, phoneNumber, role, isActive, commissionRate, password } = body;
 
+    // Check for duplicate email if email is being updated
+    if (email !== undefined) {
+      const existingEmail = await prisma.user.findUnique({
+        where: {
+          email,
+        },
+      });
+
+      if (existingEmail && existingEmail.id !== id) {
+        return new NextResponse("This email already exists.", { status: 409 });
+      }
+    }
+
+    // Check for duplicate phone number if phoneNumber is being updated
+    if (phoneNumber !== undefined && phoneNumber) {
+      const existingPhoneNumber = await prisma.user.findUnique({
+        where: {
+          phoneNumber,
+        },
+      });
+
+      if (existingPhoneNumber && existingPhoneNumber.id !== id) {
+        return new NextResponse("This phone number already exists.", { status: 409 });
+      }
+    }
+
     const updateData: Prisma.UserUpdateInput = {
       firstName,
       lastName,

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useSession } from "next-auth/react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
 import { UserDialog } from "./user-dialog";
 import { UserFilter } from "./_components/user-filter";
@@ -21,15 +21,60 @@ import { useInvalidateUsers, useUsers } from "./hooks/use-users-query";
 export default function AdminPage() {
   const { data: session, status } = useSession();
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
   const search = searchParams.get("search") || "";
+  const role = searchParams.get("role") || "ALL";
+  const page = parseInt(searchParams.get("page") || "1", 10);
+  const pageSize = parseInt(searchParams.get("pageSize") || "10", 10);
+
+  // Update search params helper
+  const updateSearchParams = useCallback(
+    (updates: { page?: number; pageSize?: number; search?: string; role?: string }) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (updates.page !== undefined) {
+        params.set("page", updates.page.toString());
+      }
+      if (updates.pageSize !== undefined) {
+        params.set("pageSize", updates.pageSize.toString());
+      }
+      if (updates.search !== undefined) {
+        if (updates.search) {
+          params.set("search", updates.search);
+        } else {
+          params.delete("search");
+        }
+        // Reset to page 1 when search changes
+        params.set("page", "1");
+      }
+      if (updates.role !== undefined) {
+        if (updates.role && updates.role !== "ALL") {
+          params.set("role", updates.role);
+        } else {
+          params.delete("role");
+        }
+        // Reset to page 1 when role changes
+        params.set("page", "1");
+      }
+      router.push(`?${params.toString()}`);
+    },
+    [searchParams, router]
+  );
 
   // --------------------
   // data fetching
   // --------------------
-  const { data: users = [], isLoading, error } = useUsers(search || undefined);
+  const { data: usersResponse, isLoading, error } = useUsers(
+    page,
+    pageSize,
+    search || undefined,
+    role !== "ALL" ? role : undefined
+  );
+
+  const users = useMemo(() => usersResponse?.data ?? [], [usersResponse?.data]);
+  const total = usersResponse?.total ?? 0;
 
   const handleCreateUser = () => {
     setSelectedUser(null);
@@ -49,7 +94,7 @@ export default function AdminPage() {
   const userColumns: ColumnDef<User>[] = [
     {
       accessorKey: "name",
-      header: "Name",
+      header: "Staff Name",
       cell: ({ row }) => {
         const user = row.original;
         return (
@@ -110,6 +155,11 @@ export default function AdminPage() {
     },
   ];
 
+  const pageCount = useMemo(() => {
+    if (!total || !pageSize) return 0;
+    return Math.ceil(total / pageSize);
+  }, [total, pageSize]);
+
   // --------------------
   // table instance
   // --------------------
@@ -117,10 +167,26 @@ export default function AdminPage() {
     data: users,
     columns: userColumns,
     enableRowSelection: false,
-    manualPagination: false, // Client-side pagination since API doesn't support it
-    defaultPageSize: 10,
+    manualPagination: true,
+    pageCount,
+    defaultPageSize: pageSize,
+    defaultPageIndex: page - 1,
     getRowId: (row) => row.id,
   });
+
+  const handlePageChange = useCallback(
+    (newPageIndex: number) => {
+      updateSearchParams({ page: newPageIndex + 1 });
+    },
+    [updateSearchParams]
+  );
+
+  const handlePageSizeChange = useCallback(
+    (newPageSize: number) => {
+      updateSearchParams({ pageSize: newPageSize, page: 1 });
+    },
+    [updateSearchParams]
+  );
 
   const handleUserSaved = () => {
     setIsDialogOpen(false);
@@ -154,11 +220,6 @@ export default function AdminPage() {
     );
   }
 
-  const total = users.length;
-  const pageSize = table.getState().pagination.pageSize;
-  const pageIndex = table.getState().pagination.pageIndex;
-  const pageCount = table.getPageCount();
-
   // --------------------
   // render
   // --------------------
@@ -185,15 +246,10 @@ export default function AdminPage() {
           table={table}
           total={total}
           pageSize={pageSize}
-          pageIndex={pageIndex}
+          pageIndex={page - 1}
           pageCount={pageCount}
-          onPageChange={(newPageIndex) => {
-            table.setPageIndex(newPageIndex);
-          }}
-          onPageSizeChange={(newPageSize) => {
-            table.setPageSize(newPageSize);
-            table.setPageIndex(0);
-          }}
+          onPageChange={handlePageChange}
+          onPageSizeChange={handlePageSizeChange}
         />
       </div>
 

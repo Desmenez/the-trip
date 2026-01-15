@@ -16,42 +16,57 @@ export async function GET(req: Request) {
 
   try {
     const { searchParams } = new URL(req.url);
+    const page = parseInt(searchParams.get("page") || "1", 10);
+    const pageSize = parseInt(searchParams.get("pageSize") || "10", 10);
     const search = searchParams.get("search") || "";
+    const role = searchParams.get("role") || "";
+    const skip = (page - 1) * pageSize;
 
-    // Build where clause for search
-    const where: Prisma.UserWhereInput =
-      search.trim().length > 0
-        ? {
-            OR: [
-              {
-                firstName: {
-                  contains: search,
-                  mode: "insensitive" as const,
-                },
-              },
-              {
-                lastName: {
-                  contains: search,
-                  mode: "insensitive" as const,
-                },
-              },
-              {
-                email: {
-                  contains: search,
-                  mode: "insensitive" as const,
-                },
-              },
-              {
-                phoneNumber: {
-                  contains: search,
-                  mode: "insensitive" as const,
-                },
-              },
-            ],
-          }
-        : {};
+    // Build where clause
+    const where: Prisma.UserWhereInput = {};
 
+    // Add search filter
+    if (search.trim().length > 0) {
+      where.OR = [
+        {
+          firstName: {
+            contains: search,
+            mode: "insensitive" as const,
+          },
+        },
+        {
+          lastName: {
+            contains: search,
+            mode: "insensitive" as const,
+          },
+        },
+        {
+          email: {
+            contains: search,
+            mode: "insensitive" as const,
+          },
+        },
+        {
+          phoneNumber: {
+            contains: search,
+            mode: "insensitive" as const,
+          },
+        },
+      ];
+    }
+
+    // Add role filter
+    if (role && role !== "ALL") {
+      where.role = role as "SUPER_ADMIN" | "ADMIN" | "SALES" | "STAFF";
+    }
+
+    // Get total count for pagination
+    const total = await prisma.user.count({ where });
+
+    // Fetch paginated users
     const users = await prisma.user.findMany({
+      skip,
+      take: pageSize,
       where,
       select: {
         id: true,
@@ -69,7 +84,13 @@ export async function GET(req: Request) {
       },
     });
 
-    return NextResponse.json(users);
+    return NextResponse.json({
+      data: users,
+      total,
+      page,
+      pageSize,
+      totalPages: Math.ceil(total / pageSize),
+    });
   } catch (error) {
     console.error("[USERS_GET]", error);
     return new NextResponse("Internal Error", { status: 500 });

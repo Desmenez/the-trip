@@ -1,21 +1,40 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { User } from "../types";
 
+export interface UsersResponse {
+  data: User[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
 // Query key factory
 export const userKeys = {
   all: ["users"] as const,
   lists: () => [...userKeys.all, "list"] as const,
-  list: (search?: string) => [...userKeys.lists(), search] as const,
+  list: (page: number, pageSize: number, search?: string, role?: string) =>
+    [...userKeys.lists(), page, pageSize, search, role] as const,
 };
 
 // Fetch users function
-async function fetchUsers(search?: string): Promise<User[]> {
-  const params = new URLSearchParams();
+async function fetchUsers(
+  page: number = 1,
+  pageSize: number = 10,
+  search?: string,
+  role?: string
+): Promise<UsersResponse> {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    pageSize: pageSize.toString(),
+  });
   if (search && search.trim()) {
     params.set("search", search.trim());
   }
-  const queryString = params.toString();
-  const url = queryString ? `/api/users?${queryString}` : "/api/users";
+  if (role && role !== "ALL") {
+    params.set("role", role);
+  }
+  const url = `/api/users?${params.toString()}`;
 
   const res = await fetch(url);
   if (!res.ok) {
@@ -25,10 +44,15 @@ async function fetchUsers(search?: string): Promise<User[]> {
 }
 
 // Hook to fetch users
-export function useUsers(search?: string) {
+export function useUsers(
+  page: number = 1,
+  pageSize: number = 10,
+  search?: string,
+  role?: string
+) {
   return useQuery({
-    queryKey: userKeys.list(search),
-    queryFn: () => fetchUsers(search),
+    queryKey: userKeys.list(page, pageSize, search, role),
+    queryFn: () => fetchUsers(page, pageSize, search, role),
     staleTime: 30 * 1000, // 30 seconds
   });
 }
