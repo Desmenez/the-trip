@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -27,7 +27,8 @@ import { ROLE_LABELS } from "@/lib/constants/role";
 import { format } from "date-fns";
 
 const changeNameSchema = z.object({
-  name: z.string().min(1, { message: "Name is required" }).max(100, { message: "Name must be less than 100 characters" }),
+  firstName: z.string().min(1, { message: "First name is required" }).max(50, { message: "First name must be less than 50 characters" }),
+  lastName: z.string().min(1, { message: "Last name is required" }).max(50, { message: "Last name must be less than 50 characters" }),
 });
 
 const changeEmailSchema = z.object({
@@ -53,6 +54,7 @@ interface CommissionBooking {
   id: string;
   customerName: string;
   tripName: string;
+  tripCode: string;
   destination: string;
   totalAmount: number;
   paidAmount: number;
@@ -61,7 +63,7 @@ interface CommissionBooking {
 }
 
 interface CommissionData {
-  commissionRate: number; // This is now commissionPerHead (fixed amount per booking)
+  commissionRate: number; // This is commissionPerHead (fixed amount per booking)
   totalSales: number;
   totalCommission: number;
   totalBookings: number;
@@ -70,10 +72,11 @@ interface CommissionData {
 
 interface UserInfo {
   id: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   role: string;
-  commissionRate: number | null;
+  commissionPerHead: number | null;
   isActive: boolean;
   createdAt: string;
 }
@@ -81,7 +84,8 @@ interface UserInfo {
 export default function AccountPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { data: session } = useSession();
+  const { data: session, update: updateSession } = useSession();
+  const updateSessionRef = useRef(updateSession);
   const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "account");
   const [isLoadingName, setIsLoadingName] = useState(false);
   const [isLoadingEmail, setIsLoadingEmail] = useState(false);
@@ -91,10 +95,16 @@ export default function AccountPage() {
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [isLoadingUserInfo, setIsLoadingUserInfo] = useState(true);
 
+  // Keep updateSession ref up to date
+  useEffect(() => {
+    updateSessionRef.current = updateSession;
+  }, [updateSession]);
+
   const nameForm = useForm<ChangeNameFormValues>({
     resolver: zodResolver(changeNameSchema),
     defaultValues: {
-      name: "",
+      firstName: "",
+      lastName: "",
     },
   });
 
@@ -118,7 +128,8 @@ export default function AccountPage() {
   useEffect(() => {
     if (userInfo) {
       nameForm.reset({
-        name: userInfo.name,
+        firstName: userInfo.firstName,
+        lastName: userInfo.lastName,
       });
     }
   }, [userInfo, nameForm]);
@@ -130,23 +141,40 @@ export default function AccountPage() {
   }, [searchParams]);
 
   // Fetch user info
-  useEffect(() => {
-    const fetchUserInfo = async () => {
-      setIsLoadingUserInfo(true);
-      try {
-        const res = await fetch("/api/auth/me");
-        if (res.ok) {
-          const data = await res.json();
-          setUserInfo(data);
+  const fetchUserInfo = useCallback(async (shouldUpdateSession = false) => {
+    setIsLoadingUserInfo(true);
+    try {
+      const res = await fetch("/api/auth/me");
+      if (res.ok) {
+        const data = await res.json();
+        setUserInfo(data);
+        // Only update session when explicitly requested (e.g., after email verification)
+        if (shouldUpdateSession && updateSessionRef.current) {
+          await updateSessionRef.current();
         }
-      } catch (error) {
-        console.error("Failed to fetch user info:", error);
-      } finally {
-        setIsLoadingUserInfo(false);
       }
+    } catch (error) {
+      console.error("Failed to fetch user info:", error);
+    } finally {
+      setIsLoadingUserInfo(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchUserInfo(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Refresh user info when coming back from email verification
+  useEffect(() => {
+    const handleFocus = () => {
+      // Refresh user info when window regains focus (user might have verified email in another tab)
+      fetchUserInfo(true);
     };
 
-    fetchUserInfo();
+    window.addEventListener("focus", handleFocus);
+    return () => window.removeEventListener("focus", handleFocus);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Fetch commission data
@@ -307,7 +335,7 @@ export default function AccountPage() {
                       <User className="mt-0.5 h-5 w-5 text-muted-foreground" />
                       <div className="flex-1 space-y-1">
                         <p className="text-sm font-medium text-muted-foreground">Full Name</p>
-                        <p className="text-sm">{userInfo.name}</p>
+                        <p className="text-sm">{userInfo.firstName} {userInfo.lastName}</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
@@ -326,7 +354,7 @@ export default function AccountPage() {
                     </div>
                   </div>
                   <div className="space-y-4">
-                    {userInfo.commissionRate !== null && (
+                    {userInfo.commissionPerHead !== null && (
                       <div className="flex items-start gap-3">
                         <Percent className="mt-0.5 h-5 w-5 text-muted-foreground" />
                         <div className="flex-1 space-y-1">
@@ -336,7 +364,7 @@ export default function AccountPage() {
                               style: "currency",
                               currency: "THB",
                               maximumFractionDigits: 0,
-                            }).format(userInfo.commissionRate)}
+                            }).format(userInfo.commissionPerHead)}
                           </p>
                         </div>
                       </div>
@@ -380,19 +408,34 @@ export default function AccountPage() {
             <CardContent>
               <Form {...nameForm}>
                 <form onSubmit={nameForm.handleSubmit(onNameSubmit)} className="space-y-4">
-                  <FormField
-                    control={nameForm.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Full Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Enter your name" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <FormField
+                      control={nameForm.control}
+                      name="firstName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>First Name</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Enter your first name" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={nameForm.control}
+                      name="lastName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Last Name</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Enter your last name" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                   <Button type="submit" disabled={isLoadingName}>
                     {isLoadingName && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Update Name
@@ -415,7 +458,7 @@ export default function AccountPage() {
                 <form onSubmit={emailForm.handleSubmit(onEmailSubmit)} className="space-y-4">
                   <div className="grid gap-2">
                     <Label>Current Email</Label>
-                    <Input value={session?.user?.email || ""} disabled />
+                    <Input value={userInfo?.email || session?.user?.email || ""} disabled />
                   </div>
                   <FormField
                     control={emailForm.control}
@@ -566,7 +609,7 @@ export default function AccountPage() {
                                 <div className="space-y-1">
                                   <div className="font-medium">{booking.customerName}</div>
                                   <div className="text-sm text-muted-foreground">
-                                    {booking.tripName} - {booking.destination}
+                                    {booking.tripName} ({booking.tripCode})
                                   </div>
                                   <div className="text-xs text-muted-foreground">
                                     {new Date(booking.createdAt).toLocaleDateString("th-TH", {

@@ -42,6 +42,7 @@ export async function POST(req: Request) {
         password: hashedPassword,
         resetToken: null,
         resetTokenExpiry: null,
+        isActive: true, // Activate user after they set their password
       },
     });
 

@@ -13,27 +13,12 @@ export interface SendEmailOptions {
 export async function sendEmail(options: SendEmailOptions): Promise<void> {
   // If Resend is not configured, log in development mode
   if (!resend || !process.env.RESEND_API_KEY) {
-    if (process.env.NODE_ENV === "development") {
-      console.log("=".repeat(50));
-      console.log("EMAIL (Development Mode - Resend not configured)");
-      console.log("To:", options.to);
-      console.log("Subject:", options.subject);
-      console.log("HTML:", options.html);
-      console.log("=".repeat(50));
-      console.log("To enable email sending:");
-      console.log("1. Install: npm install resend");
-      console.log("2. Get API key from: https://resend.com/api-keys");
-      console.log("3. Add to .env: RESEND_API_KEY=re_xxxxx");
-      console.log("4. Add to .env: RESEND_FROM_EMAIL=noreply@yourdomain.com");
-      console.log("=".repeat(50));
-    } else {
-      console.error("RESEND_API_KEY is not configured. Email not sent.");
-    }
+    console.error("RESEND_API_KEY is not configured. Email not sent.");
     return;
   }
 
   try {
-    await resend.emails.send({
+    const { data, error } = await resend.emails.send({
       from: fromEmail,
       to: options.to,
       subject: options.subject,
@@ -41,20 +26,38 @@ export async function sendEmail(options: SendEmailOptions): Promise<void> {
       text: options.text,
     });
 
+    if (error) {
+      console.error("❌ Resend API Error:", error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Error details:", JSON.stringify(error, null, 2));
+        console.error("Error message:", error.message);
+      }
+      throw new Error(`Failed to send email: ${error.message || JSON.stringify(error)}`);
+    }
+
+    if (!data || !data.id) {
+      console.error("❌ Resend API returned no email ID");
+      console.error("Response data:", JSON.stringify(data, null, 2));
+      throw new Error("Failed to send email: No email ID returned from Resend");
+    }
+
     if (process.env.NODE_ENV === "development") {
       console.log("✅ Email sent successfully to:", options.to);
+      console.log("📧 Email ID:", data.id);
+      console.log("📬 From:", fromEmail);
+      console.log("📬 To:", options.to);
+      console.log("💡 View in Resend Dashboard: https://resend.com/emails");
     }
   } catch (error) {
     console.error("Failed to send email:", error);
+    if (process.env.NODE_ENV === "development") {
+      console.error("Error details:", JSON.stringify(error, null, 2));
+    }
     throw error;
   }
 }
 
-export async function sendResetPasswordEmail(
-  email: string,
-  name: string,
-  resetToken: string
-): Promise<string> {
+export async function sendResetPasswordEmail(email: string, name: string, resetToken: string): Promise<string> {
   const resetUrl = `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/reset-password/${resetToken}`;
 
   const html = `
@@ -66,7 +69,7 @@ export async function sendResetPasswordEmail(
       </head>
       <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
         <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-          <h1 style="color: #2563eb;">Welcome to The Trip!</h1>
+          <h1 style="color: #2563eb;">Welcome to Thai Chinese Talk!</h1>
           <p>Hello ${name},</p>
           <p>Your account has been created. Please set your password by clicking the link below:</p>
           <p style="margin: 30px 0;">
@@ -85,7 +88,7 @@ export async function sendResetPasswordEmail(
   `;
 
   const text = `
-    Welcome to The Trip!
+    Welcome to Thai Chinese Talk!
     
     Hello ${name},
     
@@ -97,7 +100,7 @@ export async function sendResetPasswordEmail(
 
   await sendEmail({
     to: email,
-    subject: "Set Your Password - The Trip",
+    subject: "Set Your Password - Thai Chinese Talk",
     html,
     text,
   });
@@ -121,7 +124,7 @@ export async function sendEmailVerificationEmail(
   email: string,
   name: string,
   resetToken: string,
-  newEmail: string
+  newEmail: string,
 ): Promise<string> {
   const verifyUrl = `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/verify-email/${resetToken}?email=${encodeURIComponent(newEmail)}`;
 
@@ -168,7 +171,7 @@ export async function sendEmailVerificationEmail(
 
   await sendEmail({
     to: newEmail,
-    subject: "Verify Your New Email Address - The Trip",
+    subject: "Verify Your New Email Address - Thai Chinese Talk",
     html,
     text,
   });
@@ -188,4 +191,3 @@ export async function sendEmailVerificationEmail(
   // Return verification URL for development/testing purposes
   return verifyUrl;
 }
-

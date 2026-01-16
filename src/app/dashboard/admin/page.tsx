@@ -4,7 +4,7 @@ import { useState, useCallback, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
-import { UserDialog } from "./user-dialog";
+import { UserDialog } from "./_components/user-dialog";
 import { UserFilter } from "./_components/user-filter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";

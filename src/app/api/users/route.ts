@@ -138,6 +138,7 @@ export async function POST(req: Request) {
     resetTokenExpiry.setHours(resetTokenExpiry.getHours() + 24); // Token expires in 24 hours
 
     // Create user without password (password is optional in schema)
+    // User will be inactive until they set their password
     const user = await prisma.user.create({
       data: {
         firstName,
@@ -147,7 +148,7 @@ export async function POST(req: Request) {
         // password is omitted - user will set it via reset password link
         role,
         commissionPerHead: commissionPerHead ? new Decimal(commissionPerHead) : null,
-        isActive: true,
+        isActive: false, // User is inactive until they set their password
         resetToken,
         resetTokenExpiry,
       },

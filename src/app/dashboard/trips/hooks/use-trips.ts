@@ -4,21 +4,21 @@ import z from "zod";
 
 export const tripFormSchema = z.object({
   type: z.enum(["GROUP_TOUR", "PRIVATE_TOUR"], {
-    message: "Type is required",
+    message: "Please select the information.",
   }),
-  code: z.string().min(1, { message: "Trip code is required" }),
-  name: z.string().min(1, { message: "Trip name is required" }),
-  startDate: z.string().min(1, { message: "Start date is required" }),
-  endDate: z.string().min(1, { message: "End date is required" }),
-  pax: z.string().min(1, { message: "PAX is required" }),
-  foc: z.string().min(1, { message: "FOC is required" }),
+  code: z.string().min(1, { message: "Please fill in the information." }),
+  name: z.string().min(1, { message: "Please fill in the information." }),
+  startDate: z.string().min(1, { message: "Please fill in the information." }),
+  endDate: z.string().min(1, { message: "Please fill in the information." }),
+  pax: z.string().min(1, { message: "Please fill in the information." }),
+  foc: z.string().min(1, { message: "Please fill in the information." }),
   tl: z.string().optional(),
   tg: z.string().optional(),
   staff: z.string().optional(),
-  standardPrice: z.string().min(1, { message: "Standard price is required" }),
-  extraPricePerPerson: z.string().min(1, { message: "Extra price per person is required" }),
+  standardPrice: z.string().min(1, { message: "Please fill in the information." }),
+  extraPricePerPerson: z.string().min(1, { message: "Please fill in the information." }),
   note: z.string().optional(),
-  airlineAndAirportId: z.string().min(1, { message: "Airline/Airport is required" }),
+  airlineAndAirportId: z.string().min(1, { message: "Please select the information." }),
 });
 
 export type TripFormValues = z.infer<typeof tripFormSchema>;
@@ -63,13 +63,7 @@ export interface TripsResponse {
 export const tripKeys = {
   all: ["trips"] as const,
   lists: () => [...tripKeys.all, "list"] as const,
-  list: (
-    page: number,
-    pageSize: number,
-    search?: string,
-    startDateFrom?: string,
-    startDateTo?: string
-  ) =>
+  list: (page: number, pageSize: number, search?: string, startDateFrom?: string, startDateTo?: string) =>
     [...tripKeys.lists(), page, pageSize, search, startDateFrom, startDateTo] as const,
   details: () => [...tripKeys.all, "detail"] as const,
   detail: (id: string) => [...tripKeys.details(), id] as const,
@@ -81,7 +75,7 @@ async function fetchTrips(
   pageSize: number = 10,
   search?: string,
   startDateFrom?: string,
-  startDateTo?: string
+  startDateTo?: string,
 ): Promise<TripsResponse> {
   const params = new URLSearchParams({
     page: page.toString(),
@@ -125,9 +119,12 @@ async function createTrip(data: TripFormValues): Promise<Trip> {
   });
 
   if (!res.ok) {
-    const error = await res.json().catch(() => ({ message: "Failed to create trip" }));
+    const error = (await res.json().catch(() => ({ message: "Failed to create trip" }))) as {
+      message: string;
+      field?: string;
+    };
     const errorWithField = new Error(error.message || "Failed to create trip");
-    (errorWithField as any).field = error.field;
+    (errorWithField as Error & { field?: string }).field = error.field;
     throw errorWithField;
   }
 
@@ -145,9 +142,12 @@ async function updateTrip({ id, data }: { id: string; data: TripFormValues }): P
   });
 
   if (!res.ok) {
-    const error = await res.json().catch(() => ({ message: "Failed to update trip" }));
+    const error = (await res.json().catch(() => ({ message: "Failed to update trip" }))) as {
+      message: string;
+      field?: string;
+    };
     const errorWithField = new Error(error.message || "Failed to update trip");
-    (errorWithField as any).field = error.field;
+    (errorWithField as Error & { field?: string }).field = error.field;
     throw errorWithField;
   }
 
@@ -160,7 +160,7 @@ export function useTrips(
   pageSize: number,
   search?: string,
   startDateFrom?: string,
-  startDateTo?: string
+  startDateTo?: string,
 ) {
   return useQuery({
     queryKey: tripKeys.list(page, pageSize, search, startDateFrom, startDateTo),
@@ -223,4 +223,3 @@ export function useUpdateTrip() {
 
 // Export types
 export type { TripsResponse as TripsResponseType };
-

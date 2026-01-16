@@ -4,14 +4,14 @@ import z from "zod";
 
 export const familyFormSchema = z.object({
   name: z.string().min(1, {
-    message: "Family name is required.",
+    message: "Please fill in the information.",
   }),
   phoneNumber: z.string().optional(),
   lineId: z.string().optional(),
   email: z.string().email().optional().or(z.literal("")),
   note: z.string().optional(),
   customerIds: z.array(z.string()).min(1, {
-    message: "At least one member is required.",
+    message: "Please select the information.",
   }),
 });
 

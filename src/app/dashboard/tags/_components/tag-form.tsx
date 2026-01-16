@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 const tagFormSchema = z.object({
   name: z.string().min(1, {
-    message: "Tag name is required.",
+    message: "Please fill in the information.",
   }),
   order: z.number().int().min(0).optional(),
 });

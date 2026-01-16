@@ -15,7 +15,7 @@ export function Providers({
   themePreset: ThemePreset;
 }) {
   return (
-    <SessionProvider>
+    <SessionProvider refetchInterval={0} refetchOnWindowFocus={false}>
       <ReactQueryProvider>
         <PreferencesStoreProvider themeMode={themeMode} themePreset={themePreset}>
           {children}

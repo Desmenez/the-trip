@@ -125,7 +125,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Recent Activity Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+      <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-7">
         <Card className="col-span-4">
           <CardHeader>
             <CardTitle>Recent Bookings</CardTitle>
@@ -157,7 +157,7 @@ export default function DashboardPage() {
             </div>
           </CardContent>
         </Card>
-        <Card className="col-span-3">
+        <Card className="col-span-4 lg:col-span-3">
           <CardHeader>
             <CardTitle>Recent Leads</CardTitle>
           </CardHeader>

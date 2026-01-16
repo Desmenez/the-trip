@@ -4,7 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Edit, Loader2 } from "lucide-react";
-import { User } from "./types";
+import { User } from "../types";
 import { formatDecimal } from "@/lib/utils";
 
 interface UsersTableProps {

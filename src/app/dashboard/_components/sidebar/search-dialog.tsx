@@ -1,8 +1,9 @@
 "use client";
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
-import { LayoutDashboard, Users, Target, Calendar, Plane, Search, Tag } from "lucide-react";
+import { LayoutDashboard, Search, User, Settings } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -14,18 +15,12 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command";
-
-const searchItems = [
-  { group: "Main", icon: LayoutDashboard, label: "Dashboard", url: "/dashboard" },
-  { group: "Main", icon: Users, label: "Customers", url: "/dashboard/customers" },
-  { group: "Main", icon: Tag, label: "Tags", url: "/dashboard/tags" },
-  { group: "Main", icon: Target, label: "Leads", url: "/dashboard/leads" },
-  { group: "Main", icon: Calendar, label: "Bookings", url: "/dashboard/bookings" },
-  { group: "Main", icon: Plane, label: "Trips", url: "/dashboard/trips" },
-];
+import { sidebarItems } from "@/navigation/sidebar/sidebar-items";
 
 export function SearchDialog() {
   const router = useRouter();
+  const { data: session } = useSession();
+  const userRole = session?.user?.role;
   const [open, setOpen] = React.useState(false);
   
   React.useEffect(() => {
@@ -38,6 +33,56 @@ export function SearchDialog() {
     document.addEventListener("keydown", down);
     return () => document.removeEventListener("keydown", down);
   }, []);
+
+  // Build search items from sidebar structure
+  const searchItems = React.useMemo(() => {
+    const items: Array<{
+      group: string;
+      icon: React.ComponentType<{ className?: string }>;
+      label: string;
+      url: string;
+    }> = [];
+
+    // Add Dashboard
+    items.push({
+      group: "Main",
+      icon: LayoutDashboard,
+      label: "Dashboard",
+      url: "/dashboard",
+    });
+
+    // Add Account
+    items.push({
+      group: "Main",
+      icon: Settings,
+      label: "Account",
+      url: "/dashboard/account",
+    });
+
+    // Add items from sidebar structure
+    sidebarItems.forEach((group) => {
+      group.items.forEach((item) => {
+        // Filter by role if specified
+        if (item.roles && userRole && !item.roles.includes(userRole)) {
+          return;
+        }
+
+        // Skip if coming soon
+        if (item.comingSoon) {
+          return;
+        }
+
+        items.push({
+          group: group.label || "Other",
+          icon: item.icon || User,
+          label: item.title,
+          url: item.url,
+        });
+      });
+    });
+
+    return items;
+  }, [userRole]);
 
   return (
     <>
@@ -53,7 +98,7 @@ export function SearchDialog() {
         </kbd>
       </Button>
       <CommandDialog open={open} onOpenChange={setOpen}>
-        <CommandInput placeholder="Search dashboards, users, and more…" />
+        <CommandInput placeholder="Search pages, customers, leads, bookings, and more…" />
         <CommandList>
           <CommandEmpty>No results found.</CommandEmpty>
           {[...new Set(searchItems.map((item) => item.group))].map((group, i) => (
@@ -73,7 +118,7 @@ export function SearchDialog() {
                         }
                       }}
                     >
-                      {item.icon && <item.icon />}
+                      {item.icon && <item.icon className="mr-2 h-4 w-4" />}
                       <span>{item.label}</span>
                     </CommandItem>
                   ))}

@@ -166,7 +166,7 @@ npm run dev
 
 ### Environment Variables
 
-สร้างไฟล์ `.env.local` และตั้งค่าตัวแปรต่อไปนี้:
+สร้างไฟล์ `.env` และตั้งค่าตัวแปรต่อไปนี้:
 
 #### Database
 ```env
@@ -181,9 +181,13 @@ NEXTAUTH_SECRET="your-secret-key-here"
 
 #### Email (Resend)
 ```env
-RESEND_API_KEY="your-resend-api-key"
-EMAIL_FROM="noreply@yourdomain.com"
+RESEND_API_KEY="re_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+RESEND_FROM_EMAIL="noreply@yourdomain.com"
 ```
+
+**หมายเหตุ:** 
+- สำหรับ development สามารถใช้ `onboarding@resend.dev` ได้
+- สำหรับ production ต้อง verify domain ก่อน (ดูรายละเอียดใน [RESEND_SETUP.md](./RESEND_SETUP.md))
 
 #### Google Drive (Optional - สำหรับ file upload)
 ```env

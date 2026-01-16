@@ -19,7 +19,7 @@ import { sidebarItems } from "@/navigation/sidebar/sidebar-items";
 import { NavMain } from "./nav-main";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { isMobile, setOpenMobile } = useSidebar();
+  const { open, isMobile, setOpenMobile } = useSidebar();
 
   const handleLinkClick = () => {
     if (isMobile) {
@@ -34,9 +34,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuItem>
             <SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:!p-1.5">
               <Link href="/dashboard" onClick={handleLinkClick}>
-                <picture>
-                  <img className="translate-y-2 object-contain" src="/banner.webp" alt="Thai Chinese Talk" />
-                </picture>
+                {open ? (
+                  <picture>
+                    <img className="translate-y-2 object-contain" src="/banner.webp" alt="Thai Chinese Talk" />
+                  </picture>
+                ) : (
+                  <picture>
+                    <img className="translate-y-2 object-contain" src="/icon.webp" alt="Thai Chinese Talk" />
+                  </picture>
+                )}
                 {/* <Command /> */}
                 {/* <span className="text-base font-semibold">{APP_CONFIG.name}</span> */}
               </Link>

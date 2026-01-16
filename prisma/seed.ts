@@ -53,6 +53,7 @@ async function main() {
         isActive: true,
       },
     ],
+    skipDuplicates: true,
   });
 
   console.log({ admin });

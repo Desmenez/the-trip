@@ -3,12 +3,12 @@ import { toast } from "sonner";
 import z from "zod";
 
 export const taskFormSchema = z.object({
-  topic: z.string().min(1, "Please fill in the information."),
+  topic: z.string().min(1, { message: "Please fill in the information." }),
   description: z.string().optional(),
   deadline: z.date().optional(),
   status: z.enum(["TODO", "IN_PROGRESS", "COMPLETED", "CANCELLED"]).optional(),
   contact: z.enum(["CALL", "LINE", "MESSENGER"]).optional().nullable(),
-  relatedCustomerId: z.string({ message: "Please select a customer." }).min(1, "Please select a customer."),
+  relatedCustomerId: z.string({ message: "Please select the information." }).min(1, "Please select the information."),
   userId: z.string().optional().nullable(),
 });
 

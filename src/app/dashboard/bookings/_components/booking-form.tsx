@@ -53,9 +53,9 @@ async function fetchSalesUsers(): Promise<SalesUser[]> {
 }
 
 const formSchema = z.object({
-  customerId: z.string().min(1, { message: "Customer is required" }),
-  tripId: z.string().min(1, { message: "Trip is required" }),
-  salesUserId: z.string().min(1, { message: "Sales user is required" }),
+  customerId: z.string().min(1, { message: "Please select the information." }),
+  tripId: z.string().min(1, { message: "Please select the information." }),
+  salesUserId: z.string().min(1, { message: "Please select the information." }),
   companionCustomerIds: z.array(z.string()).optional(),
   note: z.string().optional(),
   extraPriceForSingleTraveller: z.string().optional(),
@@ -72,7 +72,7 @@ const formSchema = z.object({
   discountNote: z.string().optional(),
   paymentStatus: z.enum(["DEPOSIT_PENDING", "DEPOSIT_PAID", "FULLY_PAID", "CANCELLED"]),
   firstPaymentRatio: z.enum(["FIRST_PAYMENT_100", "FIRST_PAYMENT_50", "FIRST_PAYMENT_30"]),
-  firstPaymentAmount: z.string().min(1, { message: "First payment amount is required" }),
+  firstPaymentAmount: z.string().min(1, { message: "Please fill in the information." }),
   firstPaymentProof: z.string().optional(),
 });
 

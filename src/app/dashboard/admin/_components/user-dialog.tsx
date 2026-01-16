@@ -12,8 +12,9 @@ import { Switch } from "@/components/ui/switch";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { ROLE_VALUES, ROLE_LABELS } from "@/lib/constants/role";
-import { User } from "./types";
-import { userFormSchema, UserFormValues } from "./hooks/use-users";
+import { User } from "../types";
+import { userFormSchema, UserFormValues } from "../hooks/use-users";
+import { useCreateUser, useUpdateUser } from "../hooks/use-users-query";
 
 interface UserDialogProps {
   open: boolean;
@@ -23,6 +24,9 @@ interface UserDialogProps {
 }
 
 export function UserDialog({ open, onOpenChange, user, onSaved }: UserDialogProps) {
+  const createUserMutation = useCreateUser();
+  const updateUserMutation = useUpdateUser();
+
   const form = useForm<UserFormValues>({
     resolver: zodResolver(userFormSchema),
     defaultValues: {
@@ -64,49 +68,54 @@ export function UserDialog({ open, onOpenChange, user, onSaved }: UserDialogProp
 
   const handleSubmit = async (values: UserFormValues) => {
     try {
-      const url = user ? `/api/users/${user.id}` : "/api/users";
-      const method = user ? "PATCH" : "POST";
-
-      const body = {
-        ...values,
-        commissionPerHead: values.commissionPerHead ? parseFloat(values.commissionPerHead) : null,
-      };
-
-      const res = await fetch(url, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(body),
-      });
-
-      if (!res.ok) {
-        const error = await res.text();
-
-        // Map API errors to form fields
-        if (error.toLowerCase().includes("email") && error.toLowerCase().includes("already exists")) {
-          form.setError("email", {
-            type: "server",
-            message: error,
-          });
-        } else if (error.toLowerCase().includes("phone") && error.toLowerCase().includes("already exists")) {
-          form.setError("phoneNumber", {
-            type: "server",
-            message: error,
-          });
-        } else {
-          // For other errors, show toast
-          toast.error(error);
-        }
-        return;
+      if (user) {
+        await updateUserMutation.mutateAsync(
+          { id: user.id, data: values },
+          {
+            onError: (error: Error & { field?: string }) => {
+              // Map API errors to form fields
+              if (error.field === "email") {
+                form.setError("email", {
+                  type: "server",
+                  message: error.message,
+                });
+              } else if (error.field === "phoneNumber") {
+                form.setError("phoneNumber", {
+                  type: "server",
+                  message: error.message,
+                });
+              }
+            },
+          }
+        );
+      } else {
+        await createUserMutation.mutateAsync(values, {
+          onError: (error: Error & { field?: string }) => {
+            // Map API errors to form fields
+            if (error.field === "email") {
+              form.setError("email", {
+                type: "server",
+                message: error.message,
+              });
+            } else if (error.field === "phoneNumber") {
+              form.setError("phoneNumber", {
+                type: "server",
+                message: error.message,
+              });
+            }
+          },
+        });
       }
 
-      toast.success(user ? "Updated successfully." : "Created successfully.");
       onSaved();
       onOpenChange(false);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Something went wrong";
-      toast.error(errorMessage);
+      // Error handling is done in onError callbacks
+      // This catch is for any unexpected errors
+      if (!(error instanceof Error && (error as Error & { field?: string }).field)) {
+        const errorMessage = error instanceof Error ? error.message : "Something went wrong";
+        toast.error(errorMessage);
+      }
     }
   };
 
@@ -238,8 +247,13 @@ export function UserDialog({ open, onOpenChange, user, onSaved }: UserDialogProp
             )}
 
             <DialogFooter>
-              <Button type="submit" disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              <Button
+                type="submit"
+                disabled={form.formState.isSubmitting || createUserMutation.isPending || updateUserMutation.isPending}
+              >
+                {(form.formState.isSubmitting || createUserMutation.isPending || updateUserMutation.isPending) && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
                 Save
               </Button>
             </DialogFooter>

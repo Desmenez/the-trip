@@ -242,7 +242,7 @@ export function TripForm({ mode, initialData, onSubmit, onCancel, isLoading = fa
             name="pax"
             render={({ field }) => (
               <FormItem>
-                <FormLabel required>PAX</FormLabel>
+                <FormLabel required>Passenger (PAX)</FormLabel>
                 <FormControl>
                   <Input type="number" placeholder="1" {...field} disabled={readOnly} />
                 </FormControl>
@@ -255,7 +255,7 @@ export function TripForm({ mode, initialData, onSubmit, onCancel, isLoading = fa
             name="foc"
             render={({ field }) => (
               <FormItem>
-                <FormLabel required>FOC</FormLabel>
+                <FormLabel required>Free of Charge (FOC)</FormLabel>
                 <FormControl>
                   <Input type="number" placeholder="1" {...field} disabled={readOnly} />
                 </FormControl>
@@ -271,9 +271,9 @@ export function TripForm({ mode, initialData, onSubmit, onCancel, isLoading = fa
             name="tl"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>TL</FormLabel>
+                <FormLabel>Tour Leader (TL)</FormLabel>
                 <FormControl>
-                  <Input placeholder="TL Code" {...field} disabled={readOnly} />
+                  <Input placeholder="Tour Leader" {...field} disabled={readOnly} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -284,9 +284,9 @@ export function TripForm({ mode, initialData, onSubmit, onCancel, isLoading = fa
             name="tg"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>TG</FormLabel>
+                <FormLabel>Tour Guide (TG)</FormLabel>
                 <FormControl>
-                  <Input placeholder="TG Code" {...field} disabled={readOnly} />
+                  <Input placeholder="Tour Guide" {...field} disabled={readOnly} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -301,7 +301,7 @@ export function TripForm({ mode, initialData, onSubmit, onCancel, isLoading = fa
             <FormItem>
               <FormLabel>Staff</FormLabel>
               <FormControl>
-                <Input placeholder="Staff name" {...field} disabled={readOnly} />
+                <Input placeholder="Staff Name" {...field} disabled={readOnly} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -348,7 +348,7 @@ export function TripForm({ mode, initialData, onSubmit, onCancel, isLoading = fa
               ? airlineAndAirports.filter(
                   (aa) =>
                     aa.code.toLowerCase().includes(airlineAndAirportSearch.toLowerCase()) ||
-                    aa.name.toLowerCase().includes(airlineAndAirportSearch.toLowerCase())
+                    aa.name.toLowerCase().includes(airlineAndAirportSearch.toLowerCase()),
                 )
               : airlineAndAirports;
 
@@ -369,10 +369,7 @@ export function TripForm({ mode, initialData, onSubmit, onCancel, isLoading = fa
                       <Button
                         variant="outline"
                         role="combobox"
-                        className={cn(
-                          "w-full justify-between",
-                          !field.value && "text-muted-foreground"
-                        )}
+                        className={cn("w-full justify-between", !field.value && "text-muted-foreground")}
                         disabled={readOnly}
                       >
                         {selectedAirlineAndAirport
@@ -403,10 +400,7 @@ export function TripForm({ mode, initialData, onSubmit, onCancel, isLoading = fa
                               }}
                             >
                               <Check
-                                className={cn(
-                                  "mr-2 h-4 w-4",
-                                  field.value === aa.id ? "opacity-100" : "opacity-0"
-                                )}
+                                className={cn("mr-2 h-4 w-4", field.value === aa.id ? "opacity-100" : "opacity-0")}
                               />
                               <div className="flex flex-col">
                                 <span className="font-mono">{aa.code}</span>
