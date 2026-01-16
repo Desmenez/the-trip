@@ -377,20 +377,22 @@ export function CustomerForm({
                 Addresses
               </Button>
             </CollapsibleTrigger>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                form.setValue("addresses", [
-                  ...(form.getValues("addresses") || []),
-                  { address: "", province: "", district: "", subDistrict: "", postalCode: "" },
-                ]);
-                setIsAddressesOpen(true);
-              }}
-            >
-              Add Address
-            </Button>
+            {(form.getValues("addresses") || []).length < 1 && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  form.setValue("addresses", [
+                    ...(form.getValues("addresses") || []),
+                    { address: "", province: "", district: "", subDistrict: "", postalCode: "" },
+                  ]);
+                  setIsAddressesOpen(true);
+                }}
+              >
+                Add Address
+              </Button>
+            )}
           </div>
           <CollapsibleContent className="space-y-4">
             {useWatch({ control: form.control, name: "addresses" })?.map((_, index) => (
@@ -814,37 +816,45 @@ export function CustomerForm({
                 <FormField
                   control={form.control}
                   name={`passports.${index}.expiryDate`}
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel required>Expiry Date</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                "w-full pl-3 text-left font-normal",
-                                !field.value && "text-muted-foreground",
-                              )}
-                            >
-                              {field.value ? format(new Date(field.value), "PPP") : <span>Pick a date</span>}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            captionLayout="dropdown"
-                            mode="single"
-                            selected={field.value ? new Date(field.value) : undefined}
-                            onSelect={(date) => field.onChange(date)}
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  render={({ field }) => {
+                    const currentYear = new Date().getFullYear();
+                    const minYear = currentYear - 20; // Allow up to 20 years in the past
+                    const maxYear = currentYear + 20; // Allow up to 20 years in the future
+
+                    return (
+                      <FormItem className="flex flex-col">
+                        <FormLabel required>Expiry Date</FormLabel>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <FormControl>
+                              <Button
+                                variant="outline"
+                                className={cn(
+                                  "w-full pl-3 text-left font-normal",
+                                  !field.value && "text-muted-foreground",
+                                )}
+                              >
+                                {field.value ? format(new Date(field.value), "PPP") : <span>Pick a date</span>}
+                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                              </Button>
+                            </FormControl>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              captionLayout="dropdown"
+                              mode="single"
+                              selected={field.value ? new Date(field.value) : undefined}
+                              onSelect={(date) => field.onChange(date)}
+                              fromYear={minYear}
+                              toYear={maxYear}
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
+                        <FormMessage />
+                      </FormItem>
+                    );
+                  }}
                 />
                 <FormField
                   control={form.control}
@@ -861,9 +871,11 @@ export function CustomerForm({
                             .replace(/[^a-zA-Z0-9ก-๙\s_]/g, "")
                             .replace(/\s+/g, "_")
                             .toLowerCase()
-                        : new Date().toISOString();
+                        : `temp_${Date.now()}_${index}`; // Use timestamp and index for temp customers
 
                     const folderName = `passports/${sanitizedName}`;
+                    // Use unique key to ensure component instance is separate from other DragDropUpload components
+                    const uploadKey = `passport-upload-${index}-${folderName}`;
 
                     return (
                       <FormItem className="col-span-2">
@@ -888,6 +900,7 @@ export function CustomerForm({
                           </div>
                         ) : (
                           <DragDropUpload
+                            key={uploadKey}
                             acceptedFileTypes={["image/jpeg", "image/png", "image/jpg", ".jpg", ".jpeg", ".png"]}
                             maxFileSize={5 * 1024 * 1024} // 5MB
                             folderName={folderName}
@@ -925,17 +938,19 @@ export function CustomerForm({
                 Food Allergies
               </Button>
             </CollapsibleTrigger>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                form.setValue("foodAllergies", [...(form.getValues("foodAllergies") || []), { types: [], note: "" }]);
-                setIsFoodAllergiesOpen(true);
-              }}
-            >
-              Add Allergy Info
-            </Button>
+            {(form.getValues("foodAllergies") || []).length < 1 && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  form.setValue("foodAllergies", [...(form.getValues("foodAllergies") || []), { types: [], note: "" }]);
+                  setIsFoodAllergiesOpen(true);
+                }}
+              >
+                Add Allergy Info
+              </Button>
+            )}
           </div>
           <CollapsibleContent className="space-y-4">
             {useWatch({ control: form.control, name: "foodAllergies" })?.map((_, index) => (

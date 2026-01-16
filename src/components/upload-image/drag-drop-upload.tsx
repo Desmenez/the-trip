@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useCallback, useState } from "react";
+import { useCallback, useState, useId } from "react";
 import { Upload, File, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -38,6 +38,8 @@ export function DragDropUpload({
 }: DragDropUploadProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const uniqueId = useId();
+  const fileInputId = `file-upload-${uniqueId}`;
 
   const validateFile = useCallback(
     (file: File): string | null => {
@@ -186,7 +188,7 @@ export function DragDropUpload({
       >
         <input
           type="file"
-          id="file-upload"
+          id={fileInputId}
           className="hidden"
           onChange={handleFileInput}
           multiple={multiple}
@@ -217,7 +219,7 @@ export function DragDropUpload({
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => document.getElementById("file-upload")?.click()}
+                onClick={() => document.getElementById(fileInputId)?.click()}
                 disabled={disabled}
               >
                 <File className="mr-2 h-4 w-4" />

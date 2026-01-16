@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { Check, ChevronsUpDown, Plus } from "lucide-react";
+import { Check, ChevronsUpDown, Plus, Eye } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import {
@@ -29,7 +29,6 @@ import { useAllTags } from "@/app/dashboard/tags/hooks/use-tags";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { DragDropUpload } from "@/components/upload-image";
-import Image from "next/image";
 import { X } from "lucide-react";
 import { toast } from "sonner";
 import { PaymentForm } from "./payment-form";
@@ -101,6 +100,9 @@ export function BookingForm({ mode, initialData, onSubmit, onCancel, isLoading =
   const [enableDiscount, setEnableDiscount] = useState(false);
   const [enableBedPrice, setEnableBedPrice] = useState(false);
   const [enableSeatPrice, setEnableSeatPrice] = useState(false);
+  const [proofDialogOpen, setProofDialogOpen] = useState(false);
+  const [proofImageUrl, setProofImageUrl] = useState<string | null>(null);
+  const [proofTitle, setProofTitle] = useState<string>("");
 
   // Get today's date in YYYY-MM-DD format for filtering trips that haven't started
   const today = format(new Date(), "yyyy-MM-dd");
@@ -1296,81 +1298,105 @@ export function BookingForm({ mode, initialData, onSubmit, onCancel, isLoading =
             <FormField
               control={form.control}
               name="firstPaymentRatio"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>First Payment Ratio</FormLabel>
-                  {readOnly ? (
-                    <FormControl>
-                      <Input value={field.value} disabled />
-                    </FormControl>
-                  ) : (
-                    <Select onValueChange={field.onChange} value={field.value} key={`firstPaymentRatio-${field.value}`}>
+              render={({ field }) => {
+                // Disable if there's already a payment made
+                const hasPayment = booking?.firstPayment !== undefined && booking?.firstPayment !== null;
+                const isDisabled = readOnly || mode === "create" || hasPayment;
+
+                // Map value to display label
+                const getPaymentRatioLabel = (value: string) => {
+                  switch (value) {
+                    case "FIRST_PAYMENT_100":
+                      return "100% (Full Payment)";
+                    case "FIRST_PAYMENT_50":
+                      return "50% (Half Payment)";
+                    case "FIRST_PAYMENT_30":
+                      return "30% (Deposit)";
+                    default:
+                      return value;
+                  }
+                };
+
+                return (
+                  <FormItem>
+                    <FormLabel>First Payment Ratio</FormLabel>
+                    {isDisabled ? (
                       <FormControl>
-                        <SelectTrigger className="w-full">
-                          <SelectValue />
-                        </SelectTrigger>
+                        <Input value={getPaymentRatioLabel(field.value)} disabled />
                       </FormControl>
-                      <SelectContent>
-                        <SelectItem value="FIRST_PAYMENT_100">100% (Full Payment)</SelectItem>
-                        <SelectItem value="FIRST_PAYMENT_50">50% (Half Payment)</SelectItem>
-                        <SelectItem value="FIRST_PAYMENT_30">30% (Deposit)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  )}
-                  <FormMessage />
-                </FormItem>
-              )}
+                    ) : (
+                      <Select onValueChange={field.onChange} value={field.value} key={`firstPaymentRatio-${field.value}`}>
+                        <FormControl>
+                          <SelectTrigger className="w-full">
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="FIRST_PAYMENT_100">100% (Full Payment)</SelectItem>
+                          <SelectItem value="FIRST_PAYMENT_50">50% (Half Payment)</SelectItem>
+                          <SelectItem value="FIRST_PAYMENT_30">30% (Deposit)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                    {hasPayment && (
+                      <FormDescription className="text-muted-foreground text-xs">
+                        Cannot edit: Payment has already been made
+                      </FormDescription>
+                    )}
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
             />
           </div>
 
-          <div className="grid grid-cols-2 items-start gap-4">
-            <div className="space-y-2">
-              <FormLabel>Calculated First Payment Amount (THB)</FormLabel>
-              <Input
-                type="text"
-                value={calculatedAmounts.firstPaymentAmount.toFixed(2)}
-                disabled
-                className="font-semibold"
-              />
-              <FormDescription>Based on total amount and payment ratio</FormDescription>
-            </div>
-
+          <div className="grid grid-cols-1 items-start gap-4">
             <FormField
               control={form.control}
               name="firstPaymentAmount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>First Payment Amount (THB) *</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      placeholder="0.00"
-                      {...field}
-                      disabled={readOnly || mode === "create"}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        field.onChange(value);
-                        // If user manually changes the value in create mode, validate it matches calculated
-                        if (mode === "create" && value) {
-                          const calculated = calculatedAmounts.firstPaymentAmount.toFixed(2);
-                          const entered = parseFloat(value);
-                          const expected = parseFloat(calculated);
-                          if (Math.abs(entered - expected) > 0.01) {
-                            // Show warning but don't block - let backend validate
-                            console.warn(
-                              `First payment amount (${entered}) does not match calculated value (${expected}). The calculated value will be used.`,
-                            );
+              render={({ field }) => {
+                // Disable if there's already a payment made
+                const hasPayment = booking?.firstPayment !== undefined && booking?.firstPayment !== null;
+                const isDisabled = readOnly || mode === "create" || hasPayment;
+
+                return (
+                  <FormItem>
+                    <FormLabel>First Payment Amount (THB) *</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="0.00"
+                        {...field}
+                        disabled={isDisabled}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          field.onChange(value);
+                          // If user manually changes the value in create mode, validate it matches calculated
+                          if (mode === "create" && value) {
+                            const calculated = calculatedAmounts.firstPaymentAmount.toFixed(2);
+                            const entered = parseFloat(value);
+                            const expected = parseFloat(calculated);
+                            if (Math.abs(entered - expected) > 0.01) {
+                              // Show warning but don't block - let backend validate
+                              console.warn(
+                                `First payment amount (${entered}) does not match calculated value (${expected}). The calculated value will be used.`,
+                              );
+                            }
                           }
-                        }
-                      }}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    {mode === "create" ? "Auto-calculated based on ratio" : "Enter the actual first payment amount"}
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
+                        }}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      {hasPayment
+                        ? "Cannot edit: Payment has already been made"
+                        : mode === "create"
+                          ? "Auto-calculated based on ratio"
+                          : "Enter the actual first payment amount"}
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
             />
           </div>
 
@@ -1378,33 +1404,37 @@ export function BookingForm({ mode, initialData, onSubmit, onCancel, isLoading =
             <FormField
               control={form.control}
               name="firstPaymentProof"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Proof of Payment</FormLabel>
-                  {readOnly ? (
-                    <FormControl>
-                      {field.value ? (
-                        <div className="space-y-2">
-                          <div className="bg-muted relative h-48 w-full overflow-hidden rounded-md border">
-                            <picture>
-                              <img src={field.value} alt="Proof of Payment" className="object-contain" />
-                            </picture>
-                          </div>
-                          <a
-                            href={field.value}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-primary text-sm underline"
-                          >
-                            View proof of payment
-                          </a>
-                        </div>
-                      ) : (
-                        <Input value="No proof uploaded" disabled />
-                      )}
-                    </FormControl>
-                  ) : (
-                    <>
+              render={({ field }) => {
+                // Generate folder name from customer and trip
+                const getFolderName = () => {
+                  if (!selectedCustomer || !tripId) {
+                    return "payment-proofs";
+                  }
+
+                  const customerName = selectedCustomer.firstNameEn || selectedCustomer.firstNameTh || "";
+                  const lastName = selectedCustomer.lastNameEn || selectedCustomer.lastNameTh || "";
+                  const customerFullName = `${customerName}_${lastName}`
+                    .replace(/[^a-zA-Z0-9ก-๙\s_]/g, "")
+                    .replace(/\s+/g, "_")
+                    .toLowerCase();
+
+                  const selectedTrip = trips.find((t) => t.id === tripId);
+                  if (!selectedTrip) {
+                    return `payment-proofs/${customerFullName}`;
+                  }
+
+                  const tripName = selectedTrip.name
+                    .replace(/[^a-zA-Z0-9ก-๙\s_]/g, "")
+                    .replace(/\s+/g, "_")
+                    .toLowerCase();
+
+                  return `payment-proofs/${customerFullName}_${tripName}`;
+                };
+
+                return (
+                  <FormItem>
+                    <FormLabel>Proof of Payment</FormLabel>
+                    {readOnly ? (
                       <FormControl>
                         {field.value ? (
                           <div className="space-y-2">
@@ -1412,15 +1442,6 @@ export function BookingForm({ mode, initialData, onSubmit, onCancel, isLoading =
                               <picture>
                                 <img src={field.value} alt="Proof of Payment" className="object-contain" />
                               </picture>
-                              <Button
-                                type="button"
-                                variant="destructive"
-                                size="icon"
-                                className="absolute top-2 right-2"
-                                onClick={() => field.onChange("")}
-                              >
-                                <X className="h-4 w-4" />
-                              </Button>
                             </div>
                             <a
                               href={field.value}
@@ -1432,36 +1453,69 @@ export function BookingForm({ mode, initialData, onSubmit, onCancel, isLoading =
                             </a>
                           </div>
                         ) : (
-                          <DragDropUpload
-                            acceptedFileTypes={[
-                              "image/jpeg",
-                              "image/png",
-                              "image/jpg",
-                              ".jpg",
-                              ".jpeg",
-                              ".png",
-                              "application/pdf",
-                              ".pdf",
-                            ]}
-                            maxFileSize={10 * 1024 * 1024} // 10MB
-                            folderName="payment-proofs"
-                            multiple={false}
-                            onUploadSuccess={(url) => {
-                              field.onChange(url);
-                            }}
-                            onUploadError={(error) => {
-                              toast.error(error);
-                            }}
-                            className="w-full"
-                          />
+                          <Input value="No proof uploaded" disabled />
                         )}
                       </FormControl>
-                      <FormDescription>Upload proof of payment (max 10MB)</FormDescription>
-                    </>
-                  )}
-                  <FormMessage />
-                </FormItem>
-              )}
+                    ) : (
+                      <>
+                        <FormControl>
+                          {field.value ? (
+                            <div className="space-y-2">
+                              <div className="bg-muted relative h-48 w-full overflow-hidden rounded-md border">
+                                <picture>
+                                  <img src={field.value} alt="Proof of Payment" className="object-contain" />
+                                </picture>
+                                <Button
+                                  type="button"
+                                  variant="destructive"
+                                  size="icon"
+                                  className="absolute top-2 right-2"
+                                  onClick={() => field.onChange("")}
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </div>
+                              <a
+                                href={field.value}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-primary text-sm underline"
+                              >
+                                View proof of payment
+                              </a>
+                            </div>
+                          ) : (
+                            <DragDropUpload
+                              acceptedFileTypes={[
+                                "image/jpeg",
+                                "image/png",
+                                "image/jpg",
+                                ".jpg",
+                                ".jpeg",
+                                ".png",
+                                "application/pdf",
+                                ".pdf",
+                              ]}
+                              maxFileSize={10 * 1024 * 1024} // 10MB
+                              folderName={getFolderName()}
+                              multiple={false}
+                              onUploadSuccess={(url) => {
+                                field.onChange(url);
+                              }}
+                              onUploadError={(error) => {
+                                toast.error(error);
+                              }}
+                              className="w-full"
+                            />
+                          )}
+                        </FormControl>
+                        <FormDescription>Upload proof of payment (max 10MB)</FormDescription>
+                      </>
+                    )}
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
             />
           )}
         </div>
@@ -1509,6 +1563,29 @@ export function BookingForm({ mode, initialData, onSubmit, onCancel, isLoading =
             const remainingAmount = totalAmount - paidAmount;
             const isFullyPaid = paidAmount >= totalAmount;
 
+            // Helper function to get proof of payment from payment ID
+            const getProofOfPayment = (paymentId: string | null | undefined): string | null => {
+              if (!paymentId || !booking.payments) return null;
+              const payment = booking.payments.find((p) => p.id === paymentId);
+              return payment?.proofOfPayment || null;
+            };
+
+            // Get proof of payment for each payment
+            const firstPaymentProof = booking.firstPaymentId
+              ? getProofOfPayment(booking.firstPaymentId)
+              : initialData?.firstPaymentProof || null;
+            const secondPaymentProof = booking.secondPaymentId
+              ? getProofOfPayment(booking.secondPaymentId)
+              : null;
+            const thirdPaymentProof = booking.thirdPaymentId ? getProofOfPayment(booking.thirdPaymentId) : null;
+
+            // Helper function to open proof dialog
+            const openProofDialog = (url: string, title: string) => {
+              setProofImageUrl(url);
+              setProofTitle(title);
+              setProofDialogOpen(true);
+            };
+
             return (
               <div className="space-y-4">
                 <div className="bg-muted grid grid-cols-3 gap-4 rounded-md p-4">
@@ -1534,6 +1611,87 @@ export function BookingForm({ mode, initialData, onSubmit, onCancel, isLoading =
                   </div>
                 </div>
 
+                {/* Payment Details with Proof of Payment Buttons */}
+                <div className="space-y-3 rounded-md border p-4">
+                  <h4 className="font-medium">Payment Details</h4>
+                  <div className="space-y-2">
+                    {/* First Payment */}
+                    {booking.firstPayment && (
+                      <div className="flex items-center justify-between rounded-md border p-3">
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">First Payment</p>
+                          <p className="text-muted-foreground text-xs">
+                            Amount: {firstAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })} THB
+                            {booking.firstPayment.paidAt &&
+                              ` • Paid: ${format(new Date(booking.firstPayment.paidAt), "PPP")}`}
+                          </p>
+                        </div>
+                        {firstPaymentProof && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => openProofDialog(firstPaymentProof, "First Payment Proof")}
+                          >
+                            <Eye className="mr-2 h-4 w-4" />
+                            View Proof
+                          </Button>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Second Payment */}
+                    {booking.secondPayment && (
+                      <div className="flex items-center justify-between rounded-md border p-3">
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">Second Payment</p>
+                          <p className="text-muted-foreground text-xs">
+                            Amount: {secondAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })} THB
+                            {booking.secondPayment.paidAt &&
+                              ` • Paid: ${format(new Date(booking.secondPayment.paidAt), "PPP")}`}
+                          </p>
+                        </div>
+                        {secondPaymentProof && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => openProofDialog(secondPaymentProof, "Second Payment Proof")}
+                          >
+                            <Eye className="mr-2 h-4 w-4" />
+                            View Proof
+                          </Button>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Third Payment */}
+                    {booking.thirdPayment && (
+                      <div className="flex items-center justify-between rounded-md border p-3">
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">Third Payment</p>
+                          <p className="text-muted-foreground text-xs">
+                            Amount: {thirdAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })} THB
+                            {booking.thirdPayment.paidAt &&
+                              ` • Paid: ${format(new Date(booking.thirdPayment.paidAt), "PPP")}`}
+                          </p>
+                        </div>
+                        {thirdPaymentProof && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => openProofDialog(thirdPaymentProof, "Third Payment Proof")}
+                          >
+                            <Eye className="mr-2 h-4 w-4" />
+                            View Proof
+                          </Button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 {isFullyPaid ? (
                   <div className="rounded-md border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-900/20">
                     <p className="text-sm font-medium text-green-800 dark:text-green-200">
@@ -1552,6 +1710,8 @@ export function BookingForm({ mode, initialData, onSubmit, onCancel, isLoading =
                               (booking as Booking & { secondPaymentId?: string | null }).secondPaymentId || null,
                             thirdPaymentId:
                               (booking as Booking & { thirdPaymentId?: string | null }).thirdPaymentId || null,
+                            customer: booking.customer,
+                            trip: booking.trip,
                           }}
                           onSuccess={() => {
                             toast.success("Second payment added successfully");
@@ -1572,6 +1732,8 @@ export function BookingForm({ mode, initialData, onSubmit, onCancel, isLoading =
                               (booking as Booking & { secondPaymentId?: string | null }).secondPaymentId || null,
                             thirdPaymentId:
                               (booking as Booking & { thirdPaymentId?: string | null }).thirdPaymentId || null,
+                            customer: booking.customer,
+                            trip: booking.trip,
                           }}
                           onSuccess={() => {
                             toast.success("Third payment added successfully");
@@ -1610,6 +1772,44 @@ export function BookingForm({ mode, initialData, onSubmit, onCancel, isLoading =
             isLoading={createCustomerMutation.isPending}
             availableTags={tags}
           />
+        </DialogContent>
+      </Dialog>
+
+      {/* Proof of Payment Dialog */}
+      <Dialog open={proofDialogOpen} onOpenChange={setProofDialogOpen}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>{proofTitle}</DialogTitle>
+          </DialogHeader>
+          {proofImageUrl && (
+            <div className="space-y-4">
+              <div className="bg-muted relative w-full overflow-hidden rounded-md border">
+                {proofImageUrl.endsWith(".pdf") || proofImageUrl.includes("application/pdf") ? (
+                  <iframe
+                    src={proofImageUrl}
+                    className="h-[600px] w-full"
+                    title={proofTitle}
+                    style={{ border: "none" }}
+                  />
+                ) : (
+                  <picture>
+                    <img src={proofImageUrl} alt={proofTitle} className="h-auto w-full object-contain" />
+                  </picture>
+                )}
+              </div>
+              <div className="flex justify-end">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    window.open(proofImageUrl, "_blank", "noopener,noreferrer");
+                  }}
+                >
+                  Open in New Tab
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </Form>
