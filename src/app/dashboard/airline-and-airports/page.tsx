@@ -26,7 +26,7 @@ import { mapAirlineAndAirportParamsToQuery, useAirlineAndAirportParams } from ".
 const airlineAndAirportColumns: ColumnDef<AirlineAndAirport>[] = [
   {
     accessorKey: "code",
-    header: "IATA code",
+    header: "IATA Code",
     cell: ({ row }) => {
       return <div className="font-medium">{row.original.code}</div>;
     },
@@ -40,12 +40,12 @@ const airlineAndAirportColumns: ColumnDef<AirlineAndAirport>[] = [
   },
   {
     accessorKey: "trips",
-    header: "Used in Trips",
+    header: "Usage",
     cell: ({ row }) => {
       const tripCount = row.original._count?.trips || 0;
       return (
         <div>
-          {tripCount} {tripCount === 1 ? "trip" : "trips"}
+         {tripCount} {tripCount === 1 ? "Trip" : "Trips"}
         </div>
       );
     },
@@ -216,12 +216,12 @@ export default function AirlineAndAirportsPage() {
     <div className="flex flex-col gap-8 p-8">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Airlines & Airports</h2>
+          <h2 className="text-3xl font-bold tracking-tight">IATA Code</h2>
           <p className="text-muted-foreground">Manage IATA codes for airlines and airports.</p>
         </div>
         <Link href="/dashboard/airline-and-airports/create">
           <Button>
-            <Plus className="mr-2 h-4 w-4" /> Add
+            <Plus className="mr-2 h-4 w-4" /> Create
           </Button>
         </Link>
       </div>

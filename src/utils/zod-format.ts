@@ -48,6 +48,6 @@ export const optionalEmailFormat = z
       return z.string().email().safeParse(val).success;
     },
     {
-      message: "Please enter a valid email address.",
+      message: "Email is invalid.",
     }
   );

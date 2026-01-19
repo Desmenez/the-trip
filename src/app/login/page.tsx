@@ -20,17 +20,13 @@ import { Input } from "@/components/ui/input";
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
+import { emailFormat } from "@/utils/zod-format";
 
 const formSchema = z.object({
-  email: z.string().email({
-    message: "Please enter a valid email address.",
-  }),
+  email: emailFormat,
   password: z.string().min(1, {
-    message: "Password is required.",
+    message: "Please fill in the information.",
   }),
 });
 
@@ -59,7 +55,7 @@ export default function LoginPage() {
       });
 
       if (result?.error) {
-        setError("Invalid email or password");
+        setError("Email or password is invalid.");
       } else {
         router.push("/dashboard");
         router.refresh();
@@ -81,17 +77,11 @@ export default function LoginPage() {
           </div>
           <h1 className="text-3xl font-bold tracking-tight">Thai Word Chinese Word Admin</h1>
           <p className="text-muted-foreground text-sm">
-            Sign in to your account to continue
+            For your security, please sign in with your<br />email and password to access your account.
           </p>
         </div>
 
         <Card>
-          <CardHeader>
-            <CardTitle>Sign In</CardTitle>
-            <CardDescription>
-              Enter your credentials to access your account
-            </CardDescription>
-          </CardHeader>
           <CardContent>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -110,7 +100,7 @@ export default function LoginPage() {
                       <FormControl>
                         <Input
                           type="email"
-                          placeholder="name@example.com"
+                          placeholder="Enter your email"
                           autoComplete="email"
                           disabled={isLoading}
                           {...field}

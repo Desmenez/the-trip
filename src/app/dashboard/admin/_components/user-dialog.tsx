@@ -214,9 +214,6 @@ export function UserDialog({ open, onOpenChange, user, onSaved }: UserDialogProp
                     </FormControl>
                     <SelectContent>
                       {ROLE_VALUES.map((role) => {
-                        if (role === "SUPER_ADMIN" && user?.role !== "SUPER_ADMIN") {
-                          return null;
-                        }
                         return (
                           <SelectItem key={role} value={role}>
                             {ROLE_LABELS[role]}
@@ -236,7 +233,7 @@ export function UserDialog({ open, onOpenChange, user, onSaved }: UserDialogProp
                 name="commissionPerHead"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Commission Per Head</FormLabel>
+                    <FormLabel>Commission Per Head (Baht)</FormLabel>
                     <FormControl>
                       <Input type="number" step="0.01" placeholder="0.00" {...field} />
                     </FormControl>

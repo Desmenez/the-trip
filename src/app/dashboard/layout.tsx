@@ -23,7 +23,6 @@ import {
 } from "@/types/preferences/layout";
 
 import { AccountProfile } from "./_components/sidebar/account-profile";
-import { SearchDialog } from "./_components/sidebar/search-dialog";
 import { NotificationBell } from "@/components/ui/notification-bell";
 import { ThemeSwitcher } from "./_components/sidebar/theme-switcher";
 import { AppSidebar } from "./_components/sidebar/app-sidebar";
@@ -84,13 +83,6 @@ export default async function Layout({ children }: Readonly<{ children: ReactNod
     redirect("/login");
   }
 
-  const layoutPreferences = {
-    contentLayout,
-    variant: sidebarVariant,
-    collapsible: sidebarCollapsible,
-    navbarStyle,
-  };
-
   return (
     <SidebarProvider defaultOpen={defaultOpen}>
       <AppSidebar variant={sidebarVariant} collapsible={sidebarCollapsible} />
@@ -115,7 +107,6 @@ export default async function Layout({ children }: Readonly<{ children: ReactNod
             <div className="flex items-center gap-1 lg:gap-2">
               <SidebarTrigger className="-ml-1" />
               <Separator orientation="vertical" className="mx-2 data-[orientation=vertical]:h-4" />
-              <SearchDialog />
             </div>
             <div className="flex items-center gap-2">
               <NotificationBell />

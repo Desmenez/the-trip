@@ -31,7 +31,7 @@ export function UsersTable({ users, loading, onEdit }: UsersTableProps) {
             <TableHead>Email</TableHead>
             <TableHead>Phone Number</TableHead>
             <TableHead>Role</TableHead>
-            <TableHead className="text-right">Commission Per Head</TableHead>
+            <TableHead className="text-right">Commission Per Head (Baht)</TableHead>
             <TableHead>Status</TableHead>
             <TableHead className="w-[100px]">Actions</TableHead>
           </TableRow>

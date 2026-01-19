@@ -22,9 +22,9 @@ export default function EditAirlineAndAirportPage({ params }: { params: Promise<
   // Format initial data for the form
   const initialData: Partial<AirlineAndAirportFormValues> | undefined = airlineAndAirport
     ? {
-        code: airlineAndAirport.code || "",
-        name: airlineAndAirport.name || "",
-      }
+      code: airlineAndAirport.code || "",
+      name: airlineAndAirport.name || "",
+    }
     : undefined;
 
   async function handleSubmit(values: AirlineAndAirportFormValues) {
@@ -43,9 +43,7 @@ export default function EditAirlineAndAirportPage({ params }: { params: Promise<
 
   if (isLoadingAirlineAndAirport) {
     return (
-      <div className="flex size-full items-center justify-center">
-        <div className="text-muted-foreground">Loading airline/airport data...</div>
-      </div>
+      <Loading />
     );
   }
 

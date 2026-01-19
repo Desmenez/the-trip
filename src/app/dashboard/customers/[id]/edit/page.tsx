@@ -10,6 +10,7 @@ import { CustomerFormValues } from "../../hooks/use-customers";
 import { useCustomer, useUpdateCustomer } from "../../hooks/use-customers";
 import { useAllTags } from "@/app/dashboard/tags/hooks/use-tags";
 import { toast } from "sonner";
+import { Loading } from "@/components/page/loading";
 
 export default function EditCustomerPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -32,46 +33,46 @@ export default function EditCustomerPage({ params }: { params: Promise<{ id: str
   // Format initial data for the form
   const initialData: Partial<CustomerFormValues> | undefined = customer
     ? {
-        firstNameTh: customer.firstNameTh || "",
-        lastNameTh: customer.lastNameTh || "",
-        firstNameEn: customer.firstNameEn || "",
-        lastNameEn: customer.lastNameEn || "",
-        title: customer.title || undefined,
-        email: customer.email || "",
-        phone: customer.phone || "",
-        lineId: customer.lineId || "",
-        dateOfBirth: customer.dateOfBirth
-          ? typeof customer.dateOfBirth === "string"
-            ? customer.dateOfBirth.includes("T")
-              ? format(new Date(customer.dateOfBirth), "yyyy-MM-dd")
-              : customer.dateOfBirth
-            : format(new Date(customer.dateOfBirth), "yyyy-MM-dd")
-          : "",
-        note: customer.note || "",
-        tagIds: selectedTagIds,
-        addresses:
-          customer.addresses?.map((addr) => ({
-            address: addr.address || "",
-            province: addr.province || "",
-            district: addr.district || "",
-            subDistrict: addr.subDistrict || "",
-            postalCode: addr.postalCode || "",
-          })) || [],
-        passports:
-          customer.passports?.map((p) => ({
-            passportNumber: p.passportNumber || "",
-            issuingCountry: p.issuingCountry || "",
-            issuingDate: p.issuingDate ? format(new Date(p.issuingDate), "yyyy-MM-dd") : "",
-            expiryDate: p.expiryDate ? format(new Date(p.expiryDate), "yyyy-MM-dd") : "",
-            imageUrl: p.imageUrl || null,
-            isPrimary: p.isPrimary || false,
-          })) || [],
-        foodAllergies:
-          customer.foodAllergies?.map((fa) => ({
-            types: fa.types || [],
-            note: fa.note || "",
-          })) || [],
-      }
+      firstNameTh: customer.firstNameTh || "",
+      lastNameTh: customer.lastNameTh || "",
+      firstNameEn: customer.firstNameEn || "",
+      lastNameEn: customer.lastNameEn || "",
+      title: customer.title || undefined,
+      email: customer.email || "",
+      phone: customer.phone || "",
+      lineId: customer.lineId || "",
+      dateOfBirth: customer.dateOfBirth
+        ? typeof customer.dateOfBirth === "string"
+          ? customer.dateOfBirth.includes("T")
+            ? format(new Date(customer.dateOfBirth), "yyyy-MM-dd")
+            : customer.dateOfBirth
+          : format(new Date(customer.dateOfBirth), "yyyy-MM-dd")
+        : "",
+      note: customer.note || "",
+      tagIds: selectedTagIds,
+      addresses:
+        customer.addresses?.map((addr) => ({
+          address: addr.address || "",
+          province: addr.province || "",
+          district: addr.district || "",
+          subDistrict: addr.subDistrict || "",
+          postalCode: addr.postalCode || "",
+        })) || [],
+      passports:
+        customer.passports?.map((p) => ({
+          passportNumber: p.passportNumber || "",
+          issuingCountry: p.issuingCountry || "",
+          issuingDate: p.issuingDate ? format(new Date(p.issuingDate), "yyyy-MM-dd") : "",
+          expiryDate: p.expiryDate ? format(new Date(p.expiryDate), "yyyy-MM-dd") : "",
+          imageUrl: p.imageUrl || null,
+          isPrimary: p.isPrimary || false,
+        })) || [],
+      foodAllergies:
+        customer.foodAllergies?.map((fa) => ({
+          types: fa.types || [],
+          note: fa.note || "",
+        })) || [],
+    }
     : undefined;
 
   async function handleSubmit(values: CustomerFormValues) {
@@ -89,9 +90,7 @@ export default function EditCustomerPage({ params }: { params: Promise<{ id: str
 
   if (isLoadingCustomer) {
     return (
-      <div className="flex size-full items-center justify-center">
-        <div className="text-muted-foreground">Loading customer data...</div>
-      </div>
+      <Loading />
     );
   }
 

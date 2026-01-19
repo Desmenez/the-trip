@@ -44,21 +44,21 @@ export interface NavGroup {
 export const sidebarItems: NavGroup[] = [
   {
     id: 1,
-    label: "User management",
+    label: "User Management",
     items: [
       {
-        title: "Users",
+        title: "Staffs",
         url: "/dashboard/admin",
         icon: UserStar,
         roles: ["SUPER_ADMIN", "ADMIN"],
       },
       {
-        title: "Customer",
+        title: "Customers",
         url: "/dashboard/customers",
         icon: User,
       },
       {
-        title: "Families",
+        title: "Families / Groups",
         url: "/dashboard/families",
         icon: House,
       },
@@ -66,10 +66,10 @@ export const sidebarItems: NavGroup[] = [
   },
   {
     id: 2,
-    label: "Trip management",
+    label: "Trip Management",
     items: [
       {
-        title: "Trip",
+        title: "Trips",
         url: "/dashboard/trips",
         icon: Plane,
       },
@@ -77,20 +77,20 @@ export const sidebarItems: NavGroup[] = [
   },
   {
     id: 3,
-    label: "Sales pipeline",
+    label: "Sales Pipeline",
     items: [
       {
-        title: "Lead",
+        title: "Leads",
         url: "/dashboard/leads",
         icon: Target,
       },
       {
-        title: "Booking",
+        title: "Bookings",
         url: "/dashboard/bookings",
         icon: Calendar,
       },
       {
-        title: "Commission",
+        title: "Commissions",
         url: "/dashboard/commissions",
         icon: CreditCard,
         roles: ["SUPER_ADMIN", "ADMIN"],
@@ -102,7 +102,7 @@ export const sidebarItems: NavGroup[] = [
     label: "Task & Interaction",
     items: [
       {
-        title: "Task",
+        title: "Tasks",
         url: "/dashboard/tasks",
         icon: ListTodo,
       },
@@ -110,15 +110,15 @@ export const sidebarItems: NavGroup[] = [
   },
   {
     id: 5,
-    label: "Master data",
+    label: "Master Data",
     items: [
       {
-        title: "Tag",
+        title: "Tags",
         url: "/dashboard/tags",
         icon: Tag,
       },
       {
-        title: "IATA code",
+        title: "IATA Codes",
         url: "/dashboard/airline-and-airports",
         icon: MapPin,
       },

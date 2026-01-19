@@ -121,7 +121,7 @@ export default function AdminPage() {
     },
     {
       accessorKey: "commissionPerHead",
-      header: () => <div className="text-right">Commission Per Head</div>,
+      header: () => <div className="text-right">Commission Per Head (Baht)</div>,
       cell: ({ row }) => {
         const commission = row.original.commissionPerHead;
         return <div className="text-right">{commission ? formatDecimal(commission) : "-"}</div>;
