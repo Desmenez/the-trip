@@ -22,6 +22,7 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import { emailFormat } from "@/utils/zod-format";
+import Link from "next/link";
 
 const formSchema = z.object({
   email: emailFormat,
@@ -138,6 +139,15 @@ export default function LoginPage() {
                 >
                   {isLoading ? "Signing in..." : "Sign In"}
                 </Button>
+
+                <div className="text-center">
+                  <Link
+                    href="/forgot-password"
+                    className="text-sm text-muted-foreground hover:text-primary"
+                  >
+                    Forgot your password?
+                  </Link>
+                </div>
               </form>
             </Form>
           </CardContent>

@@ -120,6 +120,69 @@ export async function sendResetPasswordEmail(email: string, name: string, resetT
   return resetUrl;
 }
 
+export async function sendForgotPasswordEmail(email: string, name: string, resetToken: string): Promise<string> {
+  const resetUrl = `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/reset-password/${resetToken}`;
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      </head>
+      <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+        <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h1 style="color: #2563eb;">Reset Your Password</h1>
+          <p>Hello ${name},</p>
+          <p>We received a request to reset your password. Click the link below to create a new password:</p>
+          <p style="margin: 30px 0;">
+            <a href="${resetUrl}" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+              Reset Password
+            </a>
+          </p>
+          <p>Or copy and paste this link into your browser:</p>
+          <p style="word-break: break-all; color: #666;">${resetUrl}</p>
+          <p style="margin-top: 30px; font-size: 12px; color: #666;">
+            This link will expire in 24 hours. If you didn't request a password reset, please ignore this email and your password will remain unchanged.
+          </p>
+        </div>
+      </body>
+    </html>
+  `;
+
+  const text = `
+    Reset Your Password
+    
+    Hello ${name},
+    
+    We received a request to reset your password. Please visit this link to create a new password:
+    ${resetUrl}
+    
+    This link will expire in 24 hours. If you didn't request a password reset, please ignore this email and your password will remain unchanged.
+  `;
+
+  await sendEmail({
+    to: email,
+    subject: "Reset Your Password - Thai Chinese Talk",
+    html,
+    text,
+  });
+
+  // In development mode, also log the reset URL for easy testing
+  if (process.env.NODE_ENV === "development") {
+    console.log("\n" + "=".repeat(70));
+    console.log("🔗 FORGOT PASSWORD LINK (Development Mode)");
+    console.log("=".repeat(70));
+    console.log(`User: ${name} (${email})`);
+    console.log(`Reset URL: ${resetUrl}`);
+    console.log(`Token: ${resetToken}`);
+    console.log("=".repeat(70) + "\n");
+  }
+
+  // Return reset URL for development/testing purposes
+  return resetUrl;
+}
+
 export async function sendEmailVerificationEmail(
   email: string,
   name: string,
