@@ -17,7 +17,7 @@ export default function CreateTaskPage() {
       router.push("/dashboard/tasks");
       router.refresh();
     } catch {
-      toast.error("Failed to create task");
+      toast.error("Created unsuccessfully.");
     }
   }
 

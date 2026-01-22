@@ -187,12 +187,12 @@ export function useCreateAirlineAndAirport() {
     mutationFn: createAirlineAndAirport,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: airlineAndAirportKeys.all });
-      toast.success("Airline/Airport created successfully");
+      toast.success("Created successfully.");
     },
     onError: (error: Error & { field?: string }) => {
       // Only show toast if error doesn't have a field (field errors are shown in form)
       if (!error.field) {
-        toast.error(error.message || "Failed to create airline/airport");
+        toast.error(error.message || "Created unsuccessfully.");
       }
     },
   });
@@ -207,12 +207,12 @@ export function useUpdateAirlineAndAirport() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: airlineAndAirportKeys.all });
       queryClient.invalidateQueries({ queryKey: airlineAndAirportKeys.detail(data.id) });
-      toast.success("Airline/Airport updated successfully");
+      toast.success("Updated successfully.");
     },
     onError: (error: Error & { field?: string }) => {
       // Only show toast if error doesn't have a field (field errors are shown in form)
       if (!error.field) {
-        toast.error(error.message || "Failed to update airline/airport");
+        toast.error(error.message || "Updated unsuccessfully.");
       }
     },
   });
@@ -226,10 +226,10 @@ export function useDeleteAirlineAndAirport() {
     mutationFn: deleteAirlineAndAirport,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: airlineAndAirportKeys.all });
-      toast.success("Airline/Airport deleted successfully");
+      toast.success("Deleted successfully.");
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to delete airline/airport");
+      toast.error(error.message || "Deleted unsuccessfully.");
     },
   });
 }

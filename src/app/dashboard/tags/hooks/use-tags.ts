@@ -165,10 +165,10 @@ export function useCreateTag() {
     onSuccess: () => {
       // Invalidate all tag queries to refetch
       queryClient.invalidateQueries({ queryKey: tagKeys.all });
-      toast.success("Tag created successfully");
+      toast.success("Created successfully.");
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to create tag");
+      toast.error(error.message || "Created unsuccessfully.");
     },
   });
 }
@@ -184,10 +184,10 @@ export function useUpdateTag() {
       queryClient.invalidateQueries({ queryKey: tagKeys.all });
       // Update the specific tag in cache
       queryClient.setQueryData(tagKeys.detail(variables.id), data);
-      toast.success("Tag updated successfully");
+      toast.success("Updated successfully.");
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to update tag");
+      toast.error(error.message || "Updated unsuccessfully.");
     },
   });
 }
@@ -201,10 +201,10 @@ export function useDeleteTag() {
     onSuccess: () => {
       // Invalidate all tag queries to refetch
       queryClient.invalidateQueries({ queryKey: tagKeys.all });
-      toast.success("Tag deleted successfully");
+      toast.success("Deleted successfully.");
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to delete tag");
+      toast.error(error.message || "Deleted unsuccessfully.");
     },
   });
 }
@@ -218,10 +218,10 @@ export function useReorderTags() {
     onSuccess: () => {
       // Invalidate all tag queries to refetch
       queryClient.invalidateQueries({ queryKey: tagKeys.all });
-      toast.success("Tags reordered successfully");
+      toast.success("Reordered successfully.");
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to reorder tags");
+      toast.error(error.message || "Reordered unsuccessfully.");
     },
   });
 }

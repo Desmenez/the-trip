@@ -84,7 +84,7 @@ export default function EditCustomerPage({ params }: { params: Promise<{ id: str
       router.push(`/dashboard/customers/${customerId}`);
       router.refresh();
     } catch {
-      toast.error("Failed to update customer");
+      toast.error("Updated unsuccessfully.");
     }
   }
 

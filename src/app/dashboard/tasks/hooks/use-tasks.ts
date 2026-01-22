@@ -229,10 +229,10 @@ export function useCreateTask() {
     mutationFn: createTask,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: taskKeys.all });
-      toast.success("Task created successfully");
+      toast.success("Created successfully.");
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to create task");
+      toast.error(error.message || "Created unsuccessfully.");
     },
   });
 }
@@ -246,10 +246,10 @@ export function useUpdateTask() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: taskKeys.all });
       queryClient.invalidateQueries({ queryKey: taskKeys.detail(data.id) });
-      toast.success("Task updated successfully");
+      toast.success("Updated successfully.");
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to update task");
+      toast.error(error.message || "Updated unsuccessfully.");
     },
   });
 }
@@ -262,10 +262,10 @@ export function useDeleteTask() {
     mutationFn: deleteTask,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: taskKeys.all });
-      toast.success("Task deleted successfully");
+      toast.success("Deleted successfully.");
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to delete task");
+      toast.error(error.message || "Deleted unsuccessfully.");
     },
   });
 }

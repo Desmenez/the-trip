@@ -103,7 +103,7 @@ export default function ResetPasswordPage() {
         throw new Error(error || "Failed to reset password");
       }
 
-      toast.success("Password reset successfully! You can now login.");
+      toast.success("Password reset successfully.");
       router.push("/login");
     } catch (error) {
       console.error(error);

@@ -339,10 +339,10 @@ export function useCreateCustomer() {
     onSuccess: () => {
       // Invalidate all customer queries to refetch
       queryClient.invalidateQueries({ queryKey: customerKeys.all });
-      toast.success("Customer created successfully");
+      toast.success("Created successfully.");
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to create customer");
+      toast.error(error.message || "Created unsuccessfully.");
     },
   });
 }
@@ -358,10 +358,10 @@ export function useUpdateCustomer() {
       queryClient.invalidateQueries({ queryKey: customerKeys.all });
       // Update the specific customer in cache
       queryClient.setQueryData(customerKeys.detail(variables.id), data);
-      toast.success("Customer updated successfully");
+      toast.success("Updated successfully.");
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to update customer");
+      toast.error(error.message || "Updated unsuccessfully.");
     },
   });
 }

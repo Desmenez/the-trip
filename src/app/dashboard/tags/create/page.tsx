@@ -18,7 +18,7 @@ export default function CreateTagPage() {
       router.push("/dashboard/tags");
       router.refresh();
     } catch {
-      toast.error("Failed to create tag");
+      toast.error("Created unsuccessfully.");
     }
   }
 

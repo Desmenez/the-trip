@@ -27,7 +27,7 @@ export default function EditTagPage({ params }: { params: Promise<{ id: string }
       router.push("/dashboard/tags");
       router.refresh();
     } catch {
-      toast.error("Failed to update tag");
+      toast.error("Updated unsuccessfully.");
     }
   }
 

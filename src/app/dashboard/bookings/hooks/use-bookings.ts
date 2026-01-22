@@ -386,10 +386,10 @@ export function useCreateBooking() {
     onSuccess: () => {
       // Invalidate all booking queries to refetch
       queryClient.invalidateQueries({ queryKey: bookingKeys.all });
-      toast.success("Booking created successfully");
+      toast.success("Created successfully.");
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to create booking");
+      toast.error(error.message || "Created unsuccessfully.");
     },
   });
 }
@@ -405,10 +405,10 @@ export function useUpdateBooking() {
       queryClient.invalidateQueries({ queryKey: bookingKeys.all });
       // Update the specific booking in cache
       queryClient.setQueryData(bookingKeys.detail(variables.id), data);
-      toast.success("Booking updated successfully");
+      toast.success("Updated successfully.");
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to update booking");
+      toast.error(error.message || "Updated unsuccessfully.");
     },
   });
 }
@@ -422,10 +422,10 @@ export function useDeleteBooking() {
     onSuccess: () => {
       // Invalidate all booking queries to refetch
       queryClient.invalidateQueries({ queryKey: bookingKeys.all });
-      toast.success("Booking deleted successfully");
+      toast.success("Deleted successfully.");
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to delete booking");
+      toast.error(error.message || "Deleted unsuccessfully.");
     },
   });
 }

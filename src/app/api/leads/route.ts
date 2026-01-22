@@ -123,7 +123,8 @@ export async function GET(request: Request) {
       take: pageSize,
       where,
       orderBy: {
-        updatedAt: "desc",
+        // updatedAt: "desc",
+        createdAt: "desc",
       },
       include: {
         customer: {

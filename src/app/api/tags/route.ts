@@ -17,7 +17,8 @@ export async function GET(request: Request) {
     // If all=true, return all tags without pagination (for order selection)
     if (all) {
       const tags = await prisma.tag.findMany({
-        orderBy: { order: "asc" },
+        // orderBy: { order: "asc" },
+        orderBy: { createdAt: "desc" },
         select: {
           id: true,
           name: true,
@@ -50,7 +51,7 @@ export async function GET(request: Request) {
       skip,
       take: pageSize,
       where,
-      orderBy: { order: "asc" },
+      orderBy: { order: "desc" },
       include: {
         _count: {
           select: { customers: true },

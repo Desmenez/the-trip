@@ -139,7 +139,7 @@ export async function GET(req: Request) {
       prisma.task.findMany({
         where,
         orderBy: [
-          { deadline: "asc" },
+          // { deadline: "asc" },
           { createdAt: "desc" },
         ],
         include: {

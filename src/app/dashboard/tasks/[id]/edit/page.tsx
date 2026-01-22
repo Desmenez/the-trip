@@ -23,7 +23,7 @@ export default function EditTaskPage({ params }: { params: Promise<{ id: string 
       router.push("/dashboard/tasks");
       router.refresh();
     } catch {
-      toast.error("Failed to update task");
+      toast.error("Updated unsuccessfully.");
     }
   }
 

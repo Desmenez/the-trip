@@ -18,7 +18,7 @@ export default function NewFamilyPage() {
       router.push("/dashboard/families");
       router.refresh();
     } catch {
-      toast.error("Failed to create family");
+      toast.error("Created unsuccessfully.");
     }
   }
 

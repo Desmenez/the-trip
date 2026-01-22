@@ -243,10 +243,10 @@ export function useCreateLead() {
     mutationFn: createLead,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: leadKeys.all });
-      toast.success("Lead created successfully");
+      toast.success("Created successfully.");
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to create lead");
+      toast.error(error.message || "Created unsuccessfully.");
     },
   });
 }
@@ -260,10 +260,10 @@ export function useUpdateLead() {
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: leadKeys.all });
       queryClient.setQueryData(leadKeys.detail(variables.id), data);
-      toast.success("Lead updated successfully");
+      toast.success("Updated successfully.");
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to update lead");
+      toast.error(error.message || "Updated unsuccessfully.");
     },
   });
 }

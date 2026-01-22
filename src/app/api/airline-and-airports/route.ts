@@ -48,7 +48,8 @@ export async function GET(req: Request) {
       take: pageSize,
       where,
       orderBy: {
-        code: "asc",
+        // code: "asc",
+        createdAt: "desc",
       },
       include: {
         _count: {

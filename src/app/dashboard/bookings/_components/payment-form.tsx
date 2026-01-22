@@ -90,12 +90,10 @@ export function PaymentForm({ bookingId, booking, onSuccess, onCancel }: Payment
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || "Failed to create payment");
+        throw new Error(error.error || "Created unsuccessfully.");
       }
 
-      toast.success("Payment added", {
-        description: "The payment has been recorded successfully.",
-      });
+      toast.success("Created successfully.");
 
       form.reset();
       if (onSuccess) {
@@ -103,7 +101,7 @@ export function PaymentForm({ bookingId, booking, onSuccess, onCancel }: Payment
       }
     } catch (error) {
       console.error(error);
-      toast.error("Failed to add payment. Please try again.", {
+      toast.error("Created unsuccessfully.", {
         description: error instanceof Error ? error.message : "Failed to add payment. Please try again.",
       });
     } finally {

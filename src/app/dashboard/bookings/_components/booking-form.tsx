@@ -1751,7 +1751,7 @@ export function BookingForm({ mode, initialData, onSubmit, onCancel, isLoading =
                             trip: booking.trip,
                           }}
                           onSuccess={() => {
-                            toast.success("Second payment added successfully");
+                            toast.success("Created successfully.");
                             // Refresh the page or refetch booking data
                             window.location.reload();
                           }}
@@ -1773,7 +1773,7 @@ export function BookingForm({ mode, initialData, onSubmit, onCancel, isLoading =
                             trip: booking.trip,
                           }}
                           onSuccess={() => {
-                            toast.success("Third payment added successfully");
+                            toast.success("Created successfully.");
                             // Refresh the page or refetch booking data
                             window.location.reload();
                           }}

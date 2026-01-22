@@ -93,10 +93,10 @@ export function useCreatePassport(customerId: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: passportKeys.byCustomer(customerId) });
       queryClient.invalidateQueries({ queryKey: customerKeys.detail(customerId) });
-      toast.success("Passport created successfully");
+      toast.success("Created successfully.");
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to create passport");
+      toast.error(error.message || "Created unsuccessfully.");
     },
   });
 }
@@ -110,10 +110,10 @@ export function useUpdatePassport(customerId: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: passportKeys.byCustomer(customerId) });
       queryClient.invalidateQueries({ queryKey: customerKeys.detail(customerId) });
-      toast.success("Passport updated successfully");
+      toast.success("Updated successfully.");
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to update passport");
+      toast.error(error.message || "Updated unsuccessfully.");
     },
   });
 }
@@ -127,10 +127,10 @@ export function useDeletePassport(customerId: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: passportKeys.byCustomer(customerId) });
       queryClient.invalidateQueries({ queryKey: customerKeys.detail(customerId) });
-      toast.success("Passport deleted successfully");
+      toast.success("Deleted successfully.");
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to delete passport");
+      toast.error(error.message || "Deleted unsuccessfully.");
     },
   });
 }

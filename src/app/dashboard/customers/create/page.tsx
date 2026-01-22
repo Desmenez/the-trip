@@ -26,7 +26,7 @@ export default function NewCustomerPage() {
       router.push("/dashboard/customers");
       router.refresh();
     } catch {
-      toast.error("Failed to create customer");
+      toast.error("Created unsuccessfully.");
     }
   }
 

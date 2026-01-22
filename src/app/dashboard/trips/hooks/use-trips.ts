@@ -189,12 +189,12 @@ export function useCreateTrip() {
     onSuccess: () => {
       // Invalidate all trip queries to refetch
       queryClient.invalidateQueries({ queryKey: tripKeys.all });
-      toast.success("Trip created successfully");
+      toast.success("Created successfully.");
     },
     onError: (error: Error & { field?: string }) => {
       // Only show toast if error doesn't have a field (field errors are shown in form)
       if (!error.field) {
-        toast.error(error.message || "Failed to create trip");
+        toast.error(error.message || "Created unsuccessfully.");
       }
     },
   });
@@ -211,12 +211,12 @@ export function useUpdateTrip() {
       queryClient.invalidateQueries({ queryKey: tripKeys.all });
       // Update the specific trip in cache
       queryClient.setQueryData(tripKeys.detail(variables.id), data);
-      toast.success("Trip updated successfully");
+      toast.success("Updated successfully.");
     },
     onError: (error: Error & { field?: string }) => {
       // Only show toast if error doesn't have a field (field errors are shown in form)
       if (!error.field) {
-        toast.error(error.message || "Failed to update trip");
+        toast.error(error.message || "Updated unsuccessfully.");
       }
     },
   });

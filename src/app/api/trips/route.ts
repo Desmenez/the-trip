@@ -72,7 +72,8 @@ export async function GET(request: Request) {
       take: pageSize,
       where,
       orderBy: {
-        startDate: "asc",
+        // startDate: "asc",
+        createdAt: "desc",
       },
       include: {
         airlineAndAirport: true,

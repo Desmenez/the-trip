@@ -228,7 +228,7 @@ export default function TasksPage() {
         setDeleteDialogOpen(false);
         setDeletingId(null);
       } catch {
-        toast.error("Failed to delete task");
+        toast.error("Deleted unsuccessfully.");
       }
     },
     [deleteTaskMutation],

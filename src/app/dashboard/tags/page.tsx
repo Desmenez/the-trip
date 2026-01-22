@@ -149,7 +149,7 @@ export default function TagsPage() {
         setDeleteDialogOpen(false);
         setDeletingId(null);
       } catch {
-        toast.error("Failed to delete tag");
+        toast.error("Deleted unsuccessfully.");
       }
     },
     [deleteTagMutation],

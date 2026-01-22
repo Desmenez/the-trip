@@ -96,10 +96,10 @@ export function DragDropUpload({
 
         const result = await response.json();
 
-        toast.success(`File "${result.fileName}" uploaded successfully`);
+        toast.success(`Uploaded successfully.`);
         onUploadSuccess?.(result.fileUrl, result.fileName);
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : "Upload failed";
+        const errorMessage = error instanceof Error ? error.message : "Uploaded unsuccessfully.";
         toast.error(errorMessage);
         onUploadError?.(errorMessage);
       } finally {

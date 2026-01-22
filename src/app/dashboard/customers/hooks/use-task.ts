@@ -224,10 +224,10 @@ export function useCreateTask(customerId?: string) {
         queryClient.invalidateQueries({ queryKey: taskKeys.lists() });
       }
       queryClient.invalidateQueries({ queryKey: ["customers", customerId] });
-      toast.success("Task created successfully");
+      toast.success("Created successfully.");
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to create task");
+      toast.error(error.message || "Created unsuccessfully.");
     },
   });
 }
@@ -252,10 +252,10 @@ export function useUpdateTask(customerId?: string) {
         queryClient.invalidateQueries({ queryKey: taskKeys.lists() });
       }
       queryClient.invalidateQueries({ queryKey: ["customers", customerId] });
-      toast.success("Task updated successfully");
+      toast.success("Updated successfully.");
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to update task");
+      toast.error(error.message || "Updated unsuccessfully.");
     },
   });
 }
@@ -279,10 +279,10 @@ export function useDeleteTask(customerId?: string) {
         queryClient.invalidateQueries({ queryKey: taskKeys.lists() });
       }
       queryClient.invalidateQueries({ queryKey: ["customers", customerId] });
-      toast.success("Task deleted successfully");
+      toast.success("Deleted successfully.");
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to delete task");
+      toast.error(error.message || "Deleted unsuccessfully.");
     },
   });
 }

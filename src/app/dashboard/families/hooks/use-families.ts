@@ -187,10 +187,10 @@ export function useCreateFamily() {
     onSuccess: () => {
       // Invalidate all family queries to refetch
       queryClient.invalidateQueries({ queryKey: familyKeys.all });
-      toast.success("Family created successfully");
+      toast.success("Created successfully.");
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to create family");
+      toast.error(error.message || "Created unsuccessfully.");
     },
   });
 }
@@ -205,10 +205,10 @@ export function useUpdateFamily() {
       // Invalidate all family queries to refetch
       queryClient.invalidateQueries({ queryKey: familyKeys.all });
       queryClient.invalidateQueries({ queryKey: familyKeys.detail(data.id) });
-      toast.success("Family updated successfully");
+      toast.success("Updated successfully.");
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to update family");
+      toast.error(error.message || "Updated unsuccessfully.");
     },
   });
 }
@@ -222,10 +222,10 @@ export function useDeleteFamily() {
     onSuccess: () => {
       // Invalidate all family queries to refetch
       queryClient.invalidateQueries({ queryKey: familyKeys.all });
-      toast.success("Family deleted successfully");
+      toast.success("Deleted successfully.");
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to delete family");
+      toast.error(error.message || "Deleted unsuccessfully.");
     },
   });
 }

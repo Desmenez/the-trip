@@ -202,12 +202,12 @@ export function useCreateUser() {
     mutationFn: createUser,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: userKeys.all });
-      toast.success("User created successfully");
+      toast.success("Created successfully.");
     },
     onError: (error: Error & { field?: string }) => {
       // Only show toast if error doesn't have a field (field errors are shown in form)
       if (!error.field) {
-        toast.error(error.message || "Failed to create user");
+        toast.error(error.message || "Created unsuccessfully.");
       }
     },
   });
@@ -221,12 +221,12 @@ export function useUpdateUser() {
     mutationFn: updateUser,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: userKeys.all });
-      toast.success("User updated successfully");
+      toast.success("Updated successfully.");
     },
     onError: (error: Error & { field?: string }) => {
       // Only show toast if error doesn't have a field (field errors are shown in form)
       if (!error.field) {
-        toast.error(error.message || "Failed to update user");
+        toast.error(error.message || "Updated unsuccessfully.");
       }
     },
   });

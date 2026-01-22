@@ -49,7 +49,7 @@ export default function NewLeadPage() {
       router.push("/dashboard/leads");
       router.refresh();
     } catch {
-      toast.error("Failed to create lead");
+      toast.error("Created unsuccessfully.");
     }
   }
 

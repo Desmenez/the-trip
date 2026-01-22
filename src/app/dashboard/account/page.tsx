@@ -222,9 +222,9 @@ export default function AccountPage() {
 
       const data = await res.json();
       setUserInfo(data);
-      toast.success("Name updated successfully");
+      toast.success("Updated successfully.");
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "An error occurred";
+      const errorMessage = error instanceof Error ? error.message : "Updated unsuccessfully.";
       toast.error(errorMessage);
     } finally {
       setIsLoadingName(false);
@@ -244,11 +244,11 @@ export default function AccountPage() {
 
       if (!res.ok) {
         const error = await res.text();
-        throw new Error(error || "Failed to change email");
+        throw new Error(error || "Email changed unsuccessfully.");
       }
 
       const data = await res.json();
-      toast.success("Verification email sent to new email address");
+      toast.success("Verification email sent to new email address.");
       
       if (process.env.NODE_ENV === "development" && data.verificationUrl) {
         toast.info("Check console for verification URL (development mode)");
@@ -279,17 +279,17 @@ export default function AccountPage() {
 
       if (!res.ok) {
         const error = await res.text();
-        throw new Error(error || "Failed to change password");
+        throw new Error(error || "Updated unsuccessfully.");
       }
 
-      toast.success("Password changed successfully. You will be logged out.");
+      toast.success("Updated successfully.");
       
       // Logout after password change
       setTimeout(async () => {
         await signOut({ callbackUrl: "/login" });
       }, 1500);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "An error occurred";
+      const errorMessage = error instanceof Error ? error.message : "Updated unsuccessfully.";
       toast.error(errorMessage);
     } finally {
       setIsLoadingPassword(false);

@@ -44,7 +44,7 @@ export default function NewBookingPage() {
       router.push("/dashboard/bookings");
       router.refresh();
     } catch {
-      toast.error("Failed to create booking");
+      toast.error("Created unsuccessfully.");
     } finally {
       setLoading(false);
     }

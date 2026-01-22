@@ -39,7 +39,7 @@ export default function EditFamilyPage({ params }: { params: Promise<{ id: strin
       router.push(`/dashboard/families/${familyId}`);
       router.refresh();
     } catch {
-      toast.error("Failed to update family");
+      toast.error("Updated unsuccessfully.");
     }
   }
 
