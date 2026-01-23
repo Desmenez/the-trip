@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useCallback } from "react";
 import { toast } from "sonner";
 import z from "zod";
 
@@ -220,6 +221,38 @@ export function useUpdateTrip() {
       }
     },
   });
+}
+
+// Hook to export trips as CSV
+export function useExportTrips() {
+  return useCallback(
+    (search?: string, startDateFrom?: string, startDateTo?: string) => {
+      const params = new URLSearchParams();
+
+      // Add filter params (excluding page and pageSize)
+      if (search) {
+        params.set("search", search);
+      }
+      if (startDateFrom) {
+        params.set("startDateFrom", startDateFrom);
+      }
+      if (startDateTo) {
+        params.set("startDateTo", startDateTo);
+      }
+
+      const queryString = params.toString();
+      const url = `/api/trips/export${queryString ? `?${queryString}` : ""}`;
+
+      // Create a temporary link and trigger download
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `trips-export-${new Date().toISOString().split("T")[0]}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    },
+    [],
+  );
 }
 
 // Export types

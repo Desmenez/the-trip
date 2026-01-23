@@ -5,13 +5,13 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit, Eye } from "lucide-react";
+import { Plus, Edit, Eye, Download } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
 import { DataTable } from "@/components/data-table/data-table";
 import { useDataTableInstance } from "@/hooks/use-data-table-instance";
 import { DataTablePagination } from "@/components/data-table/data-table-pagination";
-import { useTrips, type Trip } from "./hooks/use-trips";
+import { useTrips, useExportTrips, type Trip } from "./hooks/use-trips";
 import { Loading } from "@/components/page/loading";
 import { TripFilter } from "./_components/trip-filter";
 
@@ -221,6 +221,15 @@ export default function TripsPage() {
     [searchParams, router],
   );
 
+  const exportTrips = useExportTrips();
+  const handleExport = useCallback(() => {
+    exportTrips(
+      searchQuery || undefined,
+      startDateFromQuery || undefined,
+      startDateToQuery || undefined,
+    );
+  }, [exportTrips, searchQuery, startDateFromQuery, startDateToQuery]);
+
   return (
     <div className="flex flex-col gap-8 p-8">
       <div className="flex items-center justify-between">
@@ -228,11 +237,16 @@ export default function TripsPage() {
           <h2 className="text-3xl font-bold tracking-tight">Trips</h2>
           <p className="text-muted-foreground">Manage your travel packages and capacity.</p>
         </div>
-        <Link href="/dashboard/trips/create">
-          <Button>
-            <Plus className="mr-2 h-4 w-4" /> Create
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={handleExport}>
+            <Download className="mr-2 h-4 w-4" /> Export CSV
           </Button>
-        </Link>
+          <Link href="/dashboard/trips/create">
+            <Button>
+              <Plus className="mr-2 h-4 w-4" /> Create
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* Filter & Search form */}
