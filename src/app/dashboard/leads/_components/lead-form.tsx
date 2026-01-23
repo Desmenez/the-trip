@@ -90,7 +90,7 @@ type LeadFormValues = z.infer<typeof formSchema>;
 interface LeadFormProps {
   mode: "create" | "edit" | "view";
   initialData?: Lead | null;
-  onSubmit: (values: LeadFormValues) => Promise<void> | void;
+  onSubmit?: (values: LeadFormValues) => Promise<void> | void;
   onCancel?: () => void;
   isLoading?: boolean;
 }
@@ -190,6 +190,7 @@ export function LeadForm({ mode, initialData, onSubmit, onCancel, isLoading }: L
   }, [salesUsers, salesUserSearchQuery]);
 
   const handleSubmit = async (values: LeadFormValues) => {
+    if (!onSubmit || mode === "view") return;
     await onSubmit(values);
   };
 

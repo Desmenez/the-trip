@@ -15,10 +15,19 @@ import { cn } from "@/lib/utils";
 import { familyFormSchema, FamilyFormValues } from "../hooks/use-families";
 import { useSearchCustomers } from "@/app/dashboard/customers/hooks/use-customers";
 
+interface Customer {
+  id: string;
+  firstNameEn: string;
+  lastNameEn: string;
+  firstNameTh: string | null;
+  lastNameTh: string | null;
+}
+
 interface FamilyFormProps {
-  mode: "create" | "edit";
+  mode: "create" | "edit" | "view";
   initialData?: Partial<FamilyFormValues>;
-  onSubmit: (values: FamilyFormValues) => Promise<void>;
+  initialCustomers?: Customer[];
+  onSubmit?: (values: FamilyFormValues) => Promise<void>;
   onCancel?: () => void;
   isLoading?: boolean;
 }
@@ -26,10 +35,12 @@ interface FamilyFormProps {
 export function FamilyForm({
   mode,
   initialData,
+  initialCustomers,
   onSubmit,
   onCancel,
   isLoading = false,
 }: FamilyFormProps) {
+  const readOnly = mode === "view";
   const [customersSearch, setCustomersSearch] = useState("");
   const [isCustomersOpen, setIsCustomersOpen] = useState(false);
   const { data: searchResults = [] } = useSearchCustomers(customersSearch || "", 50);
@@ -61,16 +72,20 @@ export function FamilyForm({
   }, [initialData, form]);
 
   async function handleSubmit(values: FamilyFormValues) {
+    if (!onSubmit || readOnly) return;
     await onSubmit(values);
   }
 
   const selectedCustomerIds = form.watch("customerIds") || [];
 
-  // Get selected customers from search results or fetch them if needed
-  const selectedCustomers = searchResults.filter((c) => selectedCustomerIds.includes(c.id));
+  // Get selected customers from search results or initialCustomers (for view mode)
+  const selectedCustomersFromSearch = searchResults.filter((c) => selectedCustomerIds.includes(c.id));
+  const selectedCustomersFromInitial = (initialCustomers || []).filter((c) => selectedCustomerIds.includes(c.id));
 
-  // If we have selected IDs but they're not in search results, we need to fetch them
-  // For now, we'll just show the IDs - in production you might want to fetch them separately
+  // Combine search results and initial customers (prioritize search results)
+  const selectedCustomers = selectedCustomersFromSearch.length > 0
+    ? selectedCustomersFromSearch
+    : selectedCustomersFromInitial;
 
   return (
     <Form {...form}>
@@ -83,7 +98,11 @@ export function FamilyForm({
             <FormItem>
               <FormLabel required>Name</FormLabel>
               <FormControl>
-                <Input placeholder="Name" {...field} />
+                {readOnly ? (
+                  <Input value={field.value || ""} disabled />
+                ) : (
+                  <Input placeholder="Name" {...field} disabled={isLoading} />
+                )}
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -98,7 +117,11 @@ export function FamilyForm({
               <FormItem>
                 <FormLabel>Phone number</FormLabel>
                 <FormControl>
-                  <Input placeholder="Phone number" {...field} />
+                  {readOnly ? (
+                    <Input value={field.value || ""} disabled />
+                  ) : (
+                    <Input placeholder="Phone number" {...field} disabled={isLoading} />
+                  )}
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -112,7 +135,11 @@ export function FamilyForm({
               <FormItem>
                 <FormLabel>LINE ID</FormLabel>
                 <FormControl>
-                  <Input placeholder="LINE ID" {...field} />
+                  {readOnly ? (
+                    <Input value={field.value || ""} disabled />
+                  ) : (
+                    <Input placeholder="LINE ID" {...field} disabled={isLoading} />
+                  )}
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -127,7 +154,11 @@ export function FamilyForm({
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input type="email" placeholder="Email" {...field} />
+                {readOnly ? (
+                  <Input value={field.value || ""} disabled />
+                ) : (
+                  <Input type="email" placeholder="Email" {...field} disabled={isLoading} />
+                )}
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -140,84 +171,101 @@ export function FamilyForm({
           render={({ field }) => (
             <FormItem className="flex flex-col">
               <FormLabel required>Customer name</FormLabel>
-              <Popover open={isCustomersOpen} onOpenChange={setIsCustomersOpen}>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      className={cn(
-                        "w-full justify-between",
-                        (!field.value || field.value.length === 0) && "text-muted-foreground",
-                      )}
-                    >
-                      <span className="flex flex-1 flex-wrap items-center gap-1">
-                        {field.value && field.value.length > 0 ? (
-                          selectedCustomers.length > 0 ? (
-                            selectedCustomers.map((customer) => (
-                              <Badge key={customer.id} variant="outline">
-                                {customer.firstNameEn} {customer.lastNameEn}
-                              </Badge>
-                            ))
-                          ) : (
-                            <span className="text-muted-foreground">{field.value.length} selected</span>
-                          )
-                        ) : (
-                          <span className="text-muted-foreground">Select customers</span>
+              {readOnly ? (
+                <FormControl>
+                  <div className="flex flex-wrap gap-2 min-h-9 items-center p-2 border rounded-md bg-muted">
+                    {selectedCustomers.length > 0 ? (
+                      selectedCustomers.map((customer) => (
+                        <Badge key={customer.id} variant="outline">
+                          {customer.firstNameEn} {customer.lastNameEn}
+                        </Badge>
+                      ))
+                    ) : (
+                      <span className="text-muted-foreground text-sm">No customers selected</span>
+                    )}
+                  </div>
+                </FormControl>
+              ) : (
+                <Popover open={isCustomersOpen} onOpenChange={setIsCustomersOpen}>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        className={cn(
+                          "w-full justify-between",
+                          (!field.value || field.value.length === 0) && "text-muted-foreground",
                         )}
-                      </span>
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-[400px] p-0">
-                  <Command>
-                    <CommandInput
-                      placeholder="Search customers..."
-                      value={customersSearch}
-                      onValueChange={setCustomersSearch}
-                    />
-                    <CommandList>
-                      <CommandEmpty>No customers found.</CommandEmpty>
-                      <CommandGroup>
-                        {searchResults.map((customer) => {
-                          const isSelected = field.value?.includes(customer.id);
-                          return (
-                            <CommandItem
-                              value={`${customer.firstNameEn} ${customer.lastNameEn}`}
-                              key={customer.id}
-                              onSelect={() => {
-                                const currentValue = field.value || [];
-                                const newValue = isSelected
-                                  ? currentValue.filter((id) => id !== customer.id)
-                                  : [...currentValue, customer.id];
-                                field.onChange(newValue);
-                              }}
-                            >
-                              <Check
-                                className={cn(
-                                  "mr-2 h-4 w-4",
-                                  isSelected ? "opacity-100" : "opacity-0",
-                                )}
-                              />
-                              <div className="flex flex-col">
-                                <span>
+                        disabled={isLoading}
+                      >
+                        <span className="flex flex-1 flex-wrap items-center gap-1">
+                          {field.value && field.value.length > 0 ? (
+                            selectedCustomers.length > 0 ? (
+                              selectedCustomers.map((customer) => (
+                                <Badge key={customer.id} variant="outline">
                                   {customer.firstNameEn} {customer.lastNameEn}
-                                </span>
-                                {(customer.firstNameTh || customer.lastNameTh) && (
-                                  <span className="text-muted-foreground text-xs">
-                                    {customer.firstNameTh} {customer.lastNameTh}
+                                </Badge>
+                              ))
+                            ) : (
+                              <span className="text-muted-foreground">{field.value.length} selected</span>
+                            )
+                          ) : (
+                            <span className="text-muted-foreground">Select customers</span>
+                          )}
+                        </span>
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[400px] p-0">
+                    <Command>
+                      <CommandInput
+                        placeholder="Search customers..."
+                        value={customersSearch}
+                        onValueChange={setCustomersSearch}
+                      />
+                      <CommandList>
+                        <CommandEmpty>No customers found.</CommandEmpty>
+                        <CommandGroup>
+                          {searchResults.map((customer) => {
+                            const isSelected = field.value?.includes(customer.id);
+                            return (
+                              <CommandItem
+                                value={`${customer.firstNameEn} ${customer.lastNameEn}`}
+                                key={customer.id}
+                                onSelect={() => {
+                                  const currentValue = field.value || [];
+                                  const newValue = isSelected
+                                    ? currentValue.filter((id) => id !== customer.id)
+                                    : [...currentValue, customer.id];
+                                  field.onChange(newValue);
+                                }}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    isSelected ? "opacity-100" : "opacity-0",
+                                  )}
+                                />
+                                <div className="flex flex-col">
+                                  <span>
+                                    {customer.firstNameEn} {customer.lastNameEn}
                                   </span>
-                                )}
-                              </div>
-                            </CommandItem>
-                          );
-                        })}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
+                                  {(customer.firstNameTh || customer.lastNameTh) && (
+                                    <span className="text-muted-foreground text-xs">
+                                      {customer.firstNameTh} {customer.lastNameTh}
+                                    </span>
+                                  )}
+                                </div>
+                              </CommandItem>
+                            );
+                          })}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              )}
               <FormMessage />
             </FormItem>
           )}
@@ -230,23 +278,29 @@ export function FamilyForm({
             <FormItem>
               <FormLabel>Note for family / group</FormLabel>
               <FormControl>
-                <Textarea placeholder="Note for family / group" className="resize-none" {...field} />
+                {readOnly ? (
+                  <Textarea value={field.value || ""} disabled className="resize-none" />
+                ) : (
+                  <Textarea placeholder="Note for family / group" className="resize-none" {...field} disabled={isLoading} />
+                )}
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
 
-        <div className="flex justify-end gap-4">
-          {onCancel && (
-            <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
-              Cancel
+        {mode !== "view" && (
+          <div className="flex justify-end gap-4">
+            {onCancel && (
+              <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
+                Cancel
+              </Button>
+            )}
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? "Saving..." : mode === "create" ? "Create" : "Update"}
             </Button>
-          )}
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? "Saving..." : mode === "create" ? "Create" : "Update"}
-          </Button>
-        </div>
+          </div>
+        )}
       </form>
     </Form>
   );

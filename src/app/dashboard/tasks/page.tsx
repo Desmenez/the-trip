@@ -16,13 +16,7 @@ import { toast } from "sonner";
 import { Loading } from "@/components/page/loading";
 import { DeleteDialog } from "@/app/dashboard/_components/delete-dialog";
 import { format } from "date-fns";
-
-const TASK_STATUS_LABELS: Record<"TODO" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED", string> = {
-  TODO: "To-do",
-  IN_PROGRESS: "In progress",
-  COMPLETED: "Completed",
-  CANCELLED: "Cancelled",
-};
+import { TASK_STATUS_LABELS } from "@/lib/constants/task";
 
 export default function TasksPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);

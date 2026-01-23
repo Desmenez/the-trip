@@ -7,13 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Edit, Eye } from "lucide-react";
 import Link from "next/link";
-import { format } from "date-fns";
 import { DataTable } from "@/components/data-table/data-table";
 import { useDataTableInstance } from "@/hooks/use-data-table-instance";
 import { DataTablePagination } from "@/components/data-table/data-table-pagination";
 import { useBookings, type Booking } from "./hooks/use-bookings";
 import { Loading } from "@/components/page/loading";
 import { BookingFilter } from "./_components/booking-filter";
+import { getPaymentStatusColor, PAYMENT_STATUS_LABELS } from "@/lib/constants/payment";
+import { PaymentStatus } from "@prisma/client";
 
 export default function BookingsPage() {
   const searchParams = useSearchParams();
@@ -29,20 +30,6 @@ export default function BookingsPage() {
 
   const paymentStatus = statusQuery || "ALL";
 
-  const getPaymentStatusColor = (status: string) => {
-    switch (status) {
-      case "FULLY_PAID":
-        return "bg-green-500";
-      case "DEPOSIT_PAID":
-        return "bg-blue-500";
-      case "DEPOSIT_PENDING":
-        return "bg-yellow-500";
-      case "CANCELLED":
-        return "bg-red-500";
-      default:
-        return "bg-gray-500";
-    }
-  };
 
   // Calculate total amount and paid amount from booking data
   const calculateBookingAmounts = (booking: Booking) => {
@@ -119,7 +106,7 @@ export default function BookingsPage() {
         header: "Payment status",
         cell: ({ row }) => (
           <Badge className={getPaymentStatusColor(row.original.paymentStatus)}>
-            {row.original.paymentStatus.replace(/_/g, " ")}
+            {PAYMENT_STATUS_LABELS[row.original.paymentStatus as PaymentStatus]}
           </Badge>
         ),
       },

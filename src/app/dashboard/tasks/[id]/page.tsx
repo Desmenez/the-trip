@@ -3,13 +3,13 @@
 import { use } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Pencil } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useTask } from "../hooks/use-tasks";
 import { TaskForm } from "../_components/task-form";
-import Link from "next/link";
 import { Loading } from "@/components/page/loading";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
+import { TASK_STATUS_LABELS } from "@/lib/constants/task";
 
 export default function TaskDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -80,7 +80,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                         : "outline"
                 }
               >
-                {task.status}
+                {TASK_STATUS_LABELS[task.status]}
               </Badge>
             </div>
           </div>

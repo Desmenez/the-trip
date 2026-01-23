@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Eye, Pencil } from "lucide-react";
+import { Plus, Eye, Edit } from "lucide-react";
 import Link from "next/link";
 import { DataTable } from "@/components/data-table/data-table";
 import { useDataTableInstance } from "@/hooks/use-data-table-instance";
@@ -14,6 +14,8 @@ import { useLeads, type Lead } from "./hooks/use-leads";
 import { useLeadsParams, mapLeadsParamsToQuery } from "./hooks/use-leads-params";
 import { LeadFilter } from "./_components/lead-filter";
 import { Loading } from "@/components/page/loading";
+import { LEAD_STATUS_LABELS } from "@/lib/constants/lead";
+import { LeadStatus } from "@prisma/client";
 
 export default function LeadsPage() {
   const router = useRouter();
@@ -129,7 +131,7 @@ export default function LeadsPage() {
         accessorKey: "status",
         header: "Status",
         cell: ({ row }) => (
-          <Badge className={getStatusColor(row.original.status)}>{row.original.status.replace("_", " ")}</Badge>
+          <Badge className={getStatusColor(row.original.status)}>{LEAD_STATUS_LABELS[row.original.status as LeadStatus]}</Badge>
         ),
       },
       {
@@ -144,7 +146,7 @@ export default function LeadsPage() {
             </Link>
             <Link href={`/dashboard/leads/${row.original.id}/edit`}>
               <Button variant="ghost" size="sm" onClick={(e) => e.stopPropagation()}>
-                <Pencil className="h-4 w-4" />
+                <Edit className="h-4 w-4" />
               </Button>
             </Link>
           </div>

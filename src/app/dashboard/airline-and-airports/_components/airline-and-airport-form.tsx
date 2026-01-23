@@ -9,9 +9,9 @@ import { Input } from "@/components/ui/input";
 import { airlineAndAirportFormSchema, AirlineAndAirportFormValues } from "../hooks/use-airline-and-airports";
 
 interface AirlineAndAirportFormProps {
-  mode: "create" | "edit";
+  mode: "create" | "edit" | "view";
   initialData?: Partial<AirlineAndAirportFormValues>;
-  onSubmit: (values: AirlineAndAirportFormValues) => Promise<void>;
+  onSubmit?: (values: AirlineAndAirportFormValues) => Promise<void>;
   onCancel?: () => void;
   isLoading?: boolean;
   onError?: (error: Error) => void;
@@ -25,6 +25,8 @@ export function AirlineAndAirportForm({
   isLoading = false,
   onError,
 }: AirlineAndAirportFormProps) {
+  const readOnly = mode === "view";
+  
   const form = useForm<AirlineAndAirportFormValues>({
     resolver: zodResolver(airlineAndAirportFormSchema),
     defaultValues: {
@@ -44,6 +46,7 @@ export function AirlineAndAirportForm({
   }, [initialData, form]);
 
   async function handleSubmit(values: AirlineAndAirportFormValues) {
+    if (!onSubmit || readOnly) return;
     try {
       await onSubmit(values);
     } catch (error) {
@@ -72,7 +75,11 @@ export function AirlineAndAirportForm({
             <FormItem>
               <FormLabel required>IATA code</FormLabel>
               <FormControl>
-                <Input placeholder="IATA code" {...field} />
+                {readOnly ? (
+                  <Input value={field.value || ""} disabled />
+                ) : (
+                  <Input placeholder="IATA code" {...field} disabled={isLoading} />
+                )}
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -86,23 +93,29 @@ export function AirlineAndAirportForm({
             <FormItem>
               <FormLabel required>Airport name</FormLabel>
               <FormControl>
-                <Input placeholder="Airport name" {...field} />
+                {readOnly ? (
+                  <Input value={field.value || ""} disabled />
+                ) : (
+                  <Input placeholder="Airport name" {...field} disabled={isLoading} />
+                )}
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
 
-        <div className="flex justify-end gap-4">
-          {onCancel && (
-            <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
-              Cancel
+        {mode !== "view" && (
+          <div className="flex justify-end gap-4">
+            {onCancel && (
+              <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
+                Cancel
+              </Button>
+            )}
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? "Saving..." : mode === "create" ? "Create" : "Update"}
             </Button>
-          )}
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? "Saving..." : mode === "create" ? "Create" : "Update"}
-          </Button>
-        </div>
+          </div>
+        )}
       </form>
     </Form>
   );

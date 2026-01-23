@@ -1,30 +1,25 @@
 "use client";
 
-import { useRouter, useParams } from "next/navigation";
+import { use } from "react";
+import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
-  Pencil,
   CheckCircle2,
   Circle,
   XCircle,
-  FileText,
   Calendar,
   MapPin,
   DollarSign,
-  User,
-  Mail,
-  Phone,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { useLead } from "../hooks/use-leads";
+import { LeadForm } from "../_components/lead-form";
 import { format } from "date-fns";
 import { formatDecimal, cn } from "@/lib/utils";
 import Link from "next/link";
 import { Loading } from "@/components/page/loading";
-import { getLeadSourceLabel, getLeadStatusLabel } from "@/lib/constants/lead";
 
 const LEAD_STATUSES = [
   { value: "INTERESTED", label: "Interested", icon: Circle },
@@ -52,11 +47,10 @@ const getStatusColor = (status: string) => {
   }
 };
 
-export default function LeadViewPage() {
+export default function LeadViewPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
-  const params = useParams<{ id: string }>();
-  const id = params?.id;
-  const { data: lead, isLoading, error } = useLead(typeof id === "string" ? id : undefined);
+  const { id: leadId } = use(params);
+  const { data: lead, isLoading, error } = useLead(leadId);
 
   if (isLoading) {
     return <Loading />;
@@ -75,22 +69,23 @@ export default function LeadViewPage() {
   const currentStatusIndex = getStatusIndex(lead.status);
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 p-8">
+    <div className="p-8 space-y-8 max-w-2xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <Button variant="ghost" size="icon" onClick={() => router.back()}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <div>
-            <h2 className="text-3xl font-bold tracking-tight">Lead</h2>
-            <p className="text-muted-foreground">View lead information and status.</p>
-          </div>
+          <h2 className="text-3xl font-bold tracking-tight">Lead</h2>
         </div>
-        {/* <Button variant="default" onClick={() => router.push(`/dashboard/leads/${lead.id}/edit`)}>
-          <Pencil className="mr-2 h-4 w-4" />
-          Edit Lead
-        </Button> */}
+      </div>
+
+      {/* Lead Form */}
+      <div className="bg-card rounded-md border p-6">
+        <LeadForm
+          mode="view"
+          initialData={lead}
+        />
       </div>
 
       {/* Status Pipeline */}
@@ -100,7 +95,6 @@ export default function LeadViewPage() {
           <CardDescription>Current progress in the sales pipeline</CardDescription>
         </CardHeader>
         <CardContent>
-
           <div className="flex items-center justify-between">
             {LEAD_STATUSES.map((status, index) => {
               const StatusIcon = status.icon;
@@ -159,163 +153,6 @@ export default function LeadViewPage() {
           </div>
         </CardContent>
       </Card>
-
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Lead Details */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Lead Information</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <p className="text-muted-foreground text-sm font-medium">Source</p>
-              <Badge variant="outline" className="mt-1">
-                {getLeadSourceLabel(lead.source)}
-              </Badge>
-            </div>
-            <div>
-              <p className="text-muted-foreground text-sm font-medium">Status</p>
-              <Badge className={cn("mt-1", getStatusColor(lead.status))}>{getLeadStatusLabel(lead.status)}</Badge>
-            </div>
-            <div>
-              <p className="text-muted-foreground text-sm font-medium">Trip Interest</p>
-              <p className="mt-1 text-base">{lead.tripInterest}</p>
-            </div>
-            <div>
-              <p className="text-muted-foreground text-sm font-medium">Pax</p>
-              <p className="mt-1 text-base">{lead.pax}</p>
-            </div>
-            {lead.agent && (
-              <div>
-                <p className="text-muted-foreground text-sm font-medium">Created By (Agent)</p>
-                <p className="mt-1 text-base">
-                  {lead.agent.firstName} {lead.agent.lastName}
-                </p>
-                <p className="text-muted-foreground text-sm">{lead.agent.email}</p>
-              </div>
-            )}
-            {lead.salesUser && (
-              <div>
-                <p className="text-muted-foreground text-sm font-medium">Sales User</p>
-                <p className="mt-1 text-base">
-                  {lead.salesUser.firstName} {lead.salesUser.lastName}
-                </p>
-                <p className="text-muted-foreground text-sm">{lead.salesUser.email}</p>
-              </div>
-            )}
-            <div>
-              <p className="text-muted-foreground text-sm font-medium">Created</p>
-              <p className="mt-1 text-sm">{format(new Date(lead.createdAt), "dd MMM yyyy, HH:mm")}</p>
-            </div>
-            <div>
-              <p className="text-muted-foreground text-sm font-medium">Last Updated</p>
-              <p className="mt-1 text-sm">{format(new Date(lead.updatedAt), "dd MMM yyyy, HH:mm")}</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Customer Information */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5" />
-              Customer Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {lead.newCustomer ? (
-              <>
-                <Badge variant="outline" className="w-fit">New Customer</Badge>
-                <div>
-                  <p className="text-muted-foreground text-sm font-medium">Name</p>
-                  <p className="text-base font-semibold">
-                    {lead.firstName} {lead.lastName}
-                  </p>
-                </div>
-                {lead.email && (
-                  <div className="flex items-center gap-2">
-                    <Mail className="text-muted-foreground h-4 w-4" />
-                    <a href={`mailto:${lead.email}`} className="text-primary text-sm hover:underline">
-                      {lead.email}
-                    </a>
-                  </div>
-                )}
-                {lead.phoneNumber && (
-                  <div className="flex items-center gap-2">
-                    <Phone className="text-muted-foreground h-4 w-4" />
-                    <a href={`tel:${lead.phoneNumber}`} className="text-primary text-sm hover:underline">
-                      {lead.phoneNumber}
-                    </a>
-                  </div>
-                )}
-                {lead.lineId && (
-                  <div>
-                    <p className="text-muted-foreground text-sm font-medium">LINE ID</p>
-                    <p className="text-base">{lead.lineId}</p>
-                  </div>
-                )}
-              </>
-            ) : lead.customer ? (
-              <>
-                <div>
-                  <p className="text-muted-foreground text-sm font-medium">Name (Thai)</p>
-                  <p className="text-base font-semibold">
-                    {lead.customer.firstNameTh} {lead.customer.lastNameTh}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground text-sm font-medium">Name (English)</p>
-                  <p className="text-base font-semibold">
-                    {lead.customer.firstNameEn} {lead.customer.lastNameEn}
-                  </p>
-                </div>
-                {lead.customer.email && (
-                  <div className="flex items-center gap-2">
-                    <Mail className="text-muted-foreground h-4 w-4" />
-                    <a href={`mailto:${lead.customer.email}`} className="text-primary text-sm hover:underline">
-                      {lead.customer.email}
-                    </a>
-                  </div>
-                )}
-                {lead.customer.phoneNumber && (
-                  <div className="flex items-center gap-2">
-                    <Phone className="text-muted-foreground h-4 w-4" />
-                    <a href={`tel:${lead.customer.phoneNumber}`} className="text-primary text-sm hover:underline">
-                      {lead.customer.phoneNumber}
-                    </a>
-                  </div>
-                )}
-                <Separator />
-                <Link href={`/dashboard/customers/${lead.customer.id}`}>
-                  <Button variant="outline" className="w-full">
-                    View Customer Profile
-                  </Button>
-                </Link>
-              </>
-            ) : (
-              <p className="text-muted-foreground">No customer information</p>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Notes */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Notes</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <p className="text-muted-foreground text-sm font-medium mb-2">Lead Note</p>
-              <p className="text-sm whitespace-pre-wrap">{lead.leadNote ?? "No lead notes"}</p>
-            </div>
-            <Separator />
-            <div>
-              <p className="text-muted-foreground text-sm font-medium mb-2">Source Note</p>
-              <p className="text-sm whitespace-pre-wrap">{lead.sourceNote ?? "No source notes"}</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
 
       {/* Bookings */}
       {lead.bookings && lead.bookings.length > 0 && (

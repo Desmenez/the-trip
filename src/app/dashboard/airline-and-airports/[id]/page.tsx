@@ -1,115 +1,82 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { use } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Plane, Calendar } from "lucide-react";
-import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { useAirlineAndAirport } from "@/app/dashboard/airline-and-airports/hooks/use-airline-and-airports";
+import { AirlineAndAirportForm } from "../_components/airline-and-airport-form";
 import { Loading } from "@/components/page/loading";
 import { format } from "date-fns";
 
-export default function AirlineAndAirportDetailPage() {
-  const params = useParams<{ id: string }>();
-  const id = params?.id;
-  const { data: airlineAndAirport, isLoading, error } = useAirlineAndAirport(id);
+export default function AirlineAndAirportDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const router = useRouter();
+  const { id: airlineAndAirportId } = use(params);
+  const { data: airlineAndAirport, isLoading: isLoadingAirlineAndAirport, error: airlineAndAirportError } = useAirlineAndAirport(airlineAndAirportId);
 
-  if (isLoading) {
+  if (isLoadingAirlineAndAirport) {
     return <Loading />;
   }
 
-  if (error || !airlineAndAirport) {
+  if (airlineAndAirportError || !airlineAndAirport) {
     return (
-      <div className="space-y-8 p-8">
+      <div className="mx-auto max-w-2xl space-y-8 p-8">
         <div className="flex h-64 items-center justify-center">
-          <p className="text-destructive">Failed to load airline/airport. Please try again.</p>
+          <p className="text-destructive">IATA code not found</p>
         </div>
       </div>
     );
   }
 
+  const initialData = {
+    code: airlineAndAirport.code || "",
+    name: airlineAndAirport.name || "",
+  };
+
   return (
-    <div className="space-y-8 p-8">
-      {/* Header */}
+    <div className="mx-auto max-w-2xl space-y-8 p-8">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Link href="/dashboard/airline-and-airports">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-          </Link>
-          <div>
-            <div className="flex items-center gap-2">
-              <Badge variant="outline" className="text-lg font-mono">
-                {airlineAndAirport.code}
-              </Badge>
-            </div>
-            <h2 className="text-3xl font-bold tracking-tight">{airlineAndAirport.name}</h2>
-          </div>
+        <div className="flex items-center space-x-4">
+          <Button variant="ghost" size="icon" onClick={() => router.back()}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <h2 className="text-3xl font-bold tracking-tight">IATA Code</h2>
         </div>
-        {/* <Link href={`/dashboard/airline-and-airports/${airlineAndAirport.id}/edit`}>
-          <Button>Edit</Button>
+        {/* <Link href={`/dashboard/airline-and-airports/${airlineAndAirportId}/edit`}>
+          <Button>
+            <Pencil className="mr-2 h-4 w-4" /> Edit IATA Code
+          </Button>
         </Link> */}
       </div>
 
-      <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-        {/* Left Column: Info */}
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Plane className="h-4 w-4" />
-                Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <p className="text-muted-foreground text-sm">IATA code</p>
-                <p className="font-mono text-lg font-medium">{airlineAndAirport.code}</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground text-sm">Airport name</p>
-                <p className="text-lg font-medium">{airlineAndAirport.name}</p>
-              </div>
-              {airlineAndAirport._count && (
-                <div>
-                  <p className="text-muted-foreground text-sm">Used in Trips</p>
-                  <p className="text-lg font-medium">
-                    {airlineAndAirport._count.trips} {airlineAndAirport._count.trips === 1 ? "trip" : "trips"}
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Right Column: Metadata */}
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
-                Metadata
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <p className="text-muted-foreground text-sm">Created At</p>
-                <p className="text-sm">
-                  {format(new Date(airlineAndAirport.createdAt), "PPp")}
-                </p>
-              </div>
-              <div>
-                <p className="text-muted-foreground text-sm">Updated At</p>
-                <p className="text-sm">
-                  {format(new Date(airlineAndAirport.updatedAt), "PPp")}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+      <div className="bg-card rounded-md border p-6">
+        <AirlineAndAirportForm
+          mode="view"
+          initialData={initialData}
+        />
       </div>
+
+      {airlineAndAirport._count && (
+        <div className="bg-card rounded-md border p-6 space-y-4">
+          <h3 className="font-semibold">Additional Information</h3>
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <span className="text-muted-foreground">Used in Trips:</span>
+              <div className="mt-1">
+                {airlineAndAirport._count.trips} {airlineAndAirport._count.trips === 1 ? "trip" : "trips"}
+              </div>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Created:</span>
+              <div className="mt-1">{format(new Date(airlineAndAirport.createdAt), "dd MMM yyyy HH:mm")}</div>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Updated:</span>
+              <div className="mt-1">{format(new Date(airlineAndAirport.updatedAt), "dd MMM yyyy HH:mm")}</div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -6,18 +6,19 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Pencil, Users } from "lucide-react";
+import { ArrowLeft, Users } from "lucide-react";
 import { useTrip } from "../hooks/use-trips";
 import { TripForm } from "../_components/trip-form";
 import { useBookings, type Booking } from "@/app/dashboard/bookings/hooks/use-bookings";
 import { formatDecimal } from "@/lib/utils";
 import { format } from "date-fns";
-import Link from "next/link";
 import { DataTable } from "@/components/data-table/data-table";
 import { DataTablePagination } from "@/components/data-table/data-table-pagination";
 import { useDataTableInstance } from "@/hooks/use-data-table-instance";
 import { useMemo, useCallback, useEffect } from "react";
 import { Loading } from "@/components/page/loading";
+import { getPaymentStatusColor, PAYMENT_STATUS_LABELS } from "@/lib/constants/payment";
+import { PaymentStatus } from "@prisma/client";
 
 export default function TripDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -82,21 +83,6 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
     [updateSearchParams],
   );
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "CONFIRMED":
-        return "default";
-      case "COMPLETED":
-        return "secondary";
-      case "CANCELLED":
-        return "destructive";
-      case "PENDING":
-        return "outline";
-      default:
-        return "outline";
-    }
-  };
-
   // Define columns for bookings table
   const columns: ColumnDef<Booking>[] = useMemo(
     () => [
@@ -116,8 +102,9 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
         accessorKey: "paymentStatus",
         header: "Status",
         cell: ({ row }) => (
-          <Badge variant={getStatusColor(row.original.paymentStatus)}>{row.original.paymentStatus}</Badge>
-        ),
+          <Badge className={getPaymentStatusColor(row.original.paymentStatus)}>
+            {PAYMENT_STATUS_LABELS[row.original.paymentStatus as PaymentStatus]}
+          </Badge>),
       },
       {
         id: "remaining",
@@ -176,7 +163,7 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8 p-8">
+    <div className="mx-auto max-w-4xl space-y-8 p-8">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">

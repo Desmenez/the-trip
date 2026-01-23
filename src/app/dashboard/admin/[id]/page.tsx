@@ -3,11 +3,10 @@
 import { use } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Pencil } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useUser } from "../hooks/use-users-query";
 import { UserForm } from "../_components/user-form";
 import { UserFormValues } from "../hooks/use-users";
-import Link from "next/link";
 import { Loading } from "@/components/page/loading";
 
 export default function UserDetailPage({ params }: { params: Promise<{ id: string }> }) {
