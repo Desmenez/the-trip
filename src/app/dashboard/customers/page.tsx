@@ -31,7 +31,7 @@ const customerColumns: ColumnDef<CustomerWithTotalTrips>[] = [
       return (
         <div className="flex flex-col font-medium">
           <p>{englishName}</p>
-          {hasThaiName && (
+          {thaiName && (
             <p className="text-muted-foreground text-xs">
               ({thaiName})
             </p>
@@ -140,7 +140,7 @@ export default function CustomersPage() {
     },
     [setParams],
   );
-  
+
   // --------------------
   // render
   // --------------------

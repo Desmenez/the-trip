@@ -83,14 +83,14 @@ export default function LeadViewPage() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h2 className="text-3xl font-bold tracking-tight">Lead Details</h2>
+            <h2 className="text-3xl font-bold tracking-tight">Lead</h2>
             <p className="text-muted-foreground">View lead information and status.</p>
           </div>
         </div>
-        <Button variant="default" onClick={() => router.push(`/dashboard/leads/${lead.id}/edit`)}>
+        {/* <Button variant="default" onClick={() => router.push(`/dashboard/leads/${lead.id}/edit`)}>
           <Pencil className="mr-2 h-4 w-4" />
           Edit Lead
-        </Button>
+        </Button> */}
       </div>
 
       {/* Status Pipeline */}

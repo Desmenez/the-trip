@@ -51,7 +51,7 @@ export default function EditTagPage({ params }: { params: Promise<{ id: string }
         <Button variant="ghost" size="icon" onClick={() => router.back()}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h2 className="text-3xl font-bold tracking-tight">Edit Tag</h2>
+        <h2 className="text-3xl font-bold tracking-tight">Tag</h2>
       </div>
 
       <div className="bg-card rounded-md border p-6">

@@ -8,7 +8,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { UserFilter } from "./_components/user-filter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit } from "lucide-react";
+import { Plus, Edit, Eye } from "lucide-react";
 import { User } from "./types";
 import { AccessDenied } from "@/components/page/access-denied";
 import { Loading } from "@/components/page/loading";
@@ -114,6 +114,15 @@ export default function AdminPage() {
       },
     },
     {
+      accessorKey: "commissionPerHead",
+      header: "Commission per head",
+      cell: ({ row }) => <div>{row.original.commissionPerHead ? new Intl.NumberFormat("th-TH", {
+        style: "currency",
+        currency: "THB",
+        maximumFractionDigits: 0,
+      }).format(row.original.commissionPerHead) : "-"}</div>,
+    },
+    {
       accessorKey: "createdAt",
       header: "Created date",
       cell: ({ row }) => <div>{format(new Date(row.original.createdAt || ""), "dd MMM yyyy")}</div>,
@@ -123,6 +132,11 @@ export default function AdminPage() {
       header: () => <div className="text-right">Actions</div>,
       cell: ({ row }) => (
         <div className="flex justify-end gap-2">
+          <Link href={`/dashboard/admin/${row.original.id}`}>
+            <Button variant="ghost" size="sm" onClick={(e) => e.stopPropagation()}>
+              <Eye className="h-4 w-4" />
+            </Button>
+          </Link>
           <Link href={`/dashboard/admin/${row.original.id}/edit`}>
             <Button variant="ghost" size="sm" onClick={(e) => e.stopPropagation()}>
               <Edit className="h-4 w-4" />

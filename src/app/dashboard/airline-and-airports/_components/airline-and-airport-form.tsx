@@ -69,9 +69,9 @@ export function AirlineAndAirportForm({
           name="code"
           render={({ field }) => (
             <FormItem>
-              <FormLabel required>IATA Code</FormLabel>
+              <FormLabel required>IATA code</FormLabel>
               <FormControl>
-                <Input placeholder="IATA Code" {...field} />
+                <Input placeholder="IATA code" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -83,9 +83,9 @@ export function AirlineAndAirportForm({
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel required>Name</FormLabel>
+              <FormLabel required>Airport name</FormLabel>
               <FormControl>
-                <Input placeholder="Name" {...field} />
+                <Input placeholder="Airport name" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

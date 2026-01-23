@@ -20,7 +20,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
-import { Loader2, ArrowLeft, User, Mail, Shield, Percent, Calendar, CheckCircle2, XCircle } from "lucide-react";
+import { Loader2, ArrowLeft, User, Mail, Shield, Percent, Calendar, CheckCircle2, XCircle, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
 import { ROLE_LABELS } from "@/lib/constants/role";
@@ -90,6 +90,9 @@ export default function AccountPage() {
   const [isLoadingName, setIsLoadingName] = useState(false);
   const [isLoadingEmail, setIsLoadingEmail] = useState(false);
   const [isLoadingPassword, setIsLoadingPassword] = useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [commissionData, setCommissionData] = useState<CommissionData | null>(null);
   const [isLoadingCommission, setIsLoadingCommission] = useState(true);
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
@@ -142,22 +145,22 @@ export default function AccountPage() {
 
   // Fetch user info
   const fetchUserInfo = useCallback(async (shouldUpdateSession = false) => {
-      setIsLoadingUserInfo(true);
-      try {
-        const res = await fetch("/api/auth/me");
-        if (res.ok) {
-          const data = await res.json();
-          setUserInfo(data);
+    setIsLoadingUserInfo(true);
+    try {
+      const res = await fetch("/api/auth/me");
+      if (res.ok) {
+        const data = await res.json();
+        setUserInfo(data);
         // Only update session when explicitly requested (e.g., after email verification)
         if (shouldUpdateSession && updateSessionRef.current) {
           await updateSessionRef.current();
         }
-        }
-      } catch (error) {
-        console.error("Failed to fetch user info:", error);
-      } finally {
-        setIsLoadingUserInfo(false);
       }
+    } catch (error) {
+      console.error("Failed to fetch user info:", error);
+    } finally {
+      setIsLoadingUserInfo(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -249,7 +252,7 @@ export default function AccountPage() {
 
       const data = await res.json();
       toast.success("Verification email sent to new email address.");
-      
+
       if (process.env.NODE_ENV === "development" && data.verificationUrl) {
         toast.info("Check console for verification URL (development mode)");
       }
@@ -283,7 +286,7 @@ export default function AccountPage() {
       }
 
       toast.success("Updated successfully.");
-      
+
       // Logout after password change
       setTimeout(async () => {
         await signOut({ callbackUrl: "/login" });
@@ -400,7 +403,7 @@ export default function AccountPage() {
           </Card>
 
           {/* Edit Account */}
-          <Card>
+          {/* <Card>
             <CardHeader>
               <CardTitle>Edit Name</CardTitle>
               <CardDescription>Update your display name.</CardDescription>
@@ -443,10 +446,10 @@ export default function AccountPage() {
                 </form>
               </Form>
             </CardContent>
-          </Card>
+          </Card> */}
 
           {/* Change Email */}
-          <Card>
+          {/* <Card>
             <CardHeader>
               <CardTitle>Change Email</CardTitle>
               <CardDescription>
@@ -480,7 +483,7 @@ export default function AccountPage() {
                 </form>
               </Form>
             </CardContent>
-          </Card>
+          </Card> */}
 
           {/* Change Password */}
           <Card>
@@ -500,7 +503,26 @@ export default function AccountPage() {
                       <FormItem>
                         <FormLabel>Current Password</FormLabel>
                         <FormControl>
-                          <Input type="password" placeholder="Enter current password" {...field} />
+                          <div className="relative">
+                            <Input
+                              type={showCurrentPassword ? "text" : "password"}
+                              placeholder="Enter current password"
+                              {...field}
+                            />
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                              onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                            >
+                              {showCurrentPassword ? (
+                                <EyeOff className="h-4 w-4 text-muted-foreground" />
+                              ) : (
+                                <Eye className="h-4 w-4 text-muted-foreground" />
+                              )}
+                            </Button>
+                          </div>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -513,7 +535,26 @@ export default function AccountPage() {
                       <FormItem>
                         <FormLabel>New Password</FormLabel>
                         <FormControl>
-                          <Input type="password" placeholder="Enter new password" {...field} />
+                          <div className="relative">
+                            <Input
+                              type={showNewPassword ? "text" : "password"}
+                              placeholder="Enter new password"
+                              {...field}
+                            />
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                              onClick={() => setShowNewPassword(!showNewPassword)}
+                            >
+                              {showNewPassword ? (
+                                <EyeOff className="h-4 w-4 text-muted-foreground" />
+                              ) : (
+                                <Eye className="h-4 w-4 text-muted-foreground" />
+                              )}
+                            </Button>
+                          </div>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -526,7 +567,26 @@ export default function AccountPage() {
                       <FormItem>
                         <FormLabel>Confirm New Password</FormLabel>
                         <FormControl>
-                          <Input type="password" placeholder="Confirm new password" {...field} />
+                          <div className="relative">
+                            <Input
+                              type={showConfirmPassword ? "text" : "password"}
+                              placeholder="Confirm new password"
+                              {...field}
+                            />
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                            >
+                              {showConfirmPassword ? (
+                                <EyeOff className="h-4 w-4 text-muted-foreground" />
+                              ) : (
+                                <Eye className="h-4 w-4 text-muted-foreground" />
+                              )}
+                            </Button>
+                          </div>
                         </FormControl>
                         <FormMessage />
                       </FormItem>

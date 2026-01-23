@@ -54,6 +54,33 @@ export function TripForm({ mode, initialData, onSubmit, onCancel, isLoading = fa
 
   // Use useWatch outside render to avoid React Compiler warning
   const endDateValue = useWatch({ control: form.control, name: "endDate" });
+  const startDateValue = useWatch({ control: form.control, name: "startDate" });
+
+  // Calculate days and nights
+  const calculateDaysAndNights = () => {
+    if (!startDateValue || !endDateValue) return null;
+    
+    const startDate = new Date(startDateValue);
+    const endDate = new Date(endDateValue);
+    
+    // Reset time to start of day for accurate calculation
+    startDate.setHours(0, 0, 0, 0);
+    endDate.setHours(0, 0, 0, 0);
+    
+    // Calculate difference in milliseconds
+    const diffTime = endDate.getTime() - startDate.getTime();
+    // Convert to days
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays < 0) return null; // Invalid date range
+    
+    const days = diffDays + 1; // Include both start and end date
+    const nights = diffDays;
+    
+    return { days, nights };
+  };
+
+  const dayNightInfo = calculateDaysAndNights();
 
   // Sync initial data into the form (for edit/view)
   useEffect(() => {
@@ -252,12 +279,11 @@ export function TripForm({ mode, initialData, onSubmit, onCancel, isLoading = fa
                   ? { from: startDate, to: undefined }
                   : undefined;
 
-            // Calculate date range limits (±1 year from today)
+            // Calculate date range limits (today to 5 years from now)
             const today = new Date();
-            const oneYearAgo = new Date(today);
-            oneYearAgo.setFullYear(today.getFullYear() - 1);
-            const oneYearFromNow = new Date(today);
-            oneYearFromNow.setFullYear(today.getFullYear() + 1);
+            today.setHours(0, 0, 0, 0); // Reset time to start of day
+            const fiveYearsFromNow = new Date(today);
+            fiveYearsFromNow.setFullYear(today.getFullYear() + 5);
 
             const handleSelect = (range: DateRange | undefined) => {
               if (readOnly) return;
@@ -309,10 +335,12 @@ export function TripForm({ mode, initialData, onSubmit, onCancel, isLoading = fa
                       onSelect={handleSelect}
                       numberOfMonths={2}
                       disabled={(date) => {
-                        return date < oneYearAgo || date > oneYearFromNow;
+                        const dateOnly = new Date(date);
+                        dateOnly.setHours(0, 0, 0, 0);
+                        return dateOnly < today || dateOnly > fiveYearsFromNow;
                       }}
-                      fromYear={oneYearAgo.getFullYear()}
-                      toYear={oneYearFromNow.getFullYear()}
+                      fromYear={today.getFullYear()}
+                      toYear={fiveYearsFromNow.getFullYear()}
                       initialFocus
                     />
                   </PopoverContent>
@@ -324,6 +352,18 @@ export function TripForm({ mode, initialData, onSubmit, onCancel, isLoading = fa
         />
         {/* Hidden field for endDate to maintain form structure */}
         <FormField control={form.control} name="endDate" render={() => <></>} />
+
+        {/* Day / Night Information */}
+        {dayNightInfo && (
+          <div className="rounded-lg border bg-muted/50 p-4">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-muted-foreground">Duration:</span>
+              <span className="text-lg font-semibold">
+                {dayNightInfo.days}D{dayNightInfo.nights}N
+              </span>
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-2 gap-4">
           <FormField

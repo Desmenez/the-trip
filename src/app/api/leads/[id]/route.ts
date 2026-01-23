@@ -198,7 +198,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       updateData.status = status as LeadStatus;
     }
     if (tripInterest !== undefined) updateData.tripInterest = tripInterest;
-    if (pax !== undefined) updateData.pax = pax;
+    if (pax !== undefined) updateData.pax = pax ? parseInt(pax) : 1;
     if (leadNote !== undefined) updateData.leadNote = leadNote || null;
     if (sourceNote !== undefined) updateData.sourceNote = sourceNote || null;
 

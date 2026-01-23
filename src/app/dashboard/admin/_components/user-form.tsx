@@ -11,16 +11,19 @@ import { Switch } from "@/components/ui/switch";
 import { Loader2 } from "lucide-react";
 import { ROLE_VALUES, ROLE_LABELS } from "@/lib/constants/role";
 import { userFormSchema, UserFormValues } from "../hooks/use-users";
+import { Badge } from "@/components/ui/badge";
 
 interface UserFormProps {
-  mode: "create" | "edit";
+  mode: "create" | "edit" | "view";
   initialData?: Partial<UserFormValues>;
-  onSubmit: (values: UserFormValues) => Promise<void>;
+  onSubmit?: (values: UserFormValues) => Promise<void>;
   onCancel?: () => void;
   isLoading?: boolean;
 }
 
 export function UserForm({ mode, initialData, onSubmit, onCancel, isLoading = false }: UserFormProps) {
+  const readOnly = mode === "view";
+
   const form = useForm<UserFormValues>({
     resolver: zodResolver(userFormSchema),
     defaultValues: {
@@ -28,7 +31,7 @@ export function UserForm({ mode, initialData, onSubmit, onCancel, isLoading = fa
       lastName: initialData?.lastName ?? "",
       email: initialData?.email ?? "",
       phoneNumber: initialData?.phoneNumber ?? "",
-      role: initialData?.role ?? "STAFF",
+      role: initialData?.role ?? undefined,
       commissionPerHead: initialData?.commissionPerHead ?? "",
       isActive: initialData?.isActive ?? true,
     },
@@ -44,7 +47,7 @@ export function UserForm({ mode, initialData, onSubmit, onCancel, isLoading = fa
         lastName: initialData.lastName ?? "",
         email: initialData.email ?? "",
         phoneNumber: initialData.phoneNumber ?? "",
-        role: initialData.role ?? "STAFF",
+        role: initialData.role ?? undefined,
         commissionPerHead: initialData.commissionPerHead ?? "",
         isActive: initialData.isActive ?? true,
       });
@@ -52,6 +55,7 @@ export function UserForm({ mode, initialData, onSubmit, onCancel, isLoading = fa
   }, [initialData, form]);
 
   async function handleSubmit(values: UserFormValues) {
+    if (!onSubmit || readOnly) return;
     try {
       await onSubmit(values);
     } catch (error) {
@@ -87,18 +91,22 @@ export function UserForm({ mode, initialData, onSubmit, onCancel, isLoading = fa
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        {mode === "edit" && (
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6" noValidate>
+        {(mode === "edit" || mode === "view") && (
           <FormField
             control={form.control}
             name="isActive"
             render={({ field }) => (
               <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                 <div className="space-y-0.5">
-                  <FormLabel className="text-base">Active</FormLabel>
+                  <FormLabel className="text-base">Status</FormLabel>
                 </div>
                 <FormControl>
-                  <Switch checked={field.value} onCheckedChange={field.onChange} />
+                  {readOnly ? (
+                    <Badge variant={field.value ? "default" : "destructive"}>{field.value ? "Active" : "Inactive"}</Badge>
+                  ) : (
+                    <Switch checked={field.value} onCheckedChange={field.onChange} />
+                  )}
                 </FormControl>
               </FormItem>
             )}
@@ -112,7 +120,11 @@ export function UserForm({ mode, initialData, onSubmit, onCancel, isLoading = fa
             <FormItem>
               <FormLabel required>First name</FormLabel>
               <FormControl>
-                <Input placeholder="First name" {...field} />
+                {readOnly ? (
+                  <Input value={field.value || ""} disabled />
+                ) : (
+                  <Input placeholder="First name" {...field} disabled={isLoading} />
+                )}
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -126,7 +138,11 @@ export function UserForm({ mode, initialData, onSubmit, onCancel, isLoading = fa
             <FormItem>
               <FormLabel required>Last name</FormLabel>
               <FormControl>
-                <Input placeholder="Last name" {...field} />
+                {readOnly ? (
+                  <Input value={field.value || ""} disabled />
+                ) : (
+                  <Input placeholder="Last name" {...field} disabled={isLoading} />
+                )}
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -140,7 +156,11 @@ export function UserForm({ mode, initialData, onSubmit, onCancel, isLoading = fa
             <FormItem>
               <FormLabel required>Email</FormLabel>
               <FormControl>
-                <Input type="email" placeholder="Email" {...field} />
+                {readOnly ? (
+                  <Input value={field.value || ""} disabled />
+                ) : (
+                  <Input type="email" placeholder="Email" {...field} disabled={isLoading} />
+                )}
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -154,7 +174,11 @@ export function UserForm({ mode, initialData, onSubmit, onCancel, isLoading = fa
             <FormItem>
               <FormLabel>Phone number</FormLabel>
               <FormControl>
-                <Input type="tel" placeholder="Phone number" {...field} />
+                {readOnly ? (
+                  <Input value={field.value || ""} disabled />
+                ) : (
+                  <Input type="tel" placeholder="Phone number" {...field} disabled={isLoading} />
+                )}
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -167,22 +191,28 @@ export function UserForm({ mode, initialData, onSubmit, onCancel, isLoading = fa
           render={({ field }) => (
             <FormItem>
               <FormLabel required>Role</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
+              {readOnly ? (
                 <FormControl>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Role" />
-                  </SelectTrigger>
+                  <Input value={ROLE_LABELS[field.value] || field.value} disabled />
                 </FormControl>
-                <SelectContent>
-                  {ROLE_VALUES.map((role) => {
-                    return (
-                      <SelectItem key={role} value={role}>
-                        {ROLE_LABELS[role]}
-                      </SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
+              ) : (
+                <Select onValueChange={field.onChange} value={field.value || ""} disabled={isLoading}>
+                  <FormControl>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Role" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {ROLE_VALUES.map((role) => {
+                      return (
+                        <SelectItem key={role} value={role}>
+                          {ROLE_LABELS[role]}
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              )}
               <FormMessage />
             </FormItem>
           )}
@@ -196,7 +226,11 @@ export function UserForm({ mode, initialData, onSubmit, onCancel, isLoading = fa
               <FormItem>
                 <FormLabel>Commission per head (Baht)</FormLabel>
                 <FormControl>
-                  <Input type="number" step="0.01" placeholder="0.00" {...field} />
+                  {readOnly ? (
+                    <Input value={field.value || ""} disabled />
+                  ) : (
+                    <Input type="number" step="0.01" placeholder="0.00" {...field} disabled={isLoading} />
+                  )}
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -204,25 +238,27 @@ export function UserForm({ mode, initialData, onSubmit, onCancel, isLoading = fa
           />
         )}
 
-        <div className="flex justify-end gap-4">
-          {onCancel && (
-            <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
-              Cancel
-            </Button>
-          )}
-          <Button type="submit" disabled={isLoading || form.formState.isSubmitting}>
-            {isLoading || form.formState.isSubmitting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Saving...
-              </>
-            ) : mode === "create" ? (
-              "Create"
-            ) : (
-              "Update"
+        {mode !== "view" && (
+          <div className="flex justify-end gap-4">
+            {onCancel && (
+              <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
+                Cancel
+              </Button>
             )}
-          </Button>
-        </div>
+            <Button type="submit" disabled={isLoading || form.formState.isSubmitting}>
+              {isLoading || form.formState.isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : mode === "create" ? (
+                "Create"
+              ) : (
+                "Update"
+              )}
+            </Button>
+          </div>
+        )}
       </form>
     </Form>
   );

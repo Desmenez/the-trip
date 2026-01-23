@@ -265,7 +265,7 @@ export async function POST(req: Request) {
         source: validSource,
         status: validStatus,
         tripInterest,
-        pax: pax || 1,
+        pax: pax ? parseInt(pax) : 1,
         leadNote: leadNote || null,
         sourceNote: sourceNote || null,
       },

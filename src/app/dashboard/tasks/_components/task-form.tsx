@@ -10,12 +10,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Check, ChevronsUpDown } from "lucide-react";
+import { CalendarIcon, Check, ChevronsUpDown, X } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { taskFormSchema, TaskFormValues } from "../hooks/use-tasks";
-import { useCustomers } from "@/app/dashboard/customers/hooks/use-customers";
+import { useCustomers, useCustomer } from "@/app/dashboard/customers/hooks/use-customers";
 
 interface TaskFormProps {
   mode: "create" | "edit" | "view";
@@ -54,10 +54,17 @@ export function TaskForm({ mode, initialData, onSubmit, onCancel, isLoading = fa
 
   const customers = useMemo(() => customersData?.data ?? [], [customersData?.data]);
 
+  // Fetch selected customer if not in search results
+  const { data: selectedCustomerData } = useCustomer(
+    customerId && !customers.find((c) => c.id === customerId) ? customerId : undefined
+  );
+
   const selectedCustomer = useMemo(() => {
     if (!customerId) return null;
-    return customers.find((c) => c.id === customerId);
-  }, [customerId, customers]);
+    const found = customers.find((c) => c.id === customerId);
+    if (found) return found;
+    return selectedCustomerData || null;
+  }, [customerId, customers, selectedCustomerData]);
 
   // Sync initial data (for edit/view)
   useEffect(() => {
@@ -144,11 +151,15 @@ export function TaskForm({ mode, initialData, onSubmit, onCancel, isLoading = fa
           name="relatedCustomerId"
           render={({ field }) => (
             <FormItem className="flex flex-col">
-              <FormLabel required>Customer name</FormLabel>
+              <FormLabel required>Customer</FormLabel>
               {readOnly ? (
                 <FormControl>
                   <Input
-                    value={selectedCustomer ? `${selectedCustomer.firstNameTh} ${selectedCustomer.lastNameTh}` : "-"}
+                    value={
+                      selectedCustomer
+                        ? `${selectedCustomer.firstNameEn ?? selectedCustomer.firstNameTh ?? ""} ${selectedCustomer.lastNameEn ?? selectedCustomer.lastNameTh ?? ""}`.trim() || "-"
+                        : "-"
+                    }
                     disabled
                   />
                 </FormControl>
@@ -164,7 +175,7 @@ export function TaskForm({ mode, initialData, onSubmit, onCancel, isLoading = fa
                       >
                         {selectedCustomer
                           ? `${selectedCustomer.firstNameEn} ${selectedCustomer.lastNameEn}`
-                          : "Search for a customer name..."}
+                          : "Search for a customer..."}
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
                     </FormControl>
@@ -215,22 +226,42 @@ export function TaskForm({ mode, initialData, onSubmit, onCancel, isLoading = fa
           render={({ field }) => (
             <FormItem>
               <FormLabel>Contact channel</FormLabel>
-              <Select
-                onValueChange={field.onChange}
-                value={field.value ?? undefined}
-                disabled={readOnly || isLoading}
-              >
-                <FormControl>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select contact" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="CALL">Call</SelectItem>
-                  <SelectItem value="LINE">Line</SelectItem>
-                  <SelectItem value="MESSENGER">Messenger</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="relative">
+                <Select
+                  onValueChange={(value) => {
+                    field.onChange(value === "" ? null : value);
+                  }}
+                  value={field.value ?? undefined}
+                  key={`contact-${field.value ?? "empty"}`}
+                  disabled={readOnly || isLoading}
+                >
+                  <FormControl>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select contact" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="CALL">Call</SelectItem>
+                    <SelectItem value="LINE">Line</SelectItem>
+                    <SelectItem value="MESSENGER">Messenger</SelectItem>
+                  </SelectContent>
+                </Select>
+                {field.value && !readOnly && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-10 top-0 h-full hover:bg-transparent"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      field.onChange(null);
+                    }}
+                    disabled={isLoading}
+                  >
+                    <X className="h-4 w-4 text-muted-foreground" />
+                  </Button>
+                )}
+              </div>
               <FormMessage />
             </FormItem>
           )}

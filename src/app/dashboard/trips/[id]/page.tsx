@@ -183,13 +183,13 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
           <Button variant="ghost" size="icon" onClick={() => router.back()}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <h2 className="text-3xl font-bold tracking-tight">Trip Details</h2>
+          <h2 className="text-3xl font-bold tracking-tight">Trip</h2>
         </div>
-        <Link href={`/dashboard/trips/${tripId}/edit`}>
+        {/* <Link href={`/dashboard/trips/${tripId}/edit`}>
           <Button>
             <Pencil className="mr-2 h-4 w-4" /> Edit Trip
           </Button>
-        </Link>
+        </Link> */}
       </div>
 
       <div className="grid grid-cols-1 gap-8">

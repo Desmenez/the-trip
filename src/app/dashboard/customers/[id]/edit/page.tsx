@@ -118,7 +118,7 @@ export default function EditCustomerPage({ params }: { params: Promise<{ id: str
         <Button variant="ghost" size="icon" onClick={() => router.back()}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h2 className="text-3xl font-bold tracking-tight">Edit Customer</h2>
+        <h2 className="text-3xl font-bold tracking-tight">Customer</h2>
       </div>
 
       <div className="bg-card rounded-md border p-6">

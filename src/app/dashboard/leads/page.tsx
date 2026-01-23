@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Eye, Pencil } from "lucide-react";
 import Link from "next/link";
-import { format } from "date-fns";
 import { DataTable } from "@/components/data-table/data-table";
 import { useDataTableInstance } from "@/hooks/use-data-table-instance";
 import { DataTablePagination } from "@/components/data-table/data-table-pagination";
@@ -66,10 +65,9 @@ export default function LeadsPage() {
                 <Badge variant="outline" className="mt-1 w-fit">
                   New
                 </Badge>
-                <span className="font-medium">
+                <p className="font-medium">
                   {lead.firstName} {lead.lastName}
-                </span>
-                <span className="text-muted-foreground text-xs">{lead.email || lead.phoneNumber || "-"}</span>
+                </p>
               </div>
             );
           }
@@ -81,21 +79,33 @@ export default function LeadsPage() {
           const englishName = `${customer.firstNameEn} ${customer.lastNameEn}`;
           return (
             <div className="flex flex-col">
-              <span className="font-medium">
+              <p className="font-medium">
                 {englishName}
-              </span>
-              {thaiName && <span className="text-muted-foreground text-xs">
+              </p>
+              {thaiName && <p className="text-muted-foreground text-xs">
                 ({thaiName})
-              </span>}
-              <span className="text-muted-foreground text-xs">{customer.email || "-"}</span>
+              </p>}
             </div>
           );
         },
       },
       {
+        accessorKey: "email",
+        header: "Email",
+        cell: ({ row }) => {
+          const lead = row.original;
+          const email = lead.newCustomer ? lead.email : lead.customer?.email;
+          return email || "-";
+        },
+      },
+      {
         accessorKey: "phoneNumber",
         header: "Phone number",
-        cell: ({ row }) => row.original.phoneNumber || "-",
+        cell: ({ row }) => {
+          const lead = row.original;
+          const phoneNumber = lead.newCustomer ? lead.phoneNumber : lead.customer?.phoneNumber;
+          return phoneNumber || "-";
+        },
       },
       {
         accessorKey: "pax",

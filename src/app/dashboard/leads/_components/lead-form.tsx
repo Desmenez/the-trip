@@ -51,7 +51,7 @@ const formSchema = z
     source: z.string().min(1, { message: "Please fill in the information." }),
     status: z.string().min(1, { message: "Please select the information." }),
     tripInterest: z.string('Please fill in the information.').min(1, { message: "Please fill in the information." }),
-    pax: z.number('Please fill in the information.').min(1, { message: "Please fill in the information." }),
+    pax: z.string().min(1, { message: "Please fill in the information." }),
     leadNote: z.string().optional(),
     sourceNote: z.string().optional(),
   })
@@ -122,7 +122,7 @@ export function LeadForm({ mode, initialData, onSubmit, onCancel, isLoading }: L
       source: initialData?.source ?? "FACEBOOK",
       status: initialData?.status ?? "INTERESTED",
       tripInterest: initialData?.tripInterest ?? "",
-      pax: initialData?.pax ?? 1,
+      pax: initialData?.pax?.toString() ?? "1",
       leadNote: initialData?.leadNote ?? undefined,
       sourceNote: initialData?.sourceNote ?? undefined,
     },
@@ -142,7 +142,7 @@ export function LeadForm({ mode, initialData, onSubmit, onCancel, isLoading }: L
         source: initialData.source,
         status: initialData.status,
         tripInterest: initialData.tripInterest,
-        pax: initialData.pax,
+        pax: initialData.pax?.toString() ?? "1",
         leadNote: initialData.leadNote ?? undefined,
         sourceNote: initialData.sourceNote ?? undefined,
       });
@@ -195,7 +195,7 @@ export function LeadForm({ mode, initialData, onSubmit, onCancel, isLoading }: L
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6" noValidate>
         <FormField
           control={form.control}
           name="status"
@@ -342,7 +342,7 @@ export function LeadForm({ mode, initialData, onSubmit, onCancel, isLoading }: L
                     <Input
                       value={
                         selectedCustomer
-                          ? `${selectedCustomer.firstNameTh} ${selectedCustomer.lastNameTh} (${selectedCustomer.firstNameEn} ${selectedCustomer.lastNameEn})`
+                          ? `${selectedCustomer.firstNameEn} ${selectedCustomer.lastNameEn}`
                           : ""
                       }
                       disabled
@@ -358,7 +358,7 @@ export function LeadForm({ mode, initialData, onSubmit, onCancel, isLoading }: L
                           className={cn("w-full justify-between", !field.value && "text-muted-foreground")}
                         >
                           {selectedCustomer
-                            ? `${selectedCustomer.firstNameTh} ${selectedCustomer.lastNameTh} (${selectedCustomer.firstNameEn} ${selectedCustomer.lastNameEn})`
+                            ? `${selectedCustomer.firstNameEn} ${selectedCustomer.lastNameEn}`
                             : "Search for a customer..."}
                           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
@@ -395,10 +395,10 @@ export function LeadForm({ mode, initialData, onSubmit, onCancel, isLoading }: L
                                   />
                                   <div className="flex flex-col">
                                     <span className="font-medium">
-                                      {customer.firstNameTh} {customer.lastNameTh}
+                                      {customer.firstNameEn} {customer.lastNameEn}
                                     </span>
                                     <span className="text-muted-foreground text-xs">
-                                      {customer.firstNameEn} {customer.lastNameEn}
+                                      {customer.firstNameTh} {customer.lastNameTh}
                                       {customer.email && ` • ${customer.email}`}
                                       {customer.phoneNumber && ` • ${customer.phoneNumber}`}
                                     </span>
@@ -425,15 +425,14 @@ export function LeadForm({ mode, initialData, onSubmit, onCancel, isLoading }: L
             name="pax"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Pax</FormLabel>
+                <FormLabel>Passengers (PAX)</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
                     min="1"
-                    placeholder="1"
+                    placeholder="Passengers (PAX)"
                     {...field}
-                    onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
-                    value={field.value}
+                    value={field.value ?? ""}
                     disabled={disabled}
                   />
                 </FormControl>

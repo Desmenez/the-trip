@@ -48,9 +48,9 @@ export default function AirlineAndAirportDetailPage() {
             <h2 className="text-3xl font-bold tracking-tight">{airlineAndAirport.name}</h2>
           </div>
         </div>
-        <Link href={`/dashboard/airline-and-airports/${airlineAndAirport.id}/edit`}>
+        {/* <Link href={`/dashboard/airline-and-airports/${airlineAndAirport.id}/edit`}>
           <Button>Edit</Button>
-        </Link>
+        </Link> */}
       </div>
 
       <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
@@ -65,11 +65,11 @@ export default function AirlineAndAirportDetailPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <p className="text-muted-foreground text-sm">Code</p>
+                <p className="text-muted-foreground text-sm">IATA code</p>
                 <p className="font-mono text-lg font-medium">{airlineAndAirport.code}</p>
               </div>
               <div>
-                <p className="text-muted-foreground text-sm">Name</p>
+                <p className="text-muted-foreground text-sm">Airport name</p>
                 <p className="text-lg font-medium">{airlineAndAirport.name}</p>
               </div>
               {airlineAndAirport._count && (

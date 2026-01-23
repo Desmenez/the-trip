@@ -45,9 +45,9 @@ export default function FamilyDetailPage() {
             </p>
           </div>
         </div>
-        <Link href={`/dashboard/families/${family.id}/edit`}>
-          <Button>Edit Family</Button>
-        </Link>
+        {/* <Link href={`/dashboard/families/${family.id}/edit`}>
+          <Button>Edit</Button>
+        </Link> */}
       </div>
 
       <div className="grid grid-cols-1 gap-8 md:grid-cols-3">

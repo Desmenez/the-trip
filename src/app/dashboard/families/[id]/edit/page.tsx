@@ -21,13 +21,13 @@ export default function EditFamilyPage({ params }: { params: Promise<{ id: strin
   // Format initial data for the form
   const initialData: Partial<FamilyFormValues> | undefined = family
     ? {
-        name: family.name || "",
-        phoneNumber: family.phoneNumber || "",
-        lineId: family.lineId || "",
-        email: family.email || "",
-        note: family.note || "",
-        customerIds: family.customers?.map((c) => c.customer.id) || [],
-      }
+      name: family.name || "",
+      phoneNumber: family.phoneNumber || "",
+      lineId: family.lineId || "",
+      email: family.email || "",
+      note: family.note || "",
+      customerIds: family.customers?.map((c) => c.customer.id) || [],
+    }
     : undefined;
 
   async function handleSubmit(values: FamilyFormValues) {
@@ -45,9 +45,7 @@ export default function EditFamilyPage({ params }: { params: Promise<{ id: strin
 
   if (isLoadingFamily) {
     return (
-      <div className="flex size-full items-center justify-center">
-        <div className="text-muted-foreground">Loading family data...</div>
-      </div>
+      <Loading />
     );
   }
 
@@ -65,7 +63,7 @@ export default function EditFamilyPage({ params }: { params: Promise<{ id: strin
         <Button variant="ghost" size="icon" onClick={() => router.back()}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h2 className="text-3xl font-bold tracking-tight">Edit Family</h2>
+        <h2 className="text-3xl font-bold tracking-tight">Family / Group</h2>
       </div>
 
       <div className="bg-card rounded-md border p-6">

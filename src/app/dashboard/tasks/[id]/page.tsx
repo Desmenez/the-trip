@@ -47,13 +47,13 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
           <Button variant="ghost" size="icon" onClick={() => router.back()}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <h2 className="text-3xl font-bold tracking-tight">Task Details</h2>
+          <h2 className="text-3xl font-bold tracking-tight">Task</h2>
         </div>
-        <Link href={`/dashboard/tasks/${taskId}/edit`}>
+        {/* <Link href={`/dashboard/tasks/${taskId}/edit`}>
           <Button>
             <Pencil className="mr-2 h-4 w-4" /> Edit Task
           </Button>
-        </Link>
+        </Link> */}
       </div>
 
       <div className="bg-card rounded-md border p-6">

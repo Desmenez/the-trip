@@ -7,7 +7,7 @@ export const taskFormSchema = z.object({
   description: z.string().optional(),
   deadline: z.date().optional(),
   status: z.enum(["TODO", "IN_PROGRESS", "COMPLETED", "CANCELLED"]).optional(),
-  contact: z.enum(["CALL", "LINE", "MESSENGER"]).optional().nullable(),
+  contact: z.enum(["CALL", "LINE", "MESSENGER"]).nullable().optional(),
   relatedCustomerId: z.string({ message: "Please select the information." }).min(1, "Please select the information."),
   userId: z.string().optional().nullable(),
 });

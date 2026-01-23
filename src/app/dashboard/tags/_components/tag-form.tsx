@@ -40,7 +40,6 @@ export function TagForm({
   onCancel,
   isLoading = false,
   allTagsForPosition = [],
-  currentTagId,
 }: TagFormProps) {
   const readOnly = mode === "view";
 
@@ -81,9 +80,9 @@ export function TagForm({
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel required>Tag Name</FormLabel>
+              <FormLabel required>Tag name</FormLabel>
               <FormControl>
-                <Input placeholder="VIP, Corporate, etc." {...field} disabled={readOnly} />
+                <Input placeholder="" {...field} disabled={readOnly} />
               </FormControl>
               <FormMessage />
             </FormItem>

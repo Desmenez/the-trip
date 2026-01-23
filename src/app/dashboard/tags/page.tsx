@@ -46,7 +46,7 @@ export default function TagsPage() {
     () => [
       {
         accessorKey: "name",
-        header: "Tag Name",
+        header: "Tag name",
         cell: ({ row }) => <div className="font-medium">{row.original.name}</div>,
       },
       {

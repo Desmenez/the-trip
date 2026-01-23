@@ -78,9 +78,9 @@ export default function CustomerDetailPage() {
             )}
           </div>
         </div>
-        <Link href={`/dashboard/customers/${customer.id}/edit`}>
+        {/* <Link href={`/dashboard/customers/${customer.id}/edit`}>
           <Button>Edit Profile</Button>
-        </Link>
+        </Link> */}
       </div>
 
       <div className="grid grid-cols-1 gap-8 md:grid-cols-3">

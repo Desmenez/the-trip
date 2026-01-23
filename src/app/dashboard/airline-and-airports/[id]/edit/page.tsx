@@ -50,7 +50,7 @@ export default function EditAirlineAndAirportPage({ params }: { params: Promise<
   if (airlineAndAirportError) {
     return (
       <div className="flex size-full items-center justify-center">
-        <div className="text-destructive">Failed to load airline/airport. Please try again.</div>
+        <div className="text-destructive">Failed to load IATA Code. Please try again.</div>
       </div>
     );
   }
@@ -61,7 +61,7 @@ export default function EditAirlineAndAirportPage({ params }: { params: Promise<
         <Button variant="ghost" size="icon" onClick={() => router.back()}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h2 className="text-3xl font-bold tracking-tight">Edit Airline/Airport</h2>
+        <h2 className="text-3xl font-bold tracking-tight">IATA Code</h2>
       </div>
 
       <div className="bg-card rounded-md border p-6">

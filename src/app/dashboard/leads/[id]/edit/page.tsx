@@ -5,6 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LeadForm } from "../../_components/lead-form";
 import { useLead, useUpdateLead } from "../../hooks/use-leads";
+import { Loading } from "@/components/page/loading";
 
 export default function LeadEditPage() {
   const router = useRouter();
@@ -25,7 +26,7 @@ export default function LeadEditPage() {
     source: string;
     status: string;
     tripInterest: string;
-    pax: number;
+    pax: string | number;
     leadNote?: string;
     sourceNote?: string;
   }) {
@@ -43,7 +44,7 @@ export default function LeadEditPage() {
       source: values.source,
       status: values.status,
       tripInterest: values.tripInterest,
-      pax: values.pax,
+      pax: typeof values.pax === "string" ? parseInt(values.pax, 10) || 1 : values.pax || 1,
       leadNote: values.leadNote,
       sourceNote: values.sourceNote,
     };
@@ -55,11 +56,7 @@ export default function LeadEditPage() {
 
   if (isLoading || !lead) {
     return (
-      <div className="p-8 space-y-8">
-        <div className="flex h-64 items-center justify-center">
-          <p className="text-muted-foreground">Loading lead...</p>
-        </div>
-      </div>
+      <Loading />
     );
   }
 
@@ -69,7 +66,7 @@ export default function LeadEditPage() {
         <Button variant="ghost" size="icon" onClick={() => router.back()}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h2 className="text-3xl font-bold tracking-tight">Edit Lead</h2>
+        <h2 className="text-3xl font-bold tracking-tight">Lead</h2>
       </div>
 
       <div className="rounded-md border p-6 bg-card">

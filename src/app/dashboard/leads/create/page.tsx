@@ -23,7 +23,7 @@ export default function NewLeadPage() {
     source: string;
     status: string;
     tripInterest: string;
-    pax: number;
+    pax: string | number;
     leadNote?: string;
     sourceNote?: string;
   }) {
@@ -39,7 +39,7 @@ export default function NewLeadPage() {
       source: values.source,
       status: values.status,
       tripInterest: values.tripInterest,
-      pax: values.pax,
+      pax: typeof values.pax === "string" ? parseInt(values.pax, 10) || 1 : values.pax || 1,
       leadNote: values.leadNote,
       sourceNote: values.sourceNote,
     };

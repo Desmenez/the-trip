@@ -19,35 +19,35 @@ export default function ViewBookingPage({ params }: { params: Promise<{ id: stri
   // Format initial data for the form
   const initialData: Partial<BookingFormValues> | undefined = booking
     ? {
-        customerId: booking.customerId || "",
-        tripId: booking.tripId || "",
-        salesUserId: booking.salesUserId || "",
-        companionCustomerIds: booking.companionCustomers?.map((c) => c.id) || [],
-        note: booking.note || "",
-        extraPriceForSingleTraveller: booking.extraPriceForSingleTraveller?.toString() || "",
-        roomType: (booking.roomType as "DOUBLE_BED" | "TWIN_BED") || "DOUBLE_BED",
-        extraPricePerBed: booking.extraPricePerBed?.toString() || "0",
-        roomNote: booking.roomNote || "",
-        seatType: (booking.seatType as "WINDOW" | "MIDDLE" | "AISLE") ?? "WINDOW",
-        seatClass: booking.seatClass ? (booking.seatClass as "FIRST_CLASS" | "BUSINESS_CLASS" | "LONG_LEG") : undefined,
-        extraPricePerSeat: booking.extraPricePerSeat?.toString() ?? "",
-        seatNote: booking.seatNote || "",
-        extraPricePerBag: booking.extraPricePerBag?.toString() || "",
-        bagNote: booking.bagNote || "",
-        discountPrice: booking.discountPrice?.toString() || "",
-        discountNote: booking.discountNote || "",
-        paymentStatus:
-          (booking.paymentStatus as "DEPOSIT_PENDING" | "DEPOSIT_PAID" | "FULLY_PAID" | "CANCELLED") ??
-          "DEPOSIT_PENDING",
-        firstPaymentRatio:
-          (booking.firstPaymentRatio as "FIRST_PAYMENT_100" | "FIRST_PAYMENT_50" | "FIRST_PAYMENT_30") ??
-          "FIRST_PAYMENT_50",
-        firstPaymentAmount: booking.firstPayment?.amount.toString() || "",
-        firstPaymentProof:
-          booking.firstPaymentId && booking.payments
-            ? (booking.payments.find((p) => p.id === booking.firstPaymentId)?.proofOfPayment ?? undefined)
-            : undefined,
-      }
+      customerId: booking.customerId || "",
+      tripId: booking.tripId || "",
+      salesUserId: booking.salesUserId || "",
+      companionCustomerIds: booking.companionCustomers?.map((c) => c.id) || [],
+      note: booking.note || "",
+      extraPriceForSingleTraveller: booking.extraPriceForSingleTraveller?.toString() || "",
+      roomType: (booking.roomType as "DOUBLE_BED" | "TWIN_BED") || "DOUBLE_BED",
+      extraPricePerBed: booking.extraPricePerBed?.toString() || "0",
+      roomNote: booking.roomNote || "",
+      seatType: (booking.seatType as "WINDOW" | "MIDDLE" | "AISLE") ?? "WINDOW",
+      seatClass: booking.seatClass ? (booking.seatClass as "FIRST_CLASS" | "BUSINESS_CLASS" | "LONG_LEG") : undefined,
+      extraPricePerSeat: booking.extraPricePerSeat?.toString() ?? "",
+      seatNote: booking.seatNote || "",
+      extraPricePerBag: booking.extraPricePerBag?.toString() || "",
+      bagNote: booking.bagNote || "",
+      discountPrice: booking.discountPrice?.toString() || "",
+      discountNote: booking.discountNote || "",
+      paymentStatus:
+        (booking.paymentStatus as "DEPOSIT_PENDING" | "DEPOSIT_PAID" | "FULLY_PAID" | "CANCELLED") ??
+        "DEPOSIT_PENDING",
+      firstPaymentRatio:
+        (booking.firstPaymentRatio as "FIRST_PAYMENT_100" | "FIRST_PAYMENT_50" | "FIRST_PAYMENT_30") ??
+        "FIRST_PAYMENT_50",
+      firstPaymentAmount: booking.firstPayment?.amount.toString() || "",
+      firstPaymentProof:
+        booking.firstPaymentId && booking.payments
+          ? (booking.payments.find((p) => p.id === booking.firstPaymentId)?.proofOfPayment ?? undefined)
+          : undefined,
+    }
     : undefined;
 
   if (isLoadingBooking) {
@@ -71,13 +71,13 @@ export default function ViewBookingPage({ params }: { params: Promise<{ id: stri
           <Button variant="ghost" size="icon" onClick={() => router.back()}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <h2 className="text-3xl font-bold tracking-tight">Booking Details</h2>
+          <h2 className="text-3xl font-bold tracking-tight">Booking</h2>
         </div>
-        <Link href={`/dashboard/bookings/${bookingId}/edit`}>
+        {/* <Link href={`/dashboard/bookings/${bookingId}/edit`}>
           <Button>
             <Pencil className="mr-2 h-4 w-4" /> Edit Booking
           </Button>
-        </Link>
+        </Link> */}
       </div>
 
       <div className="bg-card rounded-md border p-6">

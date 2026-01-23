@@ -26,14 +26,14 @@ import { mapAirlineAndAirportParamsToQuery, useAirlineAndAirportParams } from ".
 const airlineAndAirportColumns: ColumnDef<AirlineAndAirport>[] = [
   {
     accessorKey: "code",
-    header: "IATA Code",
+    header: "IATA code",
     cell: ({ row }) => {
       return <div className="font-medium">{row.original.code}</div>;
     },
   },
   {
     accessorKey: "name",
-    header: "Name",
+    header: "Airport name",
     cell: ({ row }) => {
       return <div>{row.original.name}</div>;
     },

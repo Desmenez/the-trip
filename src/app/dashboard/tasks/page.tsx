@@ -17,6 +17,13 @@ import { Loading } from "@/components/page/loading";
 import { DeleteDialog } from "@/app/dashboard/_components/delete-dialog";
 import { format } from "date-fns";
 
+const TASK_STATUS_LABELS: Record<"TODO" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED", string> = {
+  TODO: "To-do",
+  IN_PROGRESS: "In progress",
+  COMPLETED: "Completed",
+  CANCELLED: "Cancelled",
+};
+
 export default function TasksPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -58,9 +65,9 @@ export default function TasksPage() {
           const thaiName = hasThaiName ? `${customer.firstNameTh} ${customer.lastNameTh}` : null;
           const englishName = `${customer.firstNameEn} ${customer.lastNameEn}`;
           return (
-            <div className="font-medium">
-              {englishName}
-              {thaiName && <span className="text-muted-foreground text-xs"> ({thaiName})</span>}
+            <div className="flex flex-col font-medium">
+              <p>{englishName}</p>
+              {thaiName && <p className="text-muted-foreground text-xs"> ({thaiName})</p>}
             </div>
           );
         },
@@ -87,7 +94,7 @@ export default function TasksPage() {
                 : status === "CANCELLED"
                   ? "destructive"
                   : "outline";
-          return <Badge variant={variant}>{status}</Badge>;
+          return <Badge variant={variant}>{TASK_STATUS_LABELS[status]}</Badge>;
         },
       },
       {
