@@ -158,6 +158,7 @@ export function CustomerForm({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+        <h2 className="text-xl font-semibold">Customer information</h2>
         <FormField
           control={form.control}
           name="tagIds"

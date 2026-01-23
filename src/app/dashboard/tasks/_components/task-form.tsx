@@ -89,6 +89,7 @@ export function TaskForm({ mode, initialData, onSubmit, onCancel, isLoading = fa
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+        <h2 className="text-xl font-semibold">Task information</h2>
         <FormField
           control={form.control}
           name="status"

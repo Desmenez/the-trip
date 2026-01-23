@@ -64,6 +64,7 @@ export function AirlineAndAirportForm({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+        <h2 className="text-xl font-semibold">IATA code information</h2>
         <FormField
           control={form.control}
           name="code"

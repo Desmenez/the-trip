@@ -75,6 +75,7 @@ export function FamilyForm({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6" noValidate>
+        <h2 className="text-xl font-semibold">Family / Group information</h2>
         <FormField
           control={form.control}
           name="name"

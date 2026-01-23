@@ -59,24 +59,24 @@ export function TripForm({ mode, initialData, onSubmit, onCancel, isLoading = fa
   // Calculate days and nights
   const calculateDaysAndNights = () => {
     if (!startDateValue || !endDateValue) return null;
-    
+
     const startDate = new Date(startDateValue);
     const endDate = new Date(endDateValue);
-    
+
     // Reset time to start of day for accurate calculation
     startDate.setHours(0, 0, 0, 0);
     endDate.setHours(0, 0, 0, 0);
-    
+
     // Calculate difference in milliseconds
     const diffTime = endDate.getTime() - startDate.getTime();
     // Convert to days
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
+
     if (diffDays < 0) return null; // Invalid date range
-    
+
     const days = diffDays + 1; // Include both start and end date
     const nights = diffDays;
-    
+
     return { days, nights };
   };
 
@@ -124,6 +124,7 @@ export function TripForm({ mode, initialData, onSubmit, onCancel, isLoading = fa
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+        <h2 className="text-xl font-semibold">Trip information</h2>
         <div className="grid grid-cols-2 gap-4">
           <FormField
             control={form.control}

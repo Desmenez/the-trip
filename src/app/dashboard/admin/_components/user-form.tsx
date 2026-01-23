@@ -92,6 +92,7 @@ export function UserForm({ mode, initialData, onSubmit, onCancel, isLoading = fa
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6" noValidate>
+        <h2 className="text-xl font-semibold">Staff information</h2>
         {(mode === "edit" || mode === "view") && (
           <FormField
             control={form.control}
