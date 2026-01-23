@@ -3,11 +3,11 @@
 import { use } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Pencil } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useTag } from "../hooks/use-tags";
 import { TagForm } from "../_components/tag-form";
-import Link from "next/link";
 import { Loading } from "@/components/page/loading";
+import { format } from "date-fns";
 
 export default function TagDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -53,6 +53,32 @@ export default function TagDetailPage({ params }: { params: Promise<{ id: string
           }}
         />
       </div>
+
+      {tag._count && (
+        <div className="bg-card rounded-md border p-6 space-y-4">
+          <h3 className="font-semibold text-xl">Additional Information</h3>
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="col-span-2">
+              <span className="text-muted-foreground">Used in customers:</span>
+              <div className="mt-1">
+                {tag._count.customers} {tag._count.customers === 1 ? "customer" : "customers"}
+              </div>
+            </div>
+            {tag.createdAt && (
+              <div>
+                <span className="text-muted-foreground">Created date:</span>
+                <div className="mt-1">{format(new Date(tag.createdAt), "dd MMM yyyy HH:mm")}</div>
+              </div>
+            )}
+            {tag.updatedAt && (
+              <div>
+                <span className="text-muted-foreground">Updated date:</span>
+                <div className="mt-1">{format(new Date(tag.updatedAt), "dd MMM yyyy HH:mm")}</div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

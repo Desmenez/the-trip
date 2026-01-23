@@ -14,6 +14,11 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
     const tag = await prisma.tag.findUnique({
       where: { id },
+      include: {
+        _count: {
+          select: { customers: true },
+        },
+      },
     });
 
     if (!tag) {

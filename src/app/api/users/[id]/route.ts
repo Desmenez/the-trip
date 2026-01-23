@@ -62,7 +62,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     }
 
     const body = await req.json();
-    const { firstName, lastName, email, phoneNumber, role, isActive, commissionRate, password } = body;
+    const { firstName, lastName, email, phoneNumber, role, isActive, commissionRate, commissionPerHead, password } = body;
 
     // Get current user data to check if email is changing
     const currentUser = await prisma.user.findUnique({
@@ -124,10 +124,11 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       updateData.isActive = isActive;
     }
 
-    // Handle commissionRate - allow "0" to be parsed as 0, not null
-    if (commissionRate !== undefined && commissionRate !== null && commissionRate !== "") {
-      updateData.commissionPerHead = new Decimal(commissionRate);
-    } else if (commissionRate === "" || commissionRate === null) {
+    // Handle commissionPerHead or commissionRate - allow "0" to be parsed as 0, not null
+    const commissionValue = commissionPerHead !== undefined ? commissionPerHead : commissionRate;
+    if (commissionValue !== undefined && commissionValue !== null && commissionValue !== "") {
+      updateData.commissionPerHead = new Decimal(commissionValue);
+    } else if (commissionValue === "" || commissionValue === null) {
       updateData.commissionPerHead = null;
     }
 

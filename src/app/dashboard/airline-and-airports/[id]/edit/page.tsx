@@ -33,8 +33,8 @@ export default function EditAirlineAndAirportPage({ params }: { params: Promise<
         id: airlineAndAirportId,
         data: values,
       });
-      router.push(`/dashboard/airline-and-airports/${airlineAndAirportId}`);
-      router.refresh();
+      router.push(`/dashboard/airline-and-airports`);
+      // router.refresh();
     } catch (error) {
       // Error will be handled by form component's handleSubmit
       throw error;

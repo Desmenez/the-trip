@@ -14,7 +14,19 @@ export const userFormSchema = z.object({
   role: z.enum(ROLE_VALUES, {
     message: "Please select the information.",
   }),
-  commissionPerHead: z.string().optional(),
+  commissionPerHead: z
+    .string()
+    .optional()
+    .refine(
+      (val) => {
+        if (!val || val === "") return true; // Optional field
+        const num = parseFloat(val);
+        return !isNaN(num) && num >= 0 && /^\d+(\.\d{1,2})?$/.test(val);
+      },
+      {
+        message: "Commission must be a valid number with up to 2 decimal places.",
+      }
+    ),
   isActive: z.boolean().optional(),
 });
 

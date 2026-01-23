@@ -58,20 +58,20 @@ export default function AirlineAndAirportDetailPage({ params }: { params: Promis
 
       {airlineAndAirport._count && (
         <div className="bg-card rounded-md border p-6 space-y-4">
-          <h3 className="font-semibold">Additional Information</h3>
+          <h3 className="font-semibold text-xl">Additional Information</h3>
           <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <span className="text-muted-foreground">Used in Trips:</span>
+            <div className="col-span-2">
+              <span className="text-muted-foreground">Used in trips:</span>
               <div className="mt-1">
                 {airlineAndAirport._count.trips} {airlineAndAirport._count.trips === 1 ? "trip" : "trips"}
               </div>
             </div>
             <div>
-              <span className="text-muted-foreground">Created:</span>
+              <span className="text-muted-foreground">Created date:</span>
               <div className="mt-1">{format(new Date(airlineAndAirport.createdAt), "dd MMM yyyy HH:mm")}</div>
             </div>
             <div>
-              <span className="text-muted-foreground">Updated:</span>
+              <span className="text-muted-foreground">Updated date:</span>
               <div className="mt-1">{format(new Date(airlineAndAirport.updatedAt), "dd MMM yyyy HH:mm")}</div>
             </div>
           </div>

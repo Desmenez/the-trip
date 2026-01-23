@@ -5,6 +5,8 @@ interface Tag {
   id: string;
   name: string;
   order: number;
+  createdAt?: string;
+  updatedAt?: string;
   _count?: {
     customers: number;
   };

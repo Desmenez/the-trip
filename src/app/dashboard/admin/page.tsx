@@ -106,21 +106,22 @@ export default function AdminPage() {
       cell: ({ row }) => <Badge variant="outline">{row.original.role}</Badge>,
     },
     {
+      accessorKey: "commissionPerHead",
+      header: "Commission per head",
+      cell: ({ row }) => <div>{row.original.commissionPerHead ? new Intl.NumberFormat("th-TH", {
+        style: "currency",
+        currency: "THB",
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(row.original.commissionPerHead) : "-"}</div>,
+    },
+    {
       accessorKey: "isActive",
       header: "Status",
       cell: ({ row }) => {
         const isActive = row.original.isActive;
         return <Badge variant={isActive ? "default" : "destructive"}>{isActive ? "Active" : "Inactive"}</Badge>;
       },
-    },
-    {
-      accessorKey: "commissionPerHead",
-      header: "Commission per head",
-      cell: ({ row }) => <div>{row.original.commissionPerHead ? new Intl.NumberFormat("th-TH", {
-        style: "currency",
-        currency: "THB",
-        maximumFractionDigits: 0,
-      }).format(row.original.commissionPerHead) : "-"}</div>,
     },
     {
       accessorKey: "createdAt",
