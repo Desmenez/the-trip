@@ -9,7 +9,9 @@ export const passportFormSchema = z.object({
   customerId: z.string(),
   passportNumber: z.string().min(6, "Passport number must be at least 6 characters."),
   issuingCountry: z.string().min(1, "Issuing country is required"),
+  issuingDate: z.date(),
   expiryDate: z.date(),
+  imageUrl: z.string().nullable().optional(),
   isPrimary: z.boolean(),
 });
 
@@ -32,7 +34,9 @@ async function createPassport(data: Omit<PassportFormValues, "id">): Promise<Pas
       customerId: data.customerId,
       passportNumber: data.passportNumber,
       issuingCountry: data.issuingCountry,
+      issuingDate: data.issuingDate.toISOString(),
       expiryDate: data.expiryDate.toISOString(),
+      imageUrl: data.imageUrl || null,
       isPrimary: data.isPrimary,
     }),
   });
@@ -58,7 +62,9 @@ async function updatePassport(
     body: JSON.stringify({
       passportNumber: data.passportNumber,
       issuingCountry: data.issuingCountry,
+      issuingDate: data.issuingDate.toISOString(),
       expiryDate: data.expiryDate.toISOString(),
+      imageUrl: data.imageUrl || null,
       isPrimary: data.isPrimary,
     }),
   });

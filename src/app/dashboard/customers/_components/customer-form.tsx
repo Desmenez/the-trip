@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -755,135 +755,97 @@ export function CustomerForm({
               <p className="text-destructive text-sm">{form.formState.errors.passports.message as string}</p>
             )}
             {useWatch({ control: form.control, name: "passports" })?.map((_, index) => (
-              <div key={index} className="relative grid grid-cols-2 gap-4 rounded-md border p-4">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="absolute top-2 right-2 text-red-500 hover:text-red-700"
-                  onClick={() => {
-                    const current = form.getValues("passports") || [];
-                    form.setValue(
-                      "passports",
-                      current.filter((_, i) => i !== index),
-                    );
-                  }}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-                <FormField
-                  control={form.control}
-                  name={`passports.${index}.passportNumber`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel required>Passport no.</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Passport no." />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name={`passports.${index}.issuingCountry`}
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel required>Issuing Country</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant="outline"
-                              role="combobox"
-                              className={cn("w-full justify-between", !field.value && "text-muted-foreground")}
-                            >
-                              {field.value
-                                ? countries.find((country) => country.value === field.value)?.label
-                                : "Select country"}
-                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-[200px] p-0 z-60">
-                          <Command>
-                            <CommandInput placeholder="Search country..." />
-                            <CommandList>
-                              <CommandEmpty>No country found.</CommandEmpty>
-                              <CommandGroup>
-                                {countries.map((country) => (
-                                  <CommandItem
-                                    value={country.label}
-                                    key={country.value}
-                                    onSelect={() => {
-                                      form.setValue(`passports.${index}.issuingCountry`, country.value);
-                                    }}
-                                  >
-                                    <Check
-                                      className={cn(
-                                        "mr-2 h-4 w-4",
-                                        country.value === field.value ? "opacity-100" : "opacity-0",
-                                      )}
-                                    />
-                                    {country.label}
-                                  </CommandItem>
-                                ))}
-                              </CommandGroup>
-                            </CommandList>
-                          </Command>
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name={`passports.${index}.issuingDate`}
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel required>Date of issue</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                "w-full pl-3 text-left font-normal",
-                                !field.value && "text-muted-foreground",
-                              )}
-                            >
-                              {field.value ? format(new Date(field.value), "PPP") : <span>Pick a date</span>}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            captionLayout="dropdown"
-                            mode="single"
-                            selected={field.value ? new Date(field.value) : undefined}
-                            onSelect={(date) => field.onChange(date)}
-                            disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name={`passports.${index}.expiryDate`}
-                  render={({ field }) => {
-                    const currentYear = new Date().getFullYear();
-                    const minYear = currentYear - 20; // Allow up to 20 years in the past
-                    const maxYear = currentYear + 20; // Allow up to 20 years in the future
-
-                    return (
+              <div key={index} className="rounded-md border flex flex-col">
+                <div className="w-full bg-muted px-4 py-2 text-sm font-medium flex items-center justify-between">Passport {index + 1}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="text-red-500 hover:text-red-700"
+                    onClick={() => {
+                      const current = form.getValues("passports") || [];
+                      form.setValue(
+                        "passports",
+                        current.filter((_, i) => i !== index),
+                      );
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="grid grid-cols-2 gap-4 p-4">
+                  <FormField
+                    control={form.control}
+                    name={`passports.${index}.passportNumber`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel required>Passport no.</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="Passport no." />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name={`passports.${index}.issuingCountry`}
+                    render={({ field }) => (
                       <FormItem className="flex flex-col">
-                        <FormLabel required>Date of expiry</FormLabel>
+                        <FormLabel required>Issuing Country</FormLabel>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <FormControl>
+                              <Button
+                                variant="outline"
+                                role="combobox"
+                                className={cn("w-full justify-between", !field.value && "text-muted-foreground")}
+                              >
+                                {field.value
+                                  ? countries.find((country) => country.value === field.value)?.label
+                                  : "Select country"}
+                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                              </Button>
+                            </FormControl>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-[200px] p-0 z-60">
+                            <Command>
+                              <CommandInput placeholder="Search country..." />
+                              <CommandList>
+                                <CommandEmpty>No country found.</CommandEmpty>
+                                <CommandGroup>
+                                  {countries.map((country) => (
+                                    <CommandItem
+                                      value={country.label}
+                                      key={country.value}
+                                      onSelect={() => {
+                                        form.setValue(`passports.${index}.issuingCountry`, country.value);
+                                      }}
+                                    >
+                                      <Check
+                                        className={cn(
+                                          "mr-2 h-4 w-4",
+                                          country.value === field.value ? "opacity-100" : "opacity-0",
+                                        )}
+                                      />
+                                      {country.label}
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name={`passports.${index}.issuingDate`}
+                    render={({ field }) => (
+                      <FormItem className="flex flex-col">
+                        <FormLabel required>Date of issue</FormLabel>
                         <Popover>
                           <PopoverTrigger asChild>
                             <FormControl>
@@ -905,80 +867,122 @@ export function CustomerForm({
                               mode="single"
                               selected={field.value ? new Date(field.value) : undefined}
                               onSelect={(date) => field.onChange(date)}
-                              fromYear={minYear}
-                              toYear={maxYear}
+                              disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
                               initialFocus
                             />
                           </PopoverContent>
                         </Popover>
                         <FormMessage />
                       </FormItem>
-                    );
-                  }}
-                />
-                <FormField
-                  control={form.control}
-                  name={`passports.${index}.imageUrl`}
-                  render={({ field }) => {
-                    const imageUrl = field.value;
-                    const firstName = form.watch("firstNameEn") || "";
-                    const lastName = form.watch("lastNameEn") || "";
-                    const customerName = `${firstName}_${lastName}`;
-                    // Sanitize folder name: remove special characters, replace spaces with underscores
-                    const sanitizedName =
-                      customerName !== "_"
-                        ? customerName
-                          .replace(/[^a-zA-Z0-9ก-๙\s_]/g, "")
-                          .replace(/\s+/g, "_")
-                          .toLowerCase()
-                        : `temp_${Date.now()}_${index}`; // Use timestamp and index for temp customers
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name={`passports.${index}.expiryDate`}
+                    render={({ field }) => {
+                      const currentYear = new Date().getFullYear();
+                      const minYear = currentYear - 20; // Allow up to 20 years in the past
+                      const maxYear = currentYear + 20; // Allow up to 20 years in the future
 
-                    const folderName = `passports/${sanitizedName}`;
-                    // Use unique key to ensure component instance is separate from other DragDropUpload components
-                    const uploadKey = `passport-upload-${index}-${folderName}`;
+                      return (
+                        <FormItem className="flex flex-col">
+                          <FormLabel required>Date of expiry</FormLabel>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant="outline"
+                                  className={cn(
+                                    "w-full pl-3 text-left font-normal",
+                                    !field.value && "text-muted-foreground",
+                                  )}
+                                >
+                                  {field.value ? format(new Date(field.value), "PPP") : <span>Pick a date</span>}
+                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                captionLayout="dropdown"
+                                mode="single"
+                                selected={field.value ? new Date(field.value) : undefined}
+                                onSelect={(date) => field.onChange(date)}
+                                fromYear={minYear}
+                                toYear={maxYear}
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
+                          <FormMessage />
+                        </FormItem>
+                      );
+                    }}
+                  />
+                  <FormField
+                    control={form.control}
+                    name={`passports.${index}.imageUrl`}
+                    render={({ field }) => {
+                      const imageUrl = field.value;
+                      const firstName = form.watch("firstNameEn") || "";
+                      const lastName = form.watch("lastNameEn") || "";
+                      const customerName = `${firstName}_${lastName}`;
+                      // Sanitize folder name: remove special characters, replace spaces with underscores
+                      const sanitizedName =
+                        customerName !== "_"
+                          ? customerName
+                            .replace(/[^a-zA-Z0-9ก-๙\s_]/g, "")
+                            .replace(/\s+/g, "_")
+                            .toLowerCase()
+                          : `temp_${Date.now()}_${index}`; // Use timestamp and index for temp customers
 
-                    return (
-                      <FormItem className="col-span-2">
-                        <FormLabel>Passport image</FormLabel>
-                        {imageUrl ? (
-                          <div className="space-y-2">
-                            <div className="bg-muted relative h-48 w-full overflow-hidden rounded-md border">
-                              <picture>
-                                <img src={imageUrl} alt="Passport" className="h-full w-full object-contain" />
-                              </picture>
-                              <Button
-                                type="button"
-                                variant="destructive"
-                                size="icon"
-                                className="absolute top-2 right-2"
-                                onClick={() => field.onChange(null)}
-                              >
-                                <X className="h-4 w-4" />
-                              </Button>
+                      const folderName = `passports/${sanitizedName}`;
+                      // Use unique key to ensure component instance is separate from other DragDropUpload components
+                      const uploadKey = `passport-upload-${index}-${folderName}`;
+
+                      return (
+                        <FormItem className="col-span-2">
+                          <FormLabel>Passport image</FormLabel>
+                          {imageUrl ? (
+                            <div className="space-y-2">
+                              <div className="bg-muted relative h-48 w-full overflow-hidden rounded-md border">
+                                <picture>
+                                  <img src={imageUrl} alt="Passport" className="h-full w-full object-contain" />
+                                </picture>
+                                <Button
+                                  type="button"
+                                  variant="destructive"
+                                  size="icon"
+                                  className="absolute top-2 right-2"
+                                  onClick={() => field.onChange(null)}
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </div>
+                              <p className="text-muted-foreground text-xs">Image uploaded successfully</p>
                             </div>
-                            <p className="text-muted-foreground text-xs">Image uploaded successfully</p>
-                          </div>
-                        ) : (
-                          <DragDropUpload
-                            key={uploadKey}
-                            acceptedFileTypes={["image/jpeg", "image/png", "image/jpg", ".jpg", ".jpeg", ".png"]}
-                            maxFileSize={5 * 1024 * 1024} // 5MB
-                            folderName={folderName}
-                            multiple={false}
-                            onUploadSuccess={(url) => {
-                              field.onChange(url);
-                            }}
-                            onUploadError={(error) => {
-                              toast.error(error);
-                            }}
-                            className="w-full"
-                          />
-                        )}
-                        <FormMessage />
-                      </FormItem>
-                    );
-                  }}
-                />
+                          ) : (
+                            <DragDropUpload
+                              key={uploadKey}
+                              acceptedFileTypes={["image/jpeg", "image/png", "image/jpg", ".jpg", ".jpeg", ".png"]}
+                              maxFileSize={5 * 1024 * 1024} // 5MB
+                              folderName={folderName}
+                              multiple={false}
+                              onUploadSuccess={(url) => {
+                                field.onChange(url);
+                              }}
+                              onUploadError={(error) => {
+                                toast.error(error);
+                              }}
+                              className="w-full"
+                            />
+                          )}
+                          <FormMessage />
+                        </FormItem>
+                      );
+                    }}
+                  />
+                </div>
               </div>
             ))}
           </CollapsibleContent>

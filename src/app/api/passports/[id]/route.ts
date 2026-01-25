@@ -7,7 +7,9 @@ import { z } from "zod";
 const updatePassportSchema = z.object({
   passportNumber: z.string().min(1, "Passport number is required").optional(),
   issuingCountry: z.string().min(1, "Issuing country is required").optional(),
+  issuingDate: z.string().optional(), // ISO date string
   expiryDate: z.string().optional(), // ISO date string
+  imageUrl: z.string().nullable().optional(),
   isPrimary: z.boolean().optional(),
 });
 
@@ -52,7 +54,9 @@ export async function PUT(
       const updateData: {
         passportNumber?: string;
         issuingCountry?: string;
+        issuingDate?: Date;
         expiryDate?: Date;
+        imageUrl?: string | null;
         isPrimary?: boolean;
       } = {};
 
@@ -62,8 +66,14 @@ export async function PUT(
       if (validated.issuingCountry !== undefined) {
         updateData.issuingCountry = validated.issuingCountry;
       }
+      if (validated.issuingDate !== undefined) {
+        updateData.issuingDate = new Date(validated.issuingDate);
+      }
       if (validated.expiryDate !== undefined) {
         updateData.expiryDate = new Date(validated.expiryDate);
+      }
+      if (validated.imageUrl !== undefined) {
+        updateData.imageUrl = validated.imageUrl || null;
       }
       if (validated.isPrimary !== undefined) {
         updateData.isPrimary = validated.isPrimary;

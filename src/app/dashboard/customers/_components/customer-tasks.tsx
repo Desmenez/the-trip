@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -8,10 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon } from "lucide-react";
+import { Calendar as CalendarIcon, Eye, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -24,6 +23,8 @@ import {
   type TaskFormValues,
 } from "../hooks/use-task";
 import { DeleteDialog } from "@/app/dashboard/_components/delete-dialog";
+import Link from "next/link";
+import { TASK_STATUS_LABELS } from "@/lib/constants/task";
 
 interface CustomerTasksProps {
   customerId: string;
@@ -57,48 +58,42 @@ export function CustomerTasks({ customerId }: CustomerTasksProps) {
   const total = tasksResponse?.total ?? 0;
   const totalPages = tasksResponse?.totalPages ?? 0;
 
-  const handleAddTask = useCallback(
-    (values: TaskFormValues) => {
-      createTask.mutate(
-        {
-          ...values,
-          relatedCustomerId: customerId,
+  const handleAddTask = (values: TaskFormValues) => {
+    createTask.mutate(
+      {
+        ...values,
+        relatedCustomerId: customerId,
+      },
+      {
+        onSuccess: () => {
+          form.reset({
+            topic: "",
+            description: "",
+            deadline: undefined,
+            status: "TODO",
+            contact: null,
+            relatedCustomerId: customerId,
+            userId: null,
+          });
         },
-        {
-          onSuccess: () => {
-            form.reset({
-              topic: "",
-              description: "",
-              deadline: undefined,
-              status: "TODO",
-              contact: null,
-              relatedCustomerId: customerId,
-              userId: null,
-            });
-          },
-        }
-      );
-    },
-    [customerId, createTask, form]
-  );
+      }
+    );
+  };
 
-  const handleToggleStatus = useCallback(
-    (task: Task) => {
-      const newStatus = task.status === "COMPLETED" ? "TODO" : "COMPLETED";
-      updateTask.mutate({
-        id: task.id,
-        status: newStatus,
-      });
-    },
-    [updateTask]
-  );
+  const handleToggleStatus = (task: Task) => {
+    const newStatus = task.status === "COMPLETED" ? "TODO" : "COMPLETED";
+    updateTask.mutate({
+      id: task.id,
+      status: newStatus,
+    });
+  };
 
-  const handleDeleteClick = useCallback((id: string) => {
+  const handleDeleteClick = (id: string) => {
     setTaskToDelete(id);
     setDeleteDialogOpen(true);
-  }, []);
+  };
 
-  const handleDeleteConfirm = useCallback(() => {
+  const handleDeleteConfirm = () => {
     if (taskToDelete) {
       deleteTaskMutation.mutate(taskToDelete, {
         onSuccess: () => {
@@ -107,11 +102,11 @@ export function CustomerTasks({ customerId }: CustomerTasksProps) {
         },
       });
     }
-  }, [taskToDelete, deleteTaskMutation]);
+  };
 
-  const handlePageChange = useCallback((newPage: number) => {
+  const handlePageChange = (newPage: number) => {
     setPage(newPage);
-  }, []);
+  };
 
 
   const isLoadingData = isLoading || createTask.isPending || updateTask.isPending || deleteTaskMutation.isPending;
@@ -212,9 +207,8 @@ export function CustomerTasks({ customerId }: CustomerTasksProps) {
                 />
                 <div className="flex-1">
                   <p
-                    className={`text-sm font-medium ${
-                      task.status === "COMPLETED" ? "line-through text-muted-foreground" : ""
-                    }`}
+                    className={`text-sm font-medium ${task.status === "COMPLETED" ? "line-through text-muted-foreground" : ""
+                      }`}
                   >
                     {task.topic}
                   </p>
@@ -226,13 +220,23 @@ export function CustomerTasks({ customerId }: CustomerTasksProps) {
                   )}
                 </div>
                 <Badge variant={getStatusColor(task.status)} className="text-xs">
-                  {task.status}
+                  {TASK_STATUS_LABELS[task.status as keyof typeof TASK_STATUS_LABELS] || task.status}
                 </Badge>
                 {task.contact && (
                   <Badge variant="outline" className="text-xs">
                     {task.contact}
                   </Badge>
                 )}
+                <Link href={`/dashboard/tasks/${task.id}`}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    disabled={isLoadingData}
+                    className="text-primary hover:text-primary"
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                </Link>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -240,7 +244,7 @@ export function CustomerTasks({ customerId }: CustomerTasksProps) {
                   disabled={isLoadingData}
                   className="text-destructive hover:text-destructive"
                 >
-                  Delete
+                  <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
             ))}

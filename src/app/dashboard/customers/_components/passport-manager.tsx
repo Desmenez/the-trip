@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
-import { CalendarIcon, Pencil, Plus, Trash2, Check, ChevronsUpDown, Eye } from "lucide-react";
+import { CalendarIcon, Pencil, Plus, Trash2, Check, ChevronsUpDown, Eye, X } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
@@ -33,6 +33,8 @@ import {
   useDeletePassport,
 } from "../hooks/use-passport";
 import { Passport } from "../hooks/types";
+import { DragDropUpload } from "@/components/upload-image";
+import { toast } from "sonner";
 
 type PassportInput = Omit<Passport, "expiryDate"> & { expiryDate: Date | string };
 
@@ -51,12 +53,18 @@ export function PassportManager({ customerId, passports }: PassportManagerProps)
   const updatePassport = useUpdatePassport(customerId);
   const deletePassportMutation = useDeletePassport(customerId);
 
+  // Generate temp folder name once on mount
+  const [tempFolderName] = useState(() => `temp_${Date.now()}`);
+
   const form = useForm<PassportFormValues>({
     resolver: zodResolver(passportFormSchema),
     defaultValues: {
       customerId,
       passportNumber: "",
-      issuingCountry: "",
+      issuingCountry: "Thailand",
+      issuingDate: undefined,
+      expiryDate: undefined,
+      imageUrl: null,
       isPrimary: false,
     } as Partial<PassportFormValues>,
   });
@@ -66,13 +74,21 @@ export function PassportManager({ customerId, passports }: PassportManagerProps)
     form.reset({
       customerId,
       passportNumber: "",
-      issuingCountry: "",
+      issuingCountry: "Thailand",
+      issuingDate: undefined,
+      expiryDate: undefined,
+      imageUrl: null,
       isPrimary: false,
     });
     setIsOpen(true);
   };
 
   const handleEdit = (passport: PassportInput) => {
+    const issuingDate = passport.issuingDate
+      ? typeof passport.issuingDate === "string"
+        ? new Date(passport.issuingDate)
+        : passport.issuingDate
+      : undefined;
     const expiryDate = typeof passport.expiryDate === "string" ? new Date(passport.expiryDate) : passport.expiryDate;
 
     setEditingPassport(passport);
@@ -81,7 +97,9 @@ export function PassportManager({ customerId, passports }: PassportManagerProps)
       customerId: passport.customerId,
       passportNumber: passport.passportNumber,
       issuingCountry: passport.issuingCountry,
+      issuingDate,
       expiryDate,
+      imageUrl: passport.imageUrl || null,
       isPrimary: passport.isPrimary,
     });
     setIsOpen(true);
@@ -98,28 +116,53 @@ export function PassportManager({ customerId, passports }: PassportManagerProps)
   };
 
   const onSubmit = async (values: PassportFormValues) => {
-    if (values.id) {
-      updatePassport.mutate(values, {
-        onSuccess: () => {
-          setIsOpen(false);
-          form.reset();
-        },
-      });
-    } else {
-      createPassport.mutate(
-        {
+    try {
+      if (values.id) {
+        await updatePassport.mutateAsync(values);
+        setIsOpen(false);
+        form.reset();
+      } else {
+        await createPassport.mutateAsync({
           passportNumber: values.passportNumber,
           issuingCountry: values.issuingCountry,
+          issuingDate: values.issuingDate,
           expiryDate: values.expiryDate,
+          imageUrl: values.imageUrl || null,
           isPrimary: values.isPrimary,
-        },
-        {
-          onSuccess: () => {
-            setIsOpen(false);
-            form.reset();
-          },
-        },
-      );
+        });
+        setIsOpen(false);
+        form.reset();
+      }
+    } catch (error) {
+      // Error is already handled by the mutation's onError callback
+      // Form validation errors will be displayed via FormMessage
+      if (error instanceof Error) {
+        const fieldError = error as Error & { field?: string; fields?: { field: string; message: string }[] };
+        
+        // Handle multiple field errors
+        if (fieldError.fields && Array.isArray(fieldError.fields)) {
+          fieldError.fields.forEach((err) => {
+            if (err.field === "passportNumber") {
+              form.setError("passportNumber", {
+                type: "server",
+                message: err.message,
+              });
+            } else if (err.field === "passports") {
+              form.setError("passportNumber", {
+                type: "server",
+                message: err.message,
+              });
+            }
+          });
+        }
+        // Handle single field error
+        else if (fieldError.field === "passportNumber" || fieldError.field === "passports") {
+          form.setError("passportNumber", {
+            type: "server",
+            message: error.message,
+          });
+        }
+      }
     }
   };
 
@@ -199,7 +242,7 @@ export function PassportManager({ customerId, passports }: PassportManagerProps)
                   name="issuingCountry"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
-                      <FormLabel>Issuing Country</FormLabel>
+                      <FormLabel required>Issuing Country</FormLabel>
                       <Popover>
                         <PopoverTrigger asChild>
                           <FormControl>
@@ -253,9 +296,9 @@ export function PassportManager({ customerId, passports }: PassportManagerProps)
                   name="passportNumber"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Passport Number</FormLabel>
+                      <FormLabel required>Passport no.</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g. AA1234567" {...field} />
+                        <Input placeholder="Passport no." {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -264,21 +307,21 @@ export function PassportManager({ customerId, passports }: PassportManagerProps)
 
                 <FormField
                   control={form.control}
-                  name="expiryDate"
+                  name="issuingDate"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
-                      <FormLabel>Expiry Date</FormLabel>
+                      <FormLabel required>Date of issue</FormLabel>
                       <Popover>
                         <PopoverTrigger asChild>
                           <FormControl>
                             <Button
-                              variant={"outline"}
+                              variant="outline"
                               className={cn(
                                 "w-full pl-3 text-left font-normal",
                                 !field.value && "text-muted-foreground",
                               )}
                             >
-                              {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                              {field.value ? format(new Date(field.value), "PPP") : <span>Pick a date</span>}
                               <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                             </Button>
                           </FormControl>
@@ -287,11 +330,9 @@ export function PassportManager({ customerId, passports }: PassportManagerProps)
                           <Calendar
                             captionLayout="dropdown"
                             mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            disabled={(date) => date < new Date("1900-01-01")}
-                            fromYear={2000}
-                            toYear={2100}
+                            selected={field.value ? new Date(field.value) : undefined}
+                            onSelect={(date) => field.onChange(date)}
+                            disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
                             initialFocus
                           />
                         </PopoverContent>
@@ -299,6 +340,102 @@ export function PassportManager({ customerId, passports }: PassportManagerProps)
                       <FormMessage />
                     </FormItem>
                   )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="expiryDate"
+                  render={({ field }) => {
+                    const currentYear = new Date().getFullYear();
+                    const minYear = currentYear - 20; // Allow up to 20 years in the past
+                    const maxYear = currentYear + 20; // Allow up to 20 years in the future
+
+                    return (
+                      <FormItem className="flex flex-col">
+                        <FormLabel required>Date of expiry</FormLabel>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <FormControl>
+                              <Button
+                                variant="outline"
+                                className={cn(
+                                  "w-full pl-3 text-left font-normal",
+                                  !field.value && "text-muted-foreground",
+                                )}
+                              >
+                                {field.value ? format(new Date(field.value), "PPP") : <span>Pick a date</span>}
+                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                              </Button>
+                            </FormControl>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              captionLayout="dropdown"
+                              mode="single"
+                              selected={field.value ? new Date(field.value) : undefined}
+                              onSelect={(date) => field.onChange(date)}
+                              fromYear={minYear}
+                              toYear={maxYear}
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
+                        <FormMessage />
+                      </FormItem>
+                    );
+                  }}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="imageUrl"
+                  render={({ field }) => {
+                    const imageUrl = field.value;
+                    const customerIdForFolder = customerId || tempFolderName;
+                    const folderName = `passports/${customerIdForFolder}`;
+                    const uploadKey = `passport-upload-${customerIdForFolder}`;
+
+                    return (
+                      <FormItem>
+                        <FormLabel>Passport image</FormLabel>
+                        {imageUrl ? (
+                          <div className="space-y-2">
+                            <div className="bg-muted relative h-48 w-full overflow-hidden rounded-md border">
+                              <picture>
+                                <img src={imageUrl} alt="Passport" className="h-full w-full object-contain" />
+                              </picture>
+                              <Button
+                                type="button"
+                                variant="destructive"
+                                size="icon"
+                                className="absolute top-2 right-2"
+                                onClick={() => field.onChange(null)}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                            <p className="text-muted-foreground text-xs">Image uploaded successfully</p>
+                          </div>
+                        ) : (
+                          <DragDropUpload
+                            key={uploadKey}
+                            acceptedFileTypes={["image/jpeg", "image/png", "image/jpg", ".jpg", ".jpeg", ".png"]}
+                            maxFileSize={5 * 1024 * 1024} // 5MB
+                            folderName={folderName}
+                            multiple={false}
+                            onUploadSuccess={(url) => {
+                              field.onChange(url);
+                            }}
+                            onUploadError={(error) => {
+                              toast.error(error);
+                            }}
+                            className="w-full"
+                          />
+                        )}
+                        <FormMessage />
+                      </FormItem>
+                    );
+                  }}
                 />
 
                 <FormField

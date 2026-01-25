@@ -29,7 +29,7 @@ const customerColumns: ColumnDef<CustomerWithTotalTrips>[] = [
       const englishName = `${customer.firstNameEn} ${customer.lastNameEn}`;
 
       return (
-        <div className="flex flex-col font-medium">
+        <div className="flex flex-col font-medium max-w-[240px] truncate">
           <p>{englishName}</p>
           {thaiName && (
             <p className="text-muted-foreground text-xs">
@@ -41,14 +41,19 @@ const customerColumns: ColumnDef<CustomerWithTotalTrips>[] = [
     },
   },
   {
-    accessorKey: "dateOfBirth",
-    header: "Date of birth",
-    cell: ({ row }) => <div>{format(new Date(row.original.dateOfBirth || ""), "dd MMM yyyy")}</div>,
-  },
-  {
     accessorKey: "phoneNumber",
     header: "Phone number",
     cell: ({ row }) => <div>{row.original.phoneNumber || "-"}</div>,
+  },
+  {
+    accessorKey: "email",
+    header: "Email",
+    cell: ({ row }) => <div className="max-w-[180px] truncate">{row.original.email || "-"}</div>,
+  },
+  {
+    accessorKey: "dateOfBirth",
+    header: "Date of birth",
+    cell: ({ row }) => <div>{format(new Date(row.original.dateOfBirth || ""), "dd MMM yyyy")}</div>,
   },
   {
     accessorKey: "totalTrips",
@@ -58,7 +63,7 @@ const customerColumns: ColumnDef<CustomerWithTotalTrips>[] = [
   {
     accessorKey: "tags",
     header: "Tags",
-    cell: ({ row }) => <div>{row.original.tags.map((tag) => tag.tag.name).join(", ")}</div>,
+    cell: ({ row }) => <div className="max-w-[100px] truncate">{row.original.tags.map((tag) => tag.tag.name).join(", ")}</div>,
   },
   {
     accessorKey: "createdAt",
