@@ -1621,7 +1621,6 @@ export function BookingForm({ mode, initialData, onSubmit, onCancel, isLoading =
                               />
                             )}
                           </FormControl>
-                          <FormDescription>Upload proof of payment (max 10MB)</FormDescription>
                         </>
                       )}
                       <FormMessage />

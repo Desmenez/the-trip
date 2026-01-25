@@ -192,7 +192,6 @@ export function PaymentForm({ bookingId, booking, onSuccess, onCancel }: Payment
                   />
                 )}
               </FormControl>
-              <FormDescription>Upload proof of payment (max 10MB)</FormDescription>
               <FormMessage />
             </FormItem>
           )}
