@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { DataTable } from "@/components/data-table/data-table";
 import { ColumnDef } from "@tanstack/react-table";
+import { format } from "date-fns";
 import { useCommissionDetails, type CommissionDetail } from "../hooks/use-commissions";
 import { Loading } from "@/components/page/loading";
 import { useDataTableInstance } from "@/hooks/use-data-table-instance";
@@ -29,13 +30,25 @@ export default function CommissionDetailPage({ params }: { params: Promise<{ age
                 cell: ({ row }) => <div className="font-mono">{row.original.tripCode}</div>,
             },
             {
-                accessorKey: "customerName",
-                header: "Customer name",
+                accessorKey: "tripName",
+                header: "Trip name",
+                cell: ({ row }) => row.original.trip.name,
             },
             {
-                accessorKey: "totalPeople",
-                header: "Total people",
-                cell: ({ row }) => row.original.totalPeople,
+                accessorKey: "tripDate",
+                header: "Trip date",
+                cell: ({ row }) => {
+                    const trip = row.original.trip;
+                    return (
+                        <div>
+                            {format(new Date(trip.startDate), "dd MMM")} - {format(new Date(trip.endDate), "dd MMM yyyy")}
+                        </div>
+                    );
+                },
+            },
+            {
+                accessorKey: "customerName",
+                header: "Customer name",
             },
             {
                 accessorKey: "commissionAmount",

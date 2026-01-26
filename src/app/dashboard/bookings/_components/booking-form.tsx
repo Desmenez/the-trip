@@ -575,7 +575,7 @@ export function BookingForm({ mode, initialData, onSubmit, onCancel, isLoading =
                         <PopoverContent className="w-[400px] p-0">
                           <Command shouldFilter={false}>
                             <CommandInput
-                              placeholder="Search trips by code..."
+                              placeholder="Search by trip code"
                               value={tripSearchQuery}
                               onValueChange={setTripSearchQuery}
                             />
@@ -664,7 +664,7 @@ export function BookingForm({ mode, initialData, onSubmit, onCancel, isLoading =
                       <PopoverContent className="w-[400px] p-0">
                         <Command shouldFilter={false}>
                           <CommandInput
-                            placeholder="Search customers by name, email, or phone..."
+                            placeholder="Search by customer name"
                             value={customerSearchQuery}
                             onValueChange={setCustomerSearchQuery}
                           />
@@ -734,7 +734,7 @@ export function BookingForm({ mode, initialData, onSubmit, onCancel, isLoading =
                 <FormItem>
                   <FormLabel>Companion</FormLabel>
                   {readOnly ? (
-                    <div className="space-y-2">
+                    <div className="space-y-2 p-2 border rounded-md bg-muted">
                       {selectedCompanions.length === 0 ? (
                         <p className="text-muted-foreground text-sm">No companion</p>
                       ) : (
@@ -745,9 +745,15 @@ export function BookingForm({ mode, initialData, onSubmit, onCancel, isLoading =
                             lastNameTh: string;
                             firstNameEn: string;
                             lastNameEn: string;
+                            email?: string;
                           }) => (
-                            <div key={c.id} className="text-sm">
-                              {c.firstNameTh} {c.lastNameTh} ({c.firstNameEn} {c.lastNameEn})
+                            <div key={c.id} className="flex items-center justify-between">
+                              <p className="text-sm">
+                                {c.firstNameEn} {c.lastNameEn} {c.firstNameTh && c.lastNameTh && `(${c.firstNameTh} ${c.lastNameTh})`}
+                              </p>
+                              {c.email && <p className="text-sm text-muted-foreground">
+                                {c.email}
+                              </p>}
                             </div>
                           ),
                         )
@@ -774,7 +780,7 @@ export function BookingForm({ mode, initialData, onSubmit, onCancel, isLoading =
                         <PopoverContent className="w-[400px] p-0">
                           <Command shouldFilter={false}>
                             <CommandInput
-                              placeholder="Search companion customers..."
+                              placeholder="Search by customer name"
                               value={companionSearchQuery}
                               onValueChange={setCompanionSearchQuery}
                             />
@@ -1096,9 +1102,9 @@ export function BookingForm({ mode, initialData, onSubmit, onCancel, isLoading =
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="FIRST_CLASS">First Class</SelectItem>
-                          <SelectItem value="BUSINESS_CLASS">Business Class</SelectItem>
-                          <SelectItem value="LONG_LEG">Long Leg</SelectItem>
+                          <SelectItem value="FIRST_CLASS">First class</SelectItem>
+                          <SelectItem value="BUSINESS_CLASS">Business class</SelectItem>
+                          <SelectItem value="LONG_LEG">Long leg</SelectItem>
                         </SelectContent>
                       </Select>
                     )}
@@ -1305,7 +1311,7 @@ export function BookingForm({ mode, initialData, onSubmit, onCancel, isLoading =
                     <PopoverContent className="w-[400px] p-0">
                       <Command shouldFilter={false}>
                         <CommandInput
-                          placeholder="Search sales users by name or email..."
+                          placeholder="Search by sales name"
                           value={salesUserSearchQuery}
                           onValueChange={setSalesUserSearchQuery}
                         />

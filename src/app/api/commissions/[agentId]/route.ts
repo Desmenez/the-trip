@@ -52,6 +52,9 @@ export async function GET(req: Request, { params }: { params: Promise<{ agentId:
             trip: {
               select: {
                 code: true,
+                name: true,
+                startDate: true,
+                endDate: true,
               },
             },
             customer: {
@@ -87,8 +90,14 @@ export async function GET(req: Request, { params }: { params: Promise<{ agentId:
         id: commission.id,
         tripCode: commission.booking.trip.code,
         customerName,
-        totalPeople: 1 + commission.booking.companionCustomers.length,
+        totalPeople: 1, // Only count the main customer, not companions
         commissionAmount: Number(commission.amount),
+        trip: {
+          code: commission.booking.trip.code,
+          name: commission.booking.trip.name,
+          startDate: commission.booking.trip.startDate,
+          endDate: commission.booking.trip.endDate,
+        },
       };
     });
 

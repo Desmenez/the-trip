@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
-import { CalendarIcon, Check, ChevronsUpDown, Trash2, ChevronDown, Plus } from "lucide-react";
+import { CalendarIcon, Check, ChevronsUpDown, Trash2, ChevronDown, Plus, Star } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { format } from "date-fns";
 import { cn, calculateAge } from "@/lib/utils";
@@ -733,15 +733,17 @@ export function CustomerForm({
               variant="outline"
               size="sm"
               onClick={() => {
+                const currentPassports = form.getValues("passports") || [];
+                const isFirstPassport = currentPassports.length === 0;
                 form.setValue("passports", [
-                  ...(form.getValues("passports") || []),
+                  ...currentPassports,
                   {
                     passportNumber: "",
                     issuingCountry: "Thailand",
                     issuingDate: undefined,
                     expiryDate: undefined,
                     imageUrl: null,
-                    isPrimary: false,
+                    isPrimary: isFirstPassport,
                   },
                 ]);
                 setIsPassportsOpen(true);
@@ -754,25 +756,77 @@ export function CustomerForm({
             {form.formState.errors.passports && (
               <p className="text-destructive text-sm">{form.formState.errors.passports.message as string}</p>
             )}
-            {useWatch({ control: form.control, name: "passports" })?.map((_, index) => (
-              <div key={index} className="rounded-md border flex flex-col">
-                <div className="w-full bg-muted px-4 py-2 text-sm font-medium flex items-center justify-between">Passport {index + 1}
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="text-red-500 hover:text-red-700"
-                    onClick={() => {
-                      const current = form.getValues("passports") || [];
-                      form.setValue(
-                        "passports",
-                        current.filter((_, i) => i !== index),
-                      );
-                    }}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
+            {useWatch({ control: form.control, name: "passports" })?.map((_, index) => {
+              const currentPassports = form.getValues("passports") || [];
+              const totalPassports = currentPassports.length;
+              const isOnlyPassport = totalPassports === 1;
+              const currentIsPrimary = currentPassports[index]?.isPrimary ?? false;
+
+              return (
+                <div key={index} className="rounded-md border flex flex-col">
+                  <div className="w-full bg-muted px-4 py-2 text-sm font-medium flex items-center justify-between">
+                    <p>Passport {index + 1}</p>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className={cn(
+                          currentIsPrimary ? "text-yellow-500 hover:text-yellow-700" : "text-muted-foreground hover:text-yellow-500",
+                          isOnlyPassport && "opacity-50 cursor-not-allowed"
+                        )}
+                        disabled={isOnlyPassport}
+                        onClick={() => {
+                          if (isOnlyPassport) return;
+
+                          const updatedPassports = currentPassports.map((p, i) => {
+                            if (i === index) {
+                              // Toggle current passport
+                              return { ...p, isPrimary: !currentIsPrimary };
+                            } else if (!currentIsPrimary) {
+                              // If setting current as primary, unset others
+                              return { ...p, isPrimary: false };
+                            }
+                            return p;
+                          });
+
+                          // If unsetting primary, find another passport to set as primary
+                          if (currentIsPrimary && totalPassports > 1) {
+                            const otherIndex = updatedPassports.findIndex((_, i) => i !== index);
+                            if (otherIndex !== -1) {
+                              updatedPassports[otherIndex] = { ...updatedPassports[otherIndex], isPrimary: true };
+                            }
+                          }
+
+                          form.setValue("passports", updatedPassports);
+                        }}
+                        title={isOnlyPassport ? "This passport must be primary as it's the only one" : currentIsPrimary ? "Remove as primary" : "Set as primary"}
+                      >
+                        <Star className={cn("h-4 w-4", currentIsPrimary && "fill-current")} />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="text-red-500 hover:text-red-700"
+                        onClick={() => {
+                          const current = form.getValues("passports") || [];
+                          const passportToDelete = current[index];
+                          const isDeletingPrimary = passportToDelete?.isPrimary === true;
+                          const remainingPassports = current.filter((_, i) => i !== index);
+
+                          // If deleting primary passport and there are other passports, set another one as primary
+                          if (isDeletingPrimary && remainingPassports.length > 0) {
+                            remainingPassports[0] = { ...remainingPassports[0], isPrimary: true };
+                          }
+
+                          form.setValue("passports", remainingPassports);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
                 <div className="grid grid-cols-2 gap-4 p-4">
                   <FormField
                     control={form.control}
@@ -984,7 +1038,8 @@ export function CustomerForm({
                   />
                 </div>
               </div>
-            ))}
+              );
+            })}
           </CollapsibleContent>
         </Collapsible>
 

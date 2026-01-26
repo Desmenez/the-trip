@@ -263,14 +263,14 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
               expiryDate: string | Date;
               imageUrl?: string | null;
               isPrimary?: boolean;
-            }>).map((p) => ({
+            }>).map((p, index) => ({
               customerId: id,
               passportNumber: p.passportNumber,
               issuingCountry: p.issuingCountry,
               issuingDate: new Date(p.issuingDate),
               expiryDate: new Date(p.expiryDate),
               imageUrl: p.imageUrl || null,
-              isPrimary: p.isPrimary || false,
+              isPrimary: p.isPrimary !== undefined ? p.isPrimary : index === 0,
             })),
           });
         }

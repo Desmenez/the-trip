@@ -50,12 +50,16 @@ export async function GET(
           },
         },
         companionCustomers: {
-          select: {
-            id: true,
-            firstNameTh: true,
-            lastNameTh: true,
-            firstNameEn: true,
-            lastNameEn: true,
+          include: {
+            customer: {
+              select: {
+                id: true,
+                firstNameTh: true,
+                lastNameTh: true,
+                firstNameEn: true,
+                lastNameEn: true,
+              },
+            },
           },
         },
         trip: {
@@ -153,6 +157,12 @@ export async function PUT(
         tripId: true,
         salesUserId: true,
         paymentStatus: true,
+        customerId: true,
+        companionCustomers: {
+          select: {
+            customerId: true,
+          },
+        },
       },
     });
 
@@ -202,11 +212,8 @@ export async function PUT(
     if (tripId !== undefined && tripId !== "") updateData.trip = { connect: { id: tripId } };
     if (agentId !== undefined) updateData.agent = { connect: { id: agentId } };
 
-    if (companionCustomerIds !== undefined) {
-      updateData.companionCustomers = {
-        set: companionCustomerIds?.map((id: string) => ({ id })) || [],
-      };
-    }
+    // Handle companion customers separately using explicit join table
+    // Don't include in updateData as we'll handle it manually
 
     if (note !== undefined) updateData.note = note || null;
     if (extraPriceForSingleTraveller !== undefined)
@@ -261,12 +268,16 @@ export async function PUT(
             },
           },
           companionCustomers: {
-            select: {
-              id: true,
-              firstNameTh: true,
-              lastNameTh: true,
-              firstNameEn: true,
-              lastNameEn: true,
+            include: {
+              customer: {
+                select: {
+                  id: true,
+                  firstNameTh: true,
+                  lastNameTh: true,
+                  firstNameEn: true,
+                  lastNameEn: true,
+                },
+              },
             },
           },
           trip: {
@@ -322,6 +333,86 @@ export async function PUT(
         // Sync lead status for each associated lead
         for (const lead of leads) {
           await syncLeadStatusFromBooking(lead.id);
+        }
+      }
+
+      // Handle symmetric companion relationship when companionCustomerIds is updated
+      if (companionCustomerIds !== undefined) {
+        const finalTripIdForCompanion = tripId || currentBooking.tripId;
+        const currentCustomerId = customerId || currentBooking.customerId;
+        const newCompanionIds = companionCustomerIds || [];
+        const oldCompanionIds = currentBooking.companionCustomers.map((c) => c.customerId);
+
+        // Delete old companion relationships (both directions)
+        const toRemove = oldCompanionIds.filter((id) => !newCompanionIds.includes(id));
+        if (toRemove.length > 0) {
+          // Delete: this booking -> old companions
+          // Using type assertion because Prisma client will have bookingCompanion after migration
+          const txWithBookingCompanion = tx as unknown as {
+            bookingCompanion: {
+              deleteMany: (args: { where: Record<string, unknown> }) => Promise<unknown>;
+              createMany: (args: { data: Array<{ bookingId: string; customerId: string }>; skipDuplicates: boolean }) => Promise<unknown>;
+            };
+          };
+          
+          await txWithBookingCompanion.bookingCompanion.deleteMany({
+            where: {
+              bookingId: id,
+              customerId: { in: toRemove },
+            },
+          });
+
+          // Delete: old companion bookings -> this customer
+          const oldCompanionBookings = await tx.booking.findMany({
+            where: {
+              tripId: finalTripIdForCompanion,
+              customerId: { in: toRemove },
+            },
+            select: { id: true },
+          });
+
+          await txWithBookingCompanion.bookingCompanion.deleteMany({
+            where: {
+              bookingId: { in: oldCompanionBookings.map((b) => b.id) },
+              customerId: currentCustomerId,
+            },
+          });
+        }
+
+        // Create new companion relationships (both directions)
+        const toAdd = newCompanionIds.filter((id: string) => !oldCompanionIds.includes(id));
+        if (toAdd.length > 0) {
+          // Create: this booking -> new companions
+          const txWithBookingCompanion = tx as unknown as {
+            bookingCompanion: {
+              createMany: (args: { data: Array<{ bookingId: string; customerId: string }>; skipDuplicates: boolean }) => Promise<unknown>;
+            };
+          };
+          
+          await txWithBookingCompanion.bookingCompanion.createMany({
+            data: toAdd.map((companionCustomerId: string) => ({
+              bookingId: id,
+              customerId: companionCustomerId,
+            })),
+            skipDuplicates: true,
+          });
+
+          // Create: new companion bookings -> this customer
+          const newCompanionBookings = await tx.booking.findMany({
+            where: {
+              tripId: finalTripIdForCompanion,
+              customerId: { in: toAdd },
+            },
+            select: { id: true },
+          });
+
+          await txWithBookingCompanion.bookingCompanion.createMany({
+            data: newCompanionBookings.map((companionBooking) => ({
+              bookingId: companionBooking.id,
+              customerId: currentCustomerId,
+            })),
+            skipDuplicates: true,
+          });
         }
       }
 

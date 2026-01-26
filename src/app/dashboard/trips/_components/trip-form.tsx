@@ -230,7 +230,7 @@ export function TripForm({ mode, initialData, onSubmit, onCancel, isLoading = fa
                   <PopoverContent className="w-[400px] p-0" align="start">
                     <Command>
                       <CommandInput
-                        placeholder="Search by code or name..."
+                        placeholder="Search by IATA code, airport name"
                         value={airlineAndAirportSearch}
                         onValueChange={setAirlineAndAirportSearch}
                       />

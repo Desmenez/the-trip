@@ -128,12 +128,16 @@ export async function GET(request: Request) {
           },
         },
         companionCustomers: {
-          select: {
-            id: true,
-            firstNameTh: true,
-            lastNameTh: true,
-            firstNameEn: true,
-            lastNameEn: true,
+          include: {
+            customer: {
+              select: {
+                id: true,
+                firstNameTh: true,
+                lastNameTh: true,
+                firstNameEn: true,
+                lastNameEn: true,
+              },
+            },
           },
         },
         trip: {
@@ -341,9 +345,6 @@ export async function POST(req: Request) {
           salesUserId,
           tripId,
           agentId: finalAgentId,
-          companionCustomers: {
-            connect: companionCustomerIds?.map((id: string) => ({ id })) || [],
-          },
           note: note || null,
           extraPriceForSingleTraveller: extraPriceForSingleTraveller ? Number(extraPriceForSingleTraveller) : null,
           roomType: roomType || "DOUBLE_BED",
@@ -381,6 +382,38 @@ export async function POST(req: Request) {
         data: { firstPaymentId: firstPayment.id } as unknown as Prisma.BookingUpdateInput,
       });
 
+      // 4. Create symmetric companion relationships using explicit join table
+      // If A is companion of B, then B should also be companion of A
+      if (companionCustomerIds && companionCustomerIds.length > 0) {
+        // Find bookings of companion customers in the same trip
+        const companionBookings = await tx.booking.findMany({
+          where: {
+            tripId,
+            customerId: { in: companionCustomerIds },
+          },
+          select: { id: true },
+        });
+
+        // Create companion relationships: this booking -> companion customers
+        const companionRelations = companionCustomerIds.map((companionCustomerId: string) => ({
+          bookingId: newBooking.id,
+          customerId: companionCustomerId,
+        }));
+
+        // Create reverse companion relationships: companion bookings -> this customer
+        const reverseCompanionRelations = companionBookings.map((companionBooking) => ({
+          bookingId: companionBooking.id,
+          customerId: customerId,
+        }));
+
+        // Create all relationships at once
+        // Using type assertion because Prisma client will have bookingCompanion after migration
+        await (tx as unknown as { bookingCompanion: { createMany: (args: { data: Array<{ bookingId: string; customerId: string }>; skipDuplicates: boolean }) => Promise<unknown> } }).bookingCompanion.createMany({
+          data: [...companionRelations, ...reverseCompanionRelations],
+          skipDuplicates: true,
+        });
+      }
+
       // Return the updated booking
       const updatedBooking = await tx.booking.findUnique({
         where: { id: newBooking.id },
@@ -411,12 +444,16 @@ export async function POST(req: Request) {
             },
           },
           companionCustomers: {
-            select: {
-              id: true,
-              firstNameTh: true,
-              lastNameTh: true,
-              firstNameEn: true,
-              lastNameEn: true,
+            include: {
+              customer: {
+                select: {
+                  id: true,
+                  firstNameTh: true,
+                  lastNameTh: true,
+                  firstNameEn: true,
+                  lastNameEn: true,
+                },
+              },
             },
           },
           trip: {

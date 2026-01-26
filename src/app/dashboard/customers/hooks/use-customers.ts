@@ -21,7 +21,7 @@ export const customerFormSchema = z.object({
     .refine((val) => ["MR", "MRS", "MISS", "MASTER", "OTHER"].includes(val), {
       message: "Title must be one of: MR, MRS, MISS, MASTER, OTHER",
     }),
-  email: z.string().email().optional().or(z.literal("")),
+  email: z.string().email("Email is invalid.").optional().or(z.literal("")),
   phoneNumber: phoneNumberFormat,
   lineId: z.string().optional(),
   dateOfBirth: z.string().min(1, {

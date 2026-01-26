@@ -40,8 +40,21 @@ export async function PUT(
     }
 
     const result = await prisma.$transaction(async (tx) => {
+      // Count total passports for this customer
+      const totalPassports = await tx.passport.count({
+        where: { customerId: currentPassport.customerId },
+      });
+
+      // If there's only one passport, force isPrimary to true
+      const finalIsPrimary =
+        validated.isPrimary !== undefined
+          ? totalPassports === 1
+            ? true
+            : validated.isPrimary
+          : currentPassport.isPrimary;
+
       // If setting as primary, unset others first
-      if (validated.isPrimary && !currentPassport.isPrimary) {
+      if (finalIsPrimary && !currentPassport.isPrimary) {
         await tx.passport.updateMany({
           where: {
             customerId: currentPassport.customerId,
@@ -49,6 +62,26 @@ export async function PUT(
           },
           data: { isPrimary: false },
         });
+      }
+
+      // If unsetting primary and there are other passports, set another one as primary
+      if (!finalIsPrimary && totalPassports > 1) {
+        // Find another passport to set as primary
+        const otherPassports = await tx.passport.findMany({
+          where: {
+            customerId: currentPassport.customerId,
+            id: { not: id },
+          },
+          orderBy: { createdAt: "asc" },
+          take: 1,
+        });
+
+        if (otherPassports.length > 0) {
+          await tx.passport.update({
+            where: { id: otherPassports[0].id },
+            data: { isPrimary: true },
+          });
+        }
       }
 
       const updateData: {
@@ -76,7 +109,7 @@ export async function PUT(
         updateData.imageUrl = validated.imageUrl || null;
       }
       if (validated.isPrimary !== undefined) {
-        updateData.isPrimary = validated.isPrimary;
+        updateData.isPrimary = finalIsPrimary;
       }
 
       const passport = await tx.passport.update({

@@ -220,7 +220,7 @@ export function FamilyForm({
                   <PopoverContent className="w-[400px] p-0">
                     <Command>
                       <CommandInput
-                        placeholder="Search customers..."
+                        placeholder="Search by customer name"
                         value={customersSearch}
                         onValueChange={setCustomersSearch}
                       />

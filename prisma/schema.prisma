@@ -85,7 +85,7 @@ model Customer {
   tags              CustomerTag[]
   leads             Lead[]
   bookings          Booking[]     @relation("CustomerBookings")
-  companionBookings Booking[]     @relation("CompanionCustomers")
+  companionBookings BookingCompanion[] @relation("CompanionCustomers")
 
   addresses     Address[]
   passports     Passport[]
@@ -159,6 +159,19 @@ model CustomerTag {
   @@id([customerId, tagId])
 }
 
+// Explicit join table for companion relationship (symmetric)
+model BookingCompanion {
+  bookingId  String
+  booking   Booking  @relation("CompanionBookings", fields: [bookingId], references: [id], onDelete: Cascade)
+  customerId String
+  customer  Customer @relation("CompanionCustomers", fields: [customerId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@id([bookingId, customerId])
+  @@index([customerId])
+}
+
 // 3. Sales Pipeline & Leads
 enum LeadSource {
   FACEBOOK
@@ -183,7 +196,7 @@ model Lead {
   salesUserId String
   salesUser   User      @relation("SalesLeads", fields: [salesUserId], references: [id])
 
-  source LeadSource @default(FACEBOOK)
+  source LeadSource?
   status LeadStatus @default(INTERESTED)
 
   tripInterest String
@@ -282,7 +295,7 @@ model Booking {
   salesUser          User       @relation("SalesBookings", fields: [salesUserId], references: [id])
   tripId             String
   trip               Trip       @relation(fields: [tripId], references: [id])
-  companionCustomers Customer[] @relation("CompanionCustomers")
+  companionCustomers BookingCompanion[] @relation("CompanionBookings")
   agentId            String?
   agent              User?      @relation("AgentBookings", fields: [agentId], references: [id])
 

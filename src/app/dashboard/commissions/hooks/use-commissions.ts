@@ -14,6 +14,12 @@ export interface CommissionDetail {
   customerName: string;
   totalPeople: number;
   commissionAmount: number;
+  trip: {
+    code: string;
+    name: string;
+    startDate: string;
+    endDate: string;
+  };
 }
 
 // Fetch commission summary

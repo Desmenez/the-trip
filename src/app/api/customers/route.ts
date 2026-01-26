@@ -254,13 +254,13 @@ export async function POST(req: Request) {
         passports:
           passports && passports.length > 0
             ? {
-                create: (passports as PassportInput[]).map((p) => ({
+                create: (passports as PassportInput[]).map((p, index) => ({
                   passportNumber: p.passportNumber,
                   issuingCountry: p.issuingCountry,
                   issuingDate: new Date(p.issuingDate),
                   expiryDate: new Date(p.expiryDate),
                   imageUrl: p.imageUrl || null,
-                  isPrimary: p.isPrimary || false,
+                  isPrimary: p.isPrimary !== undefined ? p.isPrimary : index === 0,
                 })),
               }
             : undefined,

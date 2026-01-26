@@ -49,7 +49,7 @@ const formSchema = z
     email: z.string().optional(),
     lineId: z.string().optional(),
     salesUserId: z.string().min(1, { message: "Please select the information." }),
-    source: z.string().min(1, { message: "Please fill in the information." }),
+    source: z.string().optional(),
     status: z.string().min(1, { message: "Please select the information." }),
     tripInterest: z.string('Please fill in the information.').min(1, { message: "Please fill in the information." }),
     pax: z.string().min(1, { message: "Please fill in the information." }),
@@ -140,7 +140,7 @@ export function LeadForm({ mode, initialData, onSubmit, onCancel, isLoading }: L
         email: initialData.email ?? undefined,
         lineId: initialData.lineId ?? undefined,
         salesUserId: initialData.salesUserId,
-        source: initialData.source,
+        source: initialData.source ?? "",
         status: initialData.status,
         tripInterest: initialData.tripInterest,
         pax: initialData.pax?.toString() ?? "1",
@@ -435,7 +435,7 @@ export function LeadForm({ mode, initialData, onSubmit, onCancel, isLoading }: L
                     <PopoverContent className="w-[400px] p-0">
                       <Command shouldFilter={false}>
                         <CommandInput
-                          placeholder="Search customers by name, email, or phone..."
+                          placeholder="Search by customer name"
                           value={customerSearchQuery}
                           onValueChange={setCustomerSearchQuery}
                         />
@@ -564,7 +564,7 @@ export function LeadForm({ mode, initialData, onSubmit, onCancel, isLoading }: L
                   <PopoverContent className="w-[400px] p-0">
                     <Command shouldFilter={false}>
                       <CommandInput
-                        placeholder="Search sales names..."
+                        placeholder="Search by sales name"
                         value={salesUserSearchQuery}
                         onValueChange={setSalesUserSearchQuery}
                       />

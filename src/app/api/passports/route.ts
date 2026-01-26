@@ -26,8 +26,16 @@ export async function POST(req: Request) {
     const validated = passportSchema.parse(body);
 
     const result = await prisma.$transaction(async (tx) => {
+      // Count total passports for this customer (including the one being created)
+      const existingPassportsCount = await tx.passport.count({
+        where: { customerId: validated.customerId },
+      });
+
+      // If this will be the only passport, force isPrimary to true
+      const finalIsPrimary = existingPassportsCount === 0 ? true : validated.isPrimary;
+
       // If setting as primary, unset others first
-      if (validated.isPrimary) {
+      if (finalIsPrimary) {
         await tx.passport.updateMany({
           where: { customerId: validated.customerId },
           data: { isPrimary: false },
@@ -42,7 +50,7 @@ export async function POST(req: Request) {
           issuingDate: new Date(validated.issuingDate),
           expiryDate: new Date(validated.expiryDate),
           imageUrl: validated.imageUrl || null,
-          isPrimary: validated.isPrimary,
+          isPrimary: finalIsPrimary,
         },
       });
 

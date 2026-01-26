@@ -70,6 +70,11 @@ export async function GET(req: Request) {
         agentId: true,
         bookingId: true,
         amount: true,
+        booking: {
+          select: {
+            tripId: true,
+          },
+        },
       },
     });
 
@@ -82,7 +87,7 @@ export async function GET(req: Request) {
       string,
       {
         agentId: string;
-        totalTrips: number;
+        tripIds: Set<string>;
         totalCommissionAmount: number;
         bookingIds: string[];
       }
@@ -92,57 +97,39 @@ export async function GET(req: Request) {
       if (!commissionGroups.has(c.agentId)) {
         commissionGroups.set(c.agentId, {
           agentId: c.agentId,
-          totalTrips: 0,
+          tripIds: new Set<string>(),
           totalCommissionAmount: 0,
           bookingIds: [],
         });
       }
 
       const group = commissionGroups.get(c.agentId)!;
-      group.totalTrips += 1;
       group.totalCommissionAmount += Number(c.amount);
       if (!group.bookingIds.includes(c.bookingId)) {
         group.bookingIds.push(c.bookingId);
       }
+      // Track unique trip IDs
+      if (c.booking.tripId) {
+        group.tripIds.add(c.booking.tripId);
+      }
     });
 
-    // Get agent details and companion counts in parallel
+    // Get agent details
     const agentIds = Array.from(commissionGroups.keys());
-    const allBookingIds = Array.from(
-      new Set(commissions.map((c) => c.bookingId))
-    );
 
-    const [agents, bookings] = await Promise.all([
-      prisma.user.findMany({
-        where: {
-          id: { in: agentIds },
-        },
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-        },
-      }),
-      prisma.booking.findMany({
-        where: {
-          id: { in: allBookingIds },
-        },
-        select: {
-          id: true,
-          companionCustomers: {
-            select: {
-              id: true,
-            },
-          },
-        },
-      }),
-    ]);
+    const agents = await prisma.user.findMany({
+      where: {
+        id: { in: agentIds },
+      },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+      },
+    });
 
-    // Create maps for quick lookup
+    // Create map for quick lookup
     const agentMap = new Map(agents.map((a) => [a.id, a]));
-    const companionCountMap = new Map(
-      bookings.map((b) => [b.id, b.companionCustomers.length])
-    );
 
     // Calculate total people for each agent
     const result = Array.from(commissionGroups.values())
@@ -150,17 +137,12 @@ export async function GET(req: Request) {
         const agent = agentMap.get(group.agentId);
         if (!agent) return null;
 
-        const totalPeople =
-          group.bookingIds.length + // 1 customer per booking
-          group.bookingIds.reduce(
-            (sum, bookingId) => sum + (companionCountMap.get(bookingId) || 0),
-            0
-          );
+        const totalPeople = group.bookingIds.length; // 1 customer per booking (not including companions)
 
         return {
           agentId: group.agentId,
           agentName: `${agent.firstName} ${agent.lastName}`,
-          totalTrips: group.totalTrips,
+          totalTrips: group.tripIds.size, // Count unique trips
           totalPeople,
           totalCommissionAmount: group.totalCommissionAmount,
         };

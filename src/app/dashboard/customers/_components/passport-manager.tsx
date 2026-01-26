@@ -441,16 +441,46 @@ export function PassportManager({ customerId, passports }: PassportManagerProps)
                 <FormField
                   control={form.control}
                   name="isPrimary"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-y-0 space-x-3 rounded-md border p-4">
-                      <FormControl>
-                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                      </FormControl>
-                      <div className="space-y-1 leading-none">
-                        <FormLabel>Set as Primary Passport</FormLabel>
-                      </div>
-                    </FormItem>
-                  )}
+                  render={({ field }) => {
+                    // If there's only one passport (including the one being edited), force isPrimary to true
+                    const totalPassports = editingPassport ? passports.length : passports.length + 1;
+                    const isOnlyPassport = totalPassports === 1;
+                    const isDisabled = isOnlyPassport;
+
+                    return (
+                      <FormItem className="flex flex-row items-start space-y-0 space-x-3 rounded-md border p-4">
+                        <FormControl>
+                          <Checkbox
+                            checked={isOnlyPassport ? true : field.value}
+                            onCheckedChange={(checked) => {
+                              if (isOnlyPassport) {
+                                // Force to true if it's the only passport
+                                field.onChange(true);
+                                return;
+                              }
+
+                              // If unchecking and there are other passports
+                              if (!checked && totalPassports > 1) {
+                                // API will handle setting another passport as primary
+                                field.onChange(false);
+                              } else {
+                                field.onChange(checked);
+                              }
+                            }}
+                            disabled={isDisabled}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel>Set as Primary Passport</FormLabel>
+                          {isDisabled && (
+                            <p className="text-muted-foreground text-xs">
+                              This passport must be primary as it&apos;s the only one.
+                            </p>
+                          )}
+                        </div>
+                      </FormItem>
+                    );
+                  }}
                 />
 
                 <DialogFooter>

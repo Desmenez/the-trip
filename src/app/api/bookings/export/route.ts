@@ -126,18 +126,23 @@ export async function GET(request: Request) {
           },
         },
         companionCustomers: {
-          select: {
-            title: true,
-            firstNameTh: true,
-            lastNameTh: true,
-            firstNameEn: true,
-            lastNameEn: true,
-            dateOfBirth: true,
-            passports: {
-              where: {
-                isPrimary: true,
+          include: {
+            customer: {
+              select: {
+                id: true,
+                title: true,
+                firstNameTh: true,
+                lastNameTh: true,
+                firstNameEn: true,
+                lastNameEn: true,
+                dateOfBirth: true,
+                passports: {
+                  where: {
+                    isPrimary: true,
+                  },
+                  take: 1,
+                },
               },
-              take: 1,
             },
           },
         },
@@ -173,8 +178,9 @@ export async function GET(request: Request) {
       rowNumber++;
 
       // Add rows for companion customers
-      for (const companion of booking.companionCustomers) {
-        const companionPassport = companion.passports[0];
+      for (const companionRelation of booking.companionCustomers) {
+        const companion = companionRelation.customer;
+        const companionPassport = companion.passports?.[0];
         
         csvRows.push([
           rowNumber.toString(),

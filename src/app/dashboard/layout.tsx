@@ -29,7 +29,7 @@ import { AppSidebar } from "./_components/sidebar/app-sidebar";
 
 export default async function Layout({ children }: Readonly<{ children: ReactNode }>) {
   const cookieStore = await cookies();
-  const defaultOpen = cookieStore.get("sidebar_state")?.value === "true";
+  const defaultOpen = cookieStore.get("sidebar_state")?.value !== "false";
 
   const session = await getServerSession(authOptions);
 

@@ -171,8 +171,12 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     if (email !== undefined) updateData.email = email || null;
     if (lineId !== undefined) updateData.lineId = lineId || null;
     if (salesUserId !== undefined) updateData.salesUser = { connect: { id: salesUserId } };
-    if (source !== undefined && Object.values(LeadSource).includes(source as LeadSource)) {
-      updateData.source = source as LeadSource;
+    if (source !== undefined) {
+      if (source && Object.values(LeadSource).includes(source as LeadSource)) {
+        updateData.source = source as LeadSource;
+      } else {
+        updateData.source = null;
+      }
     }
     if (status !== undefined && Object.values(LeadStatus).includes(status as LeadStatus)) {
       updateData.status = status as LeadStatus;

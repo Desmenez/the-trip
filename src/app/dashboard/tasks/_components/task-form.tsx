@@ -189,7 +189,7 @@ export function TaskForm({ mode, initialData, onSubmit, onCancel, isLoading = fa
                   <PopoverContent className="w-[400px] p-0">
                     <Command shouldFilter={false}>
                       <CommandInput
-                        placeholder="Search customer names..."
+                        placeholder="Search by customer name"
                         value={customerSearchQuery}
                         onValueChange={setCustomerSearchQuery}
                       />

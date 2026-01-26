@@ -29,11 +29,13 @@ export interface Booking {
     email: string;
   };
   companionCustomers?: Array<{
-    id: string;
-    firstNameTh: string;
-    lastNameTh: string;
-    firstNameEn: string;
-    lastNameEn: string;
+    customer: {
+      id: string;
+      firstNameTh: string;
+      lastNameTh: string;
+      firstNameEn: string;
+      lastNameEn: string;
+    };
   }>;
   trip: {
     name: string;

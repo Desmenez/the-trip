@@ -243,8 +243,8 @@ export async function POST(req: Request) {
     }
 
     // Validate source and status enums
-    const validSource =
-      source && Object.values(LeadSource).includes(source as LeadSource) ? (source as LeadSource) : LeadSource.FACEBOOK;
+    const validSource: LeadSource | undefined =
+      source && Object.values(LeadSource).includes(source as LeadSource) ? (source as LeadSource) : undefined;
 
     const validStatus =
       status && Object.values(LeadStatus).includes(status as LeadStatus)
@@ -291,7 +291,7 @@ export async function POST(req: Request) {
         lineId: lineId || null,
         agentId: session.user.id, // Agent who created the lead
         salesUserId,
-        source: validSource,
+        source: validSource as LeadSource | null,
         status: validStatus,
         tripInterest,
         pax: pax ? parseInt(pax) : 1,
