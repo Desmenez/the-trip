@@ -30,7 +30,7 @@ interface Tag {
 }
 
 interface CustomerFormProps {
-  mode: "create" | "edit";
+  mode: "create" | "edit" | "view";
   initialData?: Partial<CustomerFormValues>;
   onSubmit: (values: CustomerFormValues) => Promise<void>;
   onCancel?: () => void;
@@ -58,6 +58,7 @@ export function CustomerForm({
   availableTags = [],
   selectedTagIds = [],
 }: CustomerFormProps) {
+  const readOnly = mode === "view";
   const [isAddressesOpen, setIsAddressesOpen] = useState(true);
   const [isPassportsOpen, setIsPassportsOpen] = useState(true);
   const [isFoodAllergiesOpen, setIsFoodAllergiesOpen] = useState(true);
@@ -183,6 +184,7 @@ export function CustomerForm({
                       <Button
                         variant="outline"
                         role="combobox"
+                        disabled={readOnly}
                         className={cn(
                           "w-full justify-between",
                           (!field.value || field.value.length === 0) && "text-muted-foreground",
@@ -245,7 +247,7 @@ export function CustomerForm({
           render={({ field }) => (
             <FormItem>
               <FormLabel required>Title (EN/TH)</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value || ""}>
+              <Select onValueChange={field.onChange} value={field.value || ""} disabled={readOnly}>
                 <FormControl>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select title" />
@@ -272,7 +274,7 @@ export function CustomerForm({
               <FormItem>
                 <FormLabel required>First name (EN)</FormLabel>
                 <FormControl>
-                  <Input placeholder="First name (EN)" {...field} />
+                  <Input placeholder="First name (EN)" {...field} disabled={readOnly} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -285,7 +287,7 @@ export function CustomerForm({
               <FormItem>
                 <FormLabel required>Last name (EN)</FormLabel>
                 <FormControl>
-                  <Input placeholder="Last name (EN)" {...field} />
+                  <Input placeholder="Last name (EN)" {...field} disabled={readOnly} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -301,7 +303,7 @@ export function CustomerForm({
               <FormItem>
                 <FormLabel>First name (TH)</FormLabel>
                 <FormControl>
-                  <Input placeholder="First name (TH)" {...field} />
+                  <Input placeholder="First name (TH)" {...field} disabled={readOnly} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -314,7 +316,7 @@ export function CustomerForm({
               <FormItem>
                 <FormLabel>Last name (TH)</FormLabel>
                 <FormControl>
-                  <Input placeholder="Last name (TH)" {...field} />
+                  <Input placeholder="Last name (TH)" {...field} disabled={readOnly} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -334,6 +336,7 @@ export function CustomerForm({
                     <FormControl>
                       <Button
                         variant="outline"
+                        disabled={readOnly}
                         className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
                       >
                         {field.value ? format(new Date(field.value), "PPP") : <span>Pick a date</span>}
@@ -373,7 +376,7 @@ export function CustomerForm({
               <FormItem>
                 <FormLabel>Phone number</FormLabel>
                 <FormControl>
-                  <Input placeholder="Phone number" {...field} />
+                  <Input placeholder="Phone number" {...field} disabled={readOnly} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -387,7 +390,7 @@ export function CustomerForm({
               <FormItem>
                 <FormLabel>LINE ID</FormLabel>
                 <FormControl>
-                  <Input placeholder="LINE ID" {...field} />
+                  <Input placeholder="LINE ID" {...field} disabled={readOnly} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -402,7 +405,7 @@ export function CustomerForm({
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input placeholder="Email" {...field} />
+                <Input placeholder="Email" {...field} disabled={readOnly} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -416,7 +419,7 @@ export function CustomerForm({
             <FormItem>
               <FormLabel>Note for customer</FormLabel>
               <FormControl>
-                <Textarea placeholder="Note for customer" className="resize-none" {...field} />
+                <Textarea placeholder="Note for customer" className="resize-none" {...field} disabled={readOnly} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -436,7 +439,7 @@ export function CustomerForm({
                 Addresses
               </Button>
             </CollapsibleTrigger>
-            {(form.getValues("addresses") || []).length < 1 && (
+            {!readOnly && (form.getValues("addresses") || []).length < 1 && (
               <Button
                 type="button"
                 variant="outline"
@@ -457,21 +460,23 @@ export function CustomerForm({
           <CollapsibleContent className="space-y-4">
             {useWatch({ control: form.control, name: "addresses" })?.map((_, index) => (
               <div key={index} className="relative grid grid-cols-2 gap-4 rounded-md border p-4">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="absolute top-2 right-2 text-red-500 hover:text-red-700"
-                  onClick={() => {
-                    const current = form.getValues("addresses") || [];
-                    form.setValue(
-                      "addresses",
-                      current.filter((_, i) => i !== index),
-                    );
-                  }}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                {!readOnly && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute top-2 right-2 text-red-500 hover:text-red-700"
+                    onClick={() => {
+                      const current = form.getValues("addresses") || [];
+                      form.setValue(
+                        "addresses",
+                        current.filter((_, i) => i !== index),
+                      );
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
                 <FormField
                   control={form.control}
                   name={`addresses.${index}.address`}
@@ -479,7 +484,7 @@ export function CustomerForm({
                     <FormItem className="col-span-2">
                       <FormLabel>Address</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="Address" />
+                        <Input {...field} placeholder="Address" disabled={readOnly} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -498,6 +503,7 @@ export function CustomerForm({
                               <Button
                                 variant="outline"
                                 role="combobox"
+                                disabled={readOnly}
                                 className={cn("w-full justify-between", !field.value && "text-muted-foreground")}
                               >
                                 {field.value || "Select province"}
@@ -556,7 +562,7 @@ export function CustomerForm({
                               <Button
                                 variant="outline"
                                 role="combobox"
-                                disabled={!provinceValue}
+                                disabled={!provinceValue || readOnly}
                                 className={cn("w-full justify-between", !field.value && "text-muted-foreground")}
                               >
                                 {field.value || "Select district"}
@@ -616,7 +622,7 @@ export function CustomerForm({
                               <Button
                                 variant="outline"
                                 role="combobox"
-                                disabled={!provinceValue || !districtValue}
+                                disabled={!provinceValue || !districtValue || readOnly}
                                 className={cn("w-full justify-between", !field.value && "text-muted-foreground")}
                               >
                                 {field.value || "Select sub-district"}
@@ -685,7 +691,7 @@ export function CustomerForm({
                         <FormLabel>Postal code</FormLabel>
                         <FormControl>
                           {hasMultiplePostCodes ? (
-                            <Select onValueChange={field.onChange} value={field.value || ""}>
+                            <Select onValueChange={field.onChange} value={field.value || ""} disabled={readOnly}>
                               <SelectTrigger className="w-full">
                                 <SelectValue placeholder="Select postal code" />
                               </SelectTrigger>
@@ -728,29 +734,31 @@ export function CustomerForm({
                 Passports
               </Button>
             </CollapsibleTrigger>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                const currentPassports = form.getValues("passports") || [];
-                const isFirstPassport = currentPassports.length === 0;
-                form.setValue("passports", [
-                  ...currentPassports,
-                  {
-                    passportNumber: "",
-                    issuingCountry: "Thailand",
-                    issuingDate: undefined,
-                    expiryDate: undefined,
-                    imageUrl: null,
-                    isPrimary: isFirstPassport,
-                  },
-                ]);
-                setIsPassportsOpen(true);
-              }}
-            >
-              <Plus className="mr-2 h-4 w-4" /> Add
-            </Button>
+            {!readOnly && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const currentPassports = form.getValues("passports") || [];
+                  const isFirstPassport = currentPassports.length === 0;
+                  form.setValue("passports", [
+                    ...currentPassports,
+                    {
+                      passportNumber: "",
+                      issuingCountry: "Thailand",
+                      issuingDate: undefined,
+                      expiryDate: undefined,
+                      imageUrl: null,
+                      isPrimary: isFirstPassport,
+                    },
+                  ]);
+                  setIsPassportsOpen(true);
+                }}
+              >
+                <Plus className="mr-2 h-4 w-4" /> Add
+              </Button>
+            )}
           </div>
           <CollapsibleContent className="space-y-4">
             {form.formState.errors.passports && (
@@ -767,15 +775,16 @@ export function CustomerForm({
                   <div className="w-full bg-muted px-4 py-2 text-sm font-medium flex items-center justify-between">
                     <p>Passport {index + 1}</p>
                     <div className="flex items-center gap-2">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className={cn(
-                          currentIsPrimary ? "text-yellow-500 hover:text-yellow-700" : "text-muted-foreground hover:text-yellow-500",
-                          isOnlyPassport && "opacity-50 cursor-not-allowed"
-                        )}
-                        disabled={isOnlyPassport}
+                      {!readOnly && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className={cn(
+                            currentIsPrimary ? "text-yellow-500 hover:text-yellow-700" : "text-muted-foreground hover:text-yellow-500",
+                            isOnlyPassport && "opacity-50 cursor-not-allowed"
+                          )}
+                          disabled={isOnlyPassport || readOnly}
                         onClick={() => {
                           if (isOnlyPassport) return;
 
@@ -802,29 +811,32 @@ export function CustomerForm({
                         }}
                         title={isOnlyPassport ? "This passport must be primary as it's the only one" : currentIsPrimary ? "Remove as primary" : "Set as primary"}
                       >
-                        <Star className={cn("h-4 w-4", currentIsPrimary && "fill-current")} />
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="text-red-500 hover:text-red-700"
-                        onClick={() => {
-                          const current = form.getValues("passports") || [];
-                          const passportToDelete = current[index];
-                          const isDeletingPrimary = passportToDelete?.isPrimary === true;
-                          const remainingPassports = current.filter((_, i) => i !== index);
+                          <Star className={cn("h-4 w-4", currentIsPrimary && "fill-current")} />
+                        </Button>
+                      )}
+                      {!readOnly && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="text-red-500 hover:text-red-700"
+                          onClick={() => {
+                            const current = form.getValues("passports") || [];
+                            const passportToDelete = current[index];
+                            const isDeletingPrimary = passportToDelete?.isPrimary === true;
+                            const remainingPassports = current.filter((_, i) => i !== index);
 
-                          // If deleting primary passport and there are other passports, set another one as primary
-                          if (isDeletingPrimary && remainingPassports.length > 0) {
-                            remainingPassports[0] = { ...remainingPassports[0], isPrimary: true };
-                          }
+                            // If deleting primary passport and there are other passports, set another one as primary
+                            if (isDeletingPrimary && remainingPassports.length > 0) {
+                              remainingPassports[0] = { ...remainingPassports[0], isPrimary: true };
+                            }
 
-                          form.setValue("passports", remainingPassports);
-                        }}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                            form.setValue("passports", remainingPassports);
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
                   </div>
                 <div className="grid grid-cols-2 gap-4 p-4">
@@ -835,7 +847,7 @@ export function CustomerForm({
                       <FormItem>
                         <FormLabel required>Passport no.</FormLabel>
                         <FormControl>
-                          <Input {...field} placeholder="Passport no." />
+                          <Input {...field} placeholder="Passport no." disabled={readOnly} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -853,6 +865,7 @@ export function CustomerForm({
                               <Button
                                 variant="outline"
                                 role="combobox"
+                                disabled={readOnly}
                                 className={cn("w-full justify-between", !field.value && "text-muted-foreground")}
                               >
                                 {field.value
@@ -905,6 +918,7 @@ export function CustomerForm({
                             <FormControl>
                               <Button
                                 variant="outline"
+                                disabled={readOnly}
                                 className={cn(
                                   "w-full pl-3 text-left font-normal",
                                   !field.value && "text-muted-foreground",
@@ -1003,15 +1017,17 @@ export function CustomerForm({
                                 <picture>
                                   <img src={imageUrl} alt="Passport" className="h-full w-full object-contain" />
                                 </picture>
-                                <Button
-                                  type="button"
-                                  variant="destructive"
-                                  size="icon"
-                                  className="absolute top-2 right-2"
-                                  onClick={() => field.onChange(null)}
-                                >
-                                  <X className="h-4 w-4" />
-                                </Button>
+                                {!readOnly && (
+                                  <Button
+                                    type="button"
+                                    variant="destructive"
+                                    size="icon"
+                                    className="absolute top-2 right-2"
+                                    onClick={() => field.onChange(null)}
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </Button>
+                                )}
                               </div>
                               <p className="text-muted-foreground text-xs">Image uploaded successfully</p>
                             </div>
@@ -1022,6 +1038,7 @@ export function CustomerForm({
                               maxFileSize={5 * 1024 * 1024} // 5MB
                               folderName={folderName}
                               multiple={false}
+                              disabled={readOnly}
                               onUploadSuccess={(url) => {
                                 field.onChange(url);
                               }}
@@ -1056,7 +1073,7 @@ export function CustomerForm({
                 Food Allergies
               </Button>
             </CollapsibleTrigger>
-            {(form.getValues("foodAllergies") || []).length < 1 && (
+            {!readOnly && (form.getValues("foodAllergies") || []).length < 1 && (
               <Button
                 type="button"
                 variant="outline"
@@ -1073,21 +1090,23 @@ export function CustomerForm({
           <CollapsibleContent className="space-y-4">
             {useWatch({ control: form.control, name: "foodAllergies" })?.map((_, index) => (
               <div key={index} className="relative grid grid-cols-1 gap-4 rounded-md border p-4">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="absolute top-2 right-2 text-red-500 hover:text-red-700"
-                  onClick={() => {
-                    const current = form.getValues("foodAllergies") || [];
-                    form.setValue(
-                      "foodAllergies",
-                      current.filter((_, i) => i !== index),
-                    );
-                  }}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                {!readOnly && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute top-2 right-2 text-red-500 hover:text-red-700"
+                    onClick={() => {
+                      const current = form.getValues("foodAllergies") || [];
+                      form.setValue(
+                        "foodAllergies",
+                        current.filter((_, i) => i !== index),
+                      );
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
                 <FormField
                   control={form.control}
                   name={`foodAllergies.${index}.types`}
@@ -1102,8 +1121,9 @@ export function CustomerForm({
                               <Badge
                                 key={type}
                                 variant={isSelected ? "default" : "outline"}
-                                className="cursor-pointer"
+                                className={cn("cursor-pointer", readOnly && "cursor-not-allowed opacity-50")}
                                 onClick={() => {
+                                  if (readOnly) return;
                                   const current = field.value || [];
                                   const next = isSelected ? current.filter((t) => t !== type) : [...current, type];
                                   field.onChange(next);
@@ -1126,7 +1146,7 @@ export function CustomerForm({
                     <FormItem>
                       <FormLabel>Note for food allergy</FormLabel>
                       <FormControl>
-                        <Textarea {...field} placeholder="Note for food allergy" className="resize-none" />
+                        <Textarea {...field} placeholder="Note for food allergy" className="resize-none" disabled={readOnly} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -1137,22 +1157,24 @@ export function CustomerForm({
           </CollapsibleContent>
         </Collapsible>
 
-        <div className="flex justify-end space-x-4">
-          {onCancel && (
-            <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
-              Cancel
+        {!readOnly && (
+          <div className="flex justify-end space-x-4">
+            {onCancel && (
+              <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
+                Cancel
+              </Button>
+            )}
+            <Button type="submit" disabled={isLoading}>
+              {isLoading
+                ? mode === "create"
+                  ? "Creating..."
+                  : "Updating..."
+                : mode === "create"
+                  ? "Create"
+                  : "Update"}
             </Button>
-          )}
-          <Button type="submit" disabled={isLoading}>
-            {isLoading
-              ? mode === "create"
-                ? "Creating..."
-                : "Updating..."
-              : mode === "create"
-                ? "Create"
-                : "Update"}
-          </Button>
-        </div>
+          </div>
+        )}
       </form>
     </Form>
   );
