@@ -1,13 +1,12 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Form,
   FormControl,
@@ -25,14 +24,11 @@ import Link from "next/link";
 import { signOut } from "next-auth/react";
 import { ROLE_LABELS } from "@/lib/constants/role";
 import { format } from "date-fns";
+import { useUserInfo, useMyCommission, type CommissionBooking } from "./hooks/use-account";
 
 const changeNameSchema = z.object({
   firstName: z.string().min(1, { message: "First name is required" }).max(50, { message: "First name must be less than 50 characters" }),
   lastName: z.string().min(1, { message: "Last name is required" }).max(50, { message: "Last name must be less than 50 characters" }),
-});
-
-const changeEmailSchema = z.object({
-  newEmail: z.string().email({ message: "Please enter a valid email address" }),
 });
 
 const changePasswordSchema = z
@@ -47,74 +43,33 @@ const changePasswordSchema = z
   });
 
 type ChangeNameFormValues = z.infer<typeof changeNameSchema>;
-type ChangeEmailFormValues = z.infer<typeof changeEmailSchema>;
 type ChangePasswordFormValues = z.infer<typeof changePasswordSchema>;
-
-interface CommissionBooking {
-  id: string;
-  customerName: string;
-  tripName: string;
-  tripCode: string;
-  destination: string;
-  totalAmount: number;
-  paidAmount: number;
-  commission: number;
-  createdAt: string;
-}
-
-interface CommissionData {
-  commissionRate: number; // This is commissionPerHead (fixed amount per booking)
-  totalSales: number;
-  totalCommission: number;
-  totalBookings: number;
-  bookings: CommissionBooking[];
-}
-
-interface UserInfo {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  role: string;
-  commissionPerHead: number | null;
-  isActive: boolean;
-  createdAt: string;
-}
 
 export default function AccountPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { data: session, update: updateSession } = useSession();
-  const updateSessionRef = useRef(updateSession);
   const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "account");
-  const [isLoadingName, setIsLoadingName] = useState(false);
-  const [isLoadingEmail, setIsLoadingEmail] = useState(false);
   const [isLoadingPassword, setIsLoadingPassword] = useState(false);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [commissionData, setCommissionData] = useState<CommissionData | null>(null);
-  const [isLoadingCommission, setIsLoadingCommission] = useState(true);
-  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
-  const [isLoadingUserInfo, setIsLoadingUserInfo] = useState(true);
+  const [commissionPage, setCommissionPage] = useState(1);
+  const commissionPageSize = 5;
 
-  // Keep updateSession ref up to date
-  useEffect(() => {
-    updateSessionRef.current = updateSession;
-  }, [updateSession]);
+  // Use hooks for data fetching
+  const { data: userInfo, isLoading: isLoadingUserInfo, refetch: refetchUserInfo } = useUserInfo();
+  const { data: commissionData, isLoading: isLoadingCommission } = useMyCommission(
+    activeTab === "billing",
+    commissionPage,
+    commissionPageSize
+  );
 
   const nameForm = useForm<ChangeNameFormValues>({
     resolver: zodResolver(changeNameSchema),
     defaultValues: {
       firstName: "",
       lastName: "",
-    },
-  });
-
-  const emailForm = useForm<ChangeEmailFormValues>({
-    resolver: zodResolver(changeEmailSchema),
-    defaultValues: {
-      newEmail: "",
     },
   });
 
@@ -141,129 +96,29 @@ export default function AccountPage() {
   useEffect(() => {
     const tab = searchParams.get("tab") || "account";
     setActiveTab(tab);
-  }, [searchParams]);
-
-  // Fetch user info
-  const fetchUserInfo = useCallback(async (shouldUpdateSession = false) => {
-    setIsLoadingUserInfo(true);
-    try {
-      const res = await fetch("/api/auth/me");
-      if (res.ok) {
-        const data = await res.json();
-        setUserInfo(data);
-        // Only update session when explicitly requested (e.g., after email verification)
-        if (shouldUpdateSession && updateSessionRef.current) {
-          await updateSessionRef.current();
-        }
-      }
-    } catch (error) {
-      console.error("Failed to fetch user info:", error);
-    } finally {
-      setIsLoadingUserInfo(false);
+    // Reset commission page when switching tabs
+    if (tab !== "billing") {
+      setCommissionPage(1);
     }
-  }, []);
-
-  useEffect(() => {
-    fetchUserInfo(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [searchParams]);
 
   // Refresh user info when coming back from email verification
   useEffect(() => {
-    const handleFocus = () => {
+    const handleFocus = async () => {
       // Refresh user info when window regains focus (user might have verified email in another tab)
-      fetchUserInfo(true);
+      await refetchUserInfo();
+      if (updateSession) {
+        await updateSession();
+      }
     };
 
     window.addEventListener("focus", handleFocus);
     return () => window.removeEventListener("focus", handleFocus);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Fetch commission data
-  useEffect(() => {
-    const fetchCommission = async () => {
-      if (activeTab === "billing") {
-        setIsLoadingCommission(true);
-        try {
-          const res = await fetch("/api/auth/my-commission");
-          if (res.ok) {
-            const data = await res.json();
-            setCommissionData(data);
-          }
-        } catch (error) {
-          console.error("Failed to fetch commission:", error);
-        } finally {
-          setIsLoadingCommission(false);
-        }
-      }
-    };
-
-    fetchCommission();
-  }, [activeTab]);
+  }, [refetchUserInfo, updateSession]);
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
     router.push(`/dashboard/account?tab=${value}`, { scroll: false });
-  };
-
-  const onNameSubmit = async (values: ChangeNameFormValues) => {
-    setIsLoadingName(true);
-    try {
-      const res = await fetch("/api/auth/update-profile", {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(values),
-      });
-
-      if (!res.ok) {
-        const error = await res.text();
-        throw new Error(error || "Failed to update name");
-      }
-
-      const data = await res.json();
-      setUserInfo(data);
-      toast.success("Updated successfully.");
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Updated unsuccessfully.";
-      toast.error(errorMessage);
-    } finally {
-      setIsLoadingName(false);
-    }
-  };
-
-  const onEmailSubmit = async (values: ChangeEmailFormValues) => {
-    setIsLoadingEmail(true);
-    try {
-      const res = await fetch("/api/auth/change-email", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(values),
-      });
-
-      if (!res.ok) {
-        const error = await res.text();
-        throw new Error(error || "Email changed unsuccessfully.");
-      }
-
-      const data = await res.json();
-      toast.success("Verification email sent to new email address.");
-
-      if (process.env.NODE_ENV === "development" && data.verificationUrl) {
-        toast.info("Check console for verification URL (development mode)");
-      }
-
-      emailForm.reset();
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "An error occurred";
-      toast.error(errorMessage);
-    } finally {
-      setIsLoadingEmail(false);
-    }
   };
 
   const onPasswordSubmit = async (values: ChangePasswordFormValues) => {
@@ -661,48 +516,80 @@ export default function AccountPage() {
                       Completed Bookings ({commissionData.totalBookings || 0})
                     </h3>
                     {commissionData.bookings && commissionData.bookings.length > 0 ? (
-                      <div className="space-y-2">
-                        {commissionData.bookings.map((booking: CommissionBooking) => (
-                          <Card key={booking.id}>
-                            <CardContent>
-                              <div className="flex items-center justify-between">
-                                <div className="space-y-1">
-                                  <div className="font-medium">{booking.customerName}</div>
-                                  <div className="text-sm text-muted-foreground">
-                                    {booking.tripName} ({booking.tripCode})
+                      <>
+                        <div className="space-y-2">
+                          {commissionData.bookings.map((booking: CommissionBooking) => (
+                            <Card key={booking.id}>
+                              <CardContent>
+                                <div className="flex items-center justify-between">
+                                  <div className="space-y-1">
+                                    <div className="font-medium">{booking.customerName}</div>
+                                    <div className="text-sm text-muted-foreground">
+                                      {booking.tripName} ({booking.tripCode})
+                                    </div>
+                                    <div className="text-xs text-muted-foreground">
+                                      {new Date(booking.createdAt).toLocaleDateString("th-TH", {
+                                        year: "numeric",
+                                        month: "long",
+                                        day: "numeric",
+                                      })}
+                                    </div>
                                   </div>
-                                  <div className="text-xs text-muted-foreground">
-                                    {new Date(booking.createdAt).toLocaleDateString("th-TH", {
-                                      year: "numeric",
-                                      month: "long",
-                                      day: "numeric",
-                                    })}
+                                  <div className="text-right space-y-1">
+                                    <div className="font-medium">
+                                      {new Intl.NumberFormat("th-TH", {
+                                        style: "currency",
+                                        currency: "THB",
+                                        maximumFractionDigits: 0,
+                                      }).format(booking.commission)}
+                                    </div>
+                                    <div className="text-sm text-muted-foreground">
+                                      Commission
+                                    </div>
+                                    <div className="text-xs text-muted-foreground">
+                                      Sales: {new Intl.NumberFormat("th-TH", {
+                                        style: "currency",
+                                        currency: "THB",
+                                        maximumFractionDigits: 0,
+                                      }).format(booking.totalAmount)}
+                                    </div>
                                   </div>
                                 </div>
-                                <div className="text-right space-y-1">
-                                  <div className="font-medium">
-                                    {new Intl.NumberFormat("th-TH", {
-                                      style: "currency",
-                                      currency: "THB",
-                                      maximumFractionDigits: 0,
-                                    }).format(booking.commission)}
-                                  </div>
-                                  <div className="text-sm text-muted-foreground">
-                                    Commission
-                                  </div>
-                                  <div className="text-xs text-muted-foreground">
-                                    Sales: {new Intl.NumberFormat("th-TH", {
-                                      style: "currency",
-                                      currency: "THB",
-                                      maximumFractionDigits: 0,
-                                    }).format(booking.totalAmount)}
-                                  </div>
-                                </div>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        ))}
-                      </div>
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </div>
+
+                        {/* Pagination */}
+                        {commissionData.totalPages > 1 && (
+                          <div className="mt-4 flex items-center justify-between">
+                            <div className="text-sm text-muted-foreground">
+                              Showing {((commissionPage - 1) * commissionPageSize) + 1} to {Math.min(commissionPage * commissionPageSize, commissionData.totalBookings)} of {commissionData.totalBookings} bookings
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setCommissionPage(commissionPage - 1)}
+                                disabled={commissionPage === 1 || isLoadingCommission}
+                              >
+                                Previous
+                              </Button>
+                              <span className="text-sm">
+                                Page {commissionPage} of {commissionData.totalPages}
+                              </span>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setCommissionPage(commissionPage + 1)}
+                                disabled={commissionPage >= commissionData.totalPages || isLoadingCommission}
+                              >
+                                Next
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </>
                     ) : (
                       <p className="text-muted-foreground">No completed bookings yet.</p>
                     )}

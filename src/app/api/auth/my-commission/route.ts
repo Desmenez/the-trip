@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-export async function GET() {
+export async function GET(request: Request) {
   const session = await getServerSession(authOptions);
 
   if (!session) {
@@ -11,6 +11,11 @@ export async function GET() {
   }
 
   try {
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get("page") || "1", 10);
+    const pageSize = parseInt(searchParams.get("pageSize") || "5", 10);
+    const skip = (page - 1) * pageSize;
+
     // Get user with commissionPerHead
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
@@ -23,11 +28,52 @@ export async function GET() {
       return new NextResponse("User not found", { status: 404 });
     }
 
-    // Get all commissions for this user (as agent)
+    // Get total count for pagination
+    const total = await prisma.commission.count({
+      where: {
+        agentId: session.user.id,
+      },
+    });
+
+    // Get all commissions for totals calculation (need all for accurate totals)
+    const allCommissions = await prisma.commission.findMany({
+      where: {
+        agentId: session.user.id,
+      },
+      include: {
+        booking: {
+          include: {
+            payments: {
+              select: {
+                amount: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // Calculate totals from all commissions
+    const totalSales = allCommissions.reduce((sum, commission) => {
+      const bookingTotal = commission.booking.payments.reduce(
+        (paymentSum, payment) => paymentSum + Number(payment.amount),
+        0
+      );
+      return sum + bookingTotal;
+    }, 0);
+
+    const totalCommission = allCommissions.reduce(
+      (sum, commission) => sum + Number(commission.amount),
+      0
+    );
+
+    // Get paginated commissions for bookings list
     const commissions = await prisma.commission.findMany({
       where: {
         agentId: session.user.id,
       },
+      skip,
+      take: pageSize,
       include: {
         booking: {
           include: {
@@ -72,20 +118,6 @@ export async function GET() {
       },
     });
 
-    // Calculate totals
-    const totalSales = commissions.reduce((sum, commission) => {
-      const bookingTotal = commission.booking.payments.reduce(
-        (paymentSum, payment) => paymentSum + Number(payment.amount),
-        0
-      );
-      return sum + bookingTotal;
-    }, 0);
-
-    const totalCommission = commissions.reduce(
-      (sum, commission) => sum + Number(commission.amount),
-      0
-    );
-
     // Format bookings for response
     const bookings = commissions.map((commission) => {
       const customer = commission.booking.customer;
@@ -120,8 +152,11 @@ export async function GET() {
       commissionRate: user.commissionPerHead ? Number(user.commissionPerHead) : 0,
       totalSales,
       totalCommission,
-      totalBookings: commissions.length,
+      totalBookings: total,
       bookings,
+      page,
+      pageSize,
+      totalPages: Math.ceil(total / pageSize),
     });
   } catch (error) {
     console.error("[MY_COMMISSION_GET]", error);
