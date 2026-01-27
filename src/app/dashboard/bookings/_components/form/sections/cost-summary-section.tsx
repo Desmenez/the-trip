@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { BookingFormValues } from "../booking-schema";
+import { Trip } from "@/app/dashboard/trips/hooks/use-trips";
 
 interface CostSummarySectionProps {
   form: UseFormReturn<BookingFormValues>;
@@ -18,7 +19,7 @@ interface CostSummarySectionProps {
     totalAmount: number;
     firstPaymentAmount: number;
   };
-  trips: any[];
+  trips: Trip[];
   tripId: string;
   enableSingleTravellerPrice: boolean;
   setEnableSingleTravellerPrice: (enable: boolean) => void;

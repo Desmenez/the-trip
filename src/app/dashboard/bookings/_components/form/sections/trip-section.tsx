@@ -26,16 +26,17 @@ import {
 } from "@/components/ui/command";
 import { BookingFormValues } from "../booking-schema";
 import { Booking } from "@/app/dashboard/bookings/hooks/use-bookings";
+import { Trip } from "@/app/dashboard/trips/hooks/use-trips";
 
 interface TripSectionProps {
   form: UseFormReturn<BookingFormValues>;
   readOnly: boolean;
-  trips: any[]; // Replace with proper Trip type if available
+  trips: Trip[];
   tripSearchOpen: boolean;
   setTripSearchOpen: (open: boolean) => void;
   tripSearchQuery: string;
   setTripSearchQuery: (query: string) => void;
-  filteredTrips: any[]; // Replace with proper Trip type if available
+  filteredTrips: Trip[];
   handleTripChange: (id: string) => void;
   booking?: Booking;
 }

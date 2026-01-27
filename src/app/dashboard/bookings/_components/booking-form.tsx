@@ -124,6 +124,8 @@ export function BookingForm({ mode, initialData, onSubmit, onCancel, isLoading =
               setCreateCustomerDialogOpen={setCreateCustomerDialogOpen}
               customerPassports={customerPassports}
               customerId={customerId}
+              trips={trips}
+              tripId={tripId}
             />
 
             <CompanionSection

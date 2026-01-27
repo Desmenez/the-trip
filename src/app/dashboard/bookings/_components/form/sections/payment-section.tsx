@@ -25,8 +25,9 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { DragDropUpload } from "@/components/upload-image";
-import { BookingFormValues } from "../booking-schema";
+import { BookingFormValues, SelectedCustomer, PaymentFormValue } from "../booking-schema";
 import { Booking } from "@/app/dashboard/bookings/hooks/use-bookings";
+import { Trip } from "@/app/dashboard/trips/hooks/use-trips";
 
 interface PaymentSectionProps {
   form: UseFormReturn<BookingFormValues>;
@@ -39,10 +40,10 @@ interface PaymentSectionProps {
   };
   isPaymentProofsOpen: boolean;
   setIsPaymentProofsOpen: (open: boolean) => void;
-  payments: any[];
-  trips: any[];
+  payments: PaymentFormValue[];
+  trips: Trip[];
   tripId: string;
-  selectedCustomer: any;
+  selectedCustomer: SelectedCustomer | null;
 }
 
 export function PaymentSection({
@@ -136,7 +137,7 @@ export function PaymentSection({
 
               // Calculate Paid Amount from form values (new payments)
               const formPayments = form.watch("payments") || [];
-              const newPaid = formPayments.reduce((sum: number, p: any) => sum + (Number(p.amount) || 0), 0);
+              const newPaid = formPayments.reduce((sum: number, p: PaymentFormValue) => sum + (Number(p.amount) || 0), 0);
 
               const totalPaid = existingPaid + newPaid;
 

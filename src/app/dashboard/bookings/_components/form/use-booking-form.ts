@@ -2,19 +2,20 @@ import { useState, useEffect, useMemo } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
-import { format } from "date-fns";
 import { toast } from "sonner";
 import {
   useSearchCustomers,
   useCustomer,
   useCreateCustomer,
   CustomerFormValues,
+  Customer,
 } from "@/app/dashboard/customers/hooks/use-customers";
 import { usePassportsByCustomer } from "@/app/dashboard/customers/hooks/use-passport";
+import { Passport } from "@/app/dashboard/customers/hooks/types";
 import { Booking } from "@/app/dashboard/bookings/hooks/use-bookings";
-import { useTrips, useTrip } from "@/app/dashboard/trips/hooks/use-trips";
+import { useTrips, useTrip, Trip } from "@/app/dashboard/trips/hooks/use-trips";
 import { useAllTags } from "@/app/dashboard/tags/hooks/use-tags";
-import { baseFormSchema, BookingFormValues, SalesUser } from "./booking-schema";
+import { baseFormSchema, BookingFormValues, SalesUser, SelectedCustomer, PaymentFormValue } from "./booking-schema";
 
 // Fetch sales users
 async function fetchSalesUsers(): Promise<SalesUser[]> {
@@ -76,7 +77,7 @@ export function useBookingForm({ mode, initialData, booking, onSubmit }: UseBook
 
   // Filter trips to only include those that haven't started (startDate > today)
   // In edit mode, also include the trip that's already selected in the booking
-  const trips = useMemo(() => {
+  const trips = useMemo((): Trip[] => {
     const allTrips = tripsResponse?.data || [];
     const now = new Date();
     now.setHours(0, 0, 0, 0);
@@ -85,7 +86,7 @@ export function useBookingForm({ mode, initialData, booking, onSubmit }: UseBook
     const currentTripId = mode === "edit" && booking?.tripId ? booking.tripId : null;
 
     // In edit mode, add current trip if it's not in the list
-    const tripsList = [...allTrips];
+    const tripsList: Trip[] = [...allTrips];
     if (mode === "edit" && currentTrip && !tripsList.find((t) => t.id === currentTrip.id)) {
       tripsList.push(currentTrip);
     }
@@ -202,7 +203,7 @@ export function useBookingForm({ mode, initialData, booking, onSubmit }: UseBook
   const companionCustomerIds = useMemo(() => companionCustomerIdsValue || [], [companionCustomerIdsValue]);
 
   // Fetch passports for selected customer
-  const { data: customerPassports = [] } = usePassportsByCustomer(customerId);
+  const { data: customerPassports = [] } = usePassportsByCustomer(customerId) as { data: Passport[] | undefined };
   const extraPriceForSingleTraveller = form.watch("extraPriceForSingleTraveller");
   const extraPricePerBed = form.watch("extraPricePerBed");
   const extraPricePerSeat = form.watch("extraPricePerSeat");
@@ -210,7 +211,7 @@ export function useBookingForm({ mode, initialData, booking, onSubmit }: UseBook
   const discountPrice = form.watch("discountPrice");
   const firstPaymentRatio = form.watch("firstPaymentRatio");
   const salesUserId = form.watch("salesUserId");
-  const payments = useWatch({ control: form.control, name: "payments" }) || [];
+  const payments = (useWatch({ control: form.control, name: "payments" }) || []) as PaymentFormValue[];
 
 
   // Update extraPriceForSingleTraveller when tripId changes and enableSingleTravellerPrice is true
@@ -286,32 +287,38 @@ export function useBookingForm({ mode, initialData, booking, onSubmit }: UseBook
     enabled: !!tripId,
   });
 
-  const availableCompanionCustomers = useMemo(() => {
+  const availableCompanionCustomers = useMemo((): Customer[] => {
     const companionBookings = companionBookingsResponse || [];
     if (!companionBookings.length) return [];
 
     // Use Map to deduplicate customers by ID
-    const customerMap = new Map<string, {
-      id: string;
-      firstNameTh: string;
-      lastNameTh: string;
-      firstNameEn: string;
-      lastNameEn: string;
-      email?: string;
-    }>();
+    const customerMap = new Map<string, Customer>();
 
     companionBookings
       .filter((b: Booking) => b.customerId !== customerId)
       .forEach((b: Booking) => {
         if (!customerMap.has(b.customerId)) {
-          customerMap.set(b.customerId, {
+          // Create a Customer-like object from booking data
+          // Note: This is a simplified Customer object based on available booking data
+          const customer: Customer = {
             id: b.customerId,
             firstNameTh: b.customer.firstNameTh,
             lastNameTh: b.customer.lastNameTh,
             firstNameEn: b.customer.firstNameEn,
             lastNameEn: b.customer.lastNameEn,
-            email: b.customer.email,
-          });
+            nickname: null,
+            email: b.customer.email || null,
+            phoneNumber: null,
+            type: "INDIVIDUAL",
+            title: null,
+            lineId: null,
+            dateOfBirth: null,
+            note: null,
+            tags: [],
+            createdAt: "",
+            updatedAt: "",
+          };
+          customerMap.set(b.customerId, customer);
         }
       });
 
@@ -324,7 +331,7 @@ export function useBookingForm({ mode, initialData, booking, onSubmit }: UseBook
   );
 
   // Filter trips based on search query (by trip code)
-  const filteredTrips = useMemo(() => {
+  const filteredTrips = useMemo((): Trip[] => {
     if (!tripSearchQuery.trim()) {
       return trips;
     }
@@ -336,7 +343,7 @@ export function useBookingForm({ mode, initialData, booking, onSubmit }: UseBook
     booking?.customerId && !selectedCustomerData && mode === "edit" ? booking.customerId : undefined,
   );
 
-  const selectedCustomer = useMemo(() => {
+  const selectedCustomer = useMemo((): SelectedCustomer | null => {
     if (!customerId) {
       if (booking?.customer && mode === "edit") {
         return {
@@ -345,15 +352,35 @@ export function useBookingForm({ mode, initialData, booking, onSubmit }: UseBook
           lastNameTh: booking.customer.lastNameTh,
           firstNameEn: booking.customer.firstNameEn,
           lastNameEn: booking.customer.lastNameEn,
-          email: booking.customer.email || "",
+          email: booking.customer.email || null,
           phone: "",
         };
       }
       return null;
     }
     const found = searchResults.find((c) => c.id === customerId);
-    if (found) return found;
-    if (selectedCustomerData) return selectedCustomerData;
+    if (found) {
+      return {
+        id: found.id,
+        firstNameEn: found.firstNameEn,
+        lastNameEn: found.lastNameEn,
+        firstNameTh: found.firstNameTh,
+        lastNameTh: found.lastNameTh,
+        email: found.email,
+        phone: found.phoneNumber || undefined,
+      };
+    }
+    if (selectedCustomerData) {
+      return {
+        id: selectedCustomerData.id,
+        firstNameEn: selectedCustomerData.firstNameEn,
+        lastNameEn: selectedCustomerData.lastNameEn,
+        firstNameTh: selectedCustomerData.firstNameTh,
+        lastNameTh: selectedCustomerData.lastNameTh,
+        email: selectedCustomerData.email,
+        phone: selectedCustomerData.phoneNumber || undefined,
+      };
+    }
     if (booking?.customer && booking.customerId === customerId && mode === "edit") {
       return {
         id: booking.customerId,
@@ -361,11 +388,22 @@ export function useBookingForm({ mode, initialData, booking, onSubmit }: UseBook
         lastNameTh: booking.customer.lastNameTh,
         firstNameEn: booking.customer.firstNameEn,
         lastNameEn: booking.customer.lastNameEn,
-        email: booking.customer.email || "",
+        email: booking.customer.email || null,
         phone: "",
       };
     }
-    return bookingCustomerData || null;
+    if (bookingCustomerData) {
+      return {
+        id: bookingCustomerData.id,
+        firstNameEn: bookingCustomerData.firstNameEn,
+        lastNameEn: bookingCustomerData.lastNameEn,
+        firstNameTh: bookingCustomerData.firstNameTh,
+        lastNameTh: bookingCustomerData.lastNameTh,
+        email: bookingCustomerData.email,
+        phone: bookingCustomerData.phoneNumber || undefined,
+      };
+    }
+    return null;
   }, [customerId, searchResults, selectedCustomerData, booking, bookingCustomerData, mode]);
 
   const selectedSalesUser = useMemo(() => {
@@ -373,9 +411,9 @@ export function useBookingForm({ mode, initialData, booking, onSubmit }: UseBook
     return salesUsers.find((u) => u.id === salesUserId) || null;
   }, [salesUserId, salesUsers]);
 
-  const selectedCompanions = useMemo(() => {
+  const selectedCompanions = useMemo((): Customer[] => {
     const ids = companionCustomerIds || [];
-    return availableCompanionCustomers.filter((c: { id: string }) => ids.includes(c.id));
+    return availableCompanionCustomers.filter((c) => ids.includes(c.id));
   }, [availableCompanionCustomers, companionCustomerIds]);
 
   // Filter sales users by search query
@@ -391,11 +429,11 @@ export function useBookingForm({ mode, initialData, booking, onSubmit }: UseBook
   }, [salesUsers, salesUserSearchQuery]);
 
   // Filter companion customers by search query
-  const filteredCompanionCustomers = useMemo(() => {
+  const filteredCompanionCustomers = useMemo((): Customer[] => {
     if (!companionSearchQuery.trim()) return availableCompanionCustomers;
     const query = companionSearchQuery.toLowerCase();
     return availableCompanionCustomers.filter(
-      (c: { firstNameTh: string; lastNameTh: string; firstNameEn: string; lastNameEn: string; email?: string }) =>
+      (c) =>
         c.firstNameTh.toLowerCase().includes(query) ||
         c.lastNameTh.toLowerCase().includes(query) ||
         c.firstNameEn.toLowerCase().includes(query) ||

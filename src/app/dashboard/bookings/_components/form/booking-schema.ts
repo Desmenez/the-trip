@@ -1,4 +1,5 @@
 import * as z from "zod";
+import { Customer } from "@/app/dashboard/customers/hooks/use-customers";
 
 // Sales User interface
 export interface SalesUser {
@@ -8,6 +9,20 @@ export interface SalesUser {
   email: string;
   phoneNumber?: string;
 }
+
+// Type for selectedCustomer which may have partial fields
+export type SelectedCustomer = Pick<Customer, "id" | "firstNameEn" | "lastNameEn"> & {
+  firstNameTh?: string;
+  lastNameTh?: string;
+  email?: string | null;
+  phone?: string;
+};
+
+// Type for payment form values
+export type PaymentFormValue = {
+  amount?: string;
+  proofOfPayment?: string;
+};
 
 // Base schema without conditional validation
 export const baseFormSchema = z.object({

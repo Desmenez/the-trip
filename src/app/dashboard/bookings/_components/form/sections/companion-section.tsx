@@ -21,18 +21,19 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { BookingFormValues } from "../booking-schema";
+import { Customer } from "@/app/dashboard/customers/hooks/use-customers";
 
 interface CompanionSectionProps {
   form: UseFormReturn<BookingFormValues>;
   readOnly: boolean;
-  selectedCompanions: any[];
+  selectedCompanions: Customer[];
   companionSearchOpen: boolean;
   setCompanionSearchOpen: (open: boolean) => void;
   tripId: string;
-  availableCompanionCustomers: any[];
+  availableCompanionCustomers: Customer[];
   companionSearchQuery: string;
   setCompanionSearchQuery: (query: string) => void;
-  filteredCompanionCustomers: any[];
+  filteredCompanionCustomers: Customer[];
   companionCustomerIds: string[];
   handleAddCompanion: (id: string) => void;
   handleDeleteCompanion: (id: string) => void;
@@ -65,25 +66,16 @@ export function CompanionSection({
               {selectedCompanions.length === 0 ? (
                 <p className="text-muted-foreground text-sm">No companion</p>
               ) : (
-                selectedCompanions.map(
-                  (c: {
-                    id: string;
-                    firstNameTh: string;
-                    lastNameTh: string;
-                    firstNameEn: string;
-                    lastNameEn: string;
-                    email?: string;
-                  }) => (
-                    <div key={c.id} className="flex items-center justify-between">
-                      <p className="text-sm">
-                        {c.firstNameEn} {c.lastNameEn} {c.firstNameTh && c.lastNameTh && `(${c.firstNameTh} ${c.lastNameTh})`}
-                      </p>
-                      {c.email && <p className="text-sm text-muted-foreground">
-                        {c.email}
-                      </p>}
-                    </div>
-                  ),
-                )
+                selectedCompanions.map((c) => (
+                  <div key={c.id} className="flex items-center justify-between">
+                    <p className="text-sm">
+                      {c.firstNameEn} {c.lastNameEn} {c.firstNameTh && c.lastNameTh && `(${c.firstNameTh} ${c.lastNameTh})`}
+                    </p>
+                    {c.email && <p className="text-sm text-muted-foreground">
+                      {c.email}
+                    </p>}
+                  </div>
+                ))
               )}
             </div>
           ) : (
@@ -117,29 +109,20 @@ export function CompanionSection({
                       ) : (
                         <CommandGroup>
                           {filteredCompanionCustomers
-                            .filter((c: { id: string }) => !companionCustomerIds.includes(c.id))
-                            .map(
-                              (customer: {
-                                id: string;
-                                firstNameTh: string;
-                                lastNameTh: string;
-                                firstNameEn: string;
-                                lastNameEn: string;
-                                email?: string;
-                              }) => (
-                                <CommandItem
-                                  key={customer.id}
-                                  value={customer.id}
-                                  onSelect={() => handleAddCompanion(customer.id)}
-                                >
-                                  <div className="flex flex-col">
-                                    <span className="font-medium">
-                                      {customer.firstNameEn} {customer.lastNameEn}
-                                    </span>
-                                  </div>
-                                </CommandItem>
-                              ),
-                            )}
+                            .filter((c) => !companionCustomerIds.includes(c.id))
+                            .map((customer) => (
+                              <CommandItem
+                                key={customer.id}
+                                value={customer.id}
+                                onSelect={() => handleAddCompanion(customer.id)}
+                              >
+                                <div className="flex flex-col">
+                                  <span className="font-medium">
+                                    {customer.firstNameEn} {customer.lastNameEn}
+                                  </span>
+                                </div>
+                              </CommandItem>
+                            ))}
                         </CommandGroup>
                       )}
                     </CommandList>
@@ -148,29 +131,21 @@ export function CompanionSection({
               </Popover>
               {selectedCompanions.length > 0 && (
                 <div className="space-y-2">
-                  {selectedCompanions.map(
-                    (c: {
-                      id: string;
-                      firstNameTh: string;
-                      lastNameTh: string;
-                      firstNameEn: string;
-                      lastNameEn: string;
-                    }) => (
-                      <div key={c.id} className="flex items-center justify-between rounded-md border p-2">
-                        <span className="text-sm">
-                          {c.firstNameEn} {c.lastNameEn}
-                        </span>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteCompanion(c.id)}
-                        >
-                          <Trash2 className="h-4 w-4 text-red-500 hover:text-red-700" />
-                        </Button>
-                      </div>
-                    ),
-                  )}
+                  {selectedCompanions.map((c) => (
+                    <div key={c.id} className="flex items-center justify-between rounded-md border p-2">
+                      <span className="text-sm">
+                        {c.firstNameEn} {c.lastNameEn}
+                      </span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteCompanion(c.id)}
+                      >
+                        <Trash2 className="h-4 w-4 text-red-500 hover:text-red-700" />
+                      </Button>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>

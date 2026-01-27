@@ -32,9 +32,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { BookingFormValues } from "../booking-schema";
+import { BookingFormValues, SelectedCustomer } from "../booking-schema";
 import { CustomerViewDialog } from "@/app/dashboard/customers/_components/customer-view-dialog";
 import { CustomerEditDialog } from "@/app/dashboard/customers/_components/customer-edit-dialog";
+import { Customer, useCustomer } from "@/app/dashboard/customers/hooks/use-customers";
+import { Passport } from "@/app/dashboard/customers/hooks/types";
+import { Trip } from "@/app/dashboard/trips/hooks/use-trips";
+import { useWatch } from "react-hook-form";
+import { differenceInMonths } from "date-fns";
 
 interface CustomerSectionProps {
   form: UseFormReturn<BookingFormValues>;
@@ -44,11 +49,13 @@ interface CustomerSectionProps {
   customerSearchQuery: string;
   setCustomerSearchQuery: (query: string) => void;
   isSearching: boolean;
-  searchResults: any[]; // Replace with Customer type
-  selectedCustomer: any; // Replace with Customer type
+  searchResults: Customer[];
+  selectedCustomer: SelectedCustomer | null;
   setCreateCustomerDialogOpen: (open: boolean) => void;
-  customerPassports: any[]; // Replace with Passport type
+  customerPassports: Passport[];
   customerId: string;
+  trips: Trip[];
+  tripId: string;
 }
 
 export function CustomerSection({
@@ -64,11 +71,92 @@ export function CustomerSection({
   setCreateCustomerDialogOpen,
   customerPassports,
   customerId,
+  trips,
+  tripId,
 }: CustomerSectionProps) {
   const [viewCustomerDialogOpen, setViewCustomerDialogOpen] = useState(false);
   const [editCustomerDialogOpen, setEditCustomerDialogOpen] = useState(false);
 
   const [isReChecked, setIsReChecked] = useState(false);
+
+  const passportId = useWatch({ control: form.control, name: "passportId" });
+  const customerIdValue = useWatch({ control: form.control, name: "customerId" });
+
+  // Fetch full customer data to get dateOfBirth
+  const { data: fullCustomerData } = useCustomer(customerIdValue || undefined);
+
+  // Check if customer's birthday falls in the travel month
+  const birthdayWarning = (() => {
+    if (!customerIdValue || !tripId || trips.length === 0) {
+      return null;
+    }
+
+    // Get customer dateOfBirth from fullCustomerData or selectedCustomer
+    const customerDateOfBirth = fullCustomerData?.dateOfBirth || 
+      (selectedCustomer && "dateOfBirth" in selectedCustomer ? selectedCustomer.dateOfBirth : null);
+    
+    if (!customerDateOfBirth || typeof customerDateOfBirth !== "string") {
+      return null;
+    }
+
+    const selectedTrip = trips.find((t) => t.id === tripId);
+    if (!selectedTrip || !selectedTrip.startDate || !selectedTrip.endDate) {
+      return null;
+    }
+
+    const tripStartDate = new Date(selectedTrip.startDate);
+    const tripEndDate = new Date(selectedTrip.endDate as string);
+    const birthDate = new Date(customerDateOfBirth);
+
+    // Validate dates
+    if (isNaN(tripStartDate.getTime()) || isNaN(tripEndDate.getTime()) || isNaN(birthDate.getTime())) {
+      return null;
+    }
+
+    // Get months of trip (start and end)
+    const tripStartMonth = tripStartDate.getMonth();
+    const tripEndMonth = tripEndDate.getMonth();
+    const birthMonth = birthDate.getMonth();
+
+    // Check if birthday month falls within trip months
+    if (birthMonth === tripStartMonth || birthMonth === tripEndMonth) {
+      return "The customer's birthday falls in the travel month. Please consider preparing a birthday greeting or special arrangement.";
+    }
+
+    return null;
+  })();
+
+  // Check if selected passport expires within 6 months from trip start date
+  const passportExpiryWarning = (() => {
+    if (!passportId || !tripId || customerPassports.length === 0) {
+      return null;
+    }
+
+    const selectedPassport = customerPassports.find((p) => p.id === passportId);
+    if (!selectedPassport || !selectedPassport.expiryDate) {
+      return null;
+    }
+
+    const selectedTrip = trips.find((t) => t.id === tripId);
+    if (!selectedTrip || !selectedTrip.startDate) {
+      return null;
+    }
+
+    const tripStartDate = new Date(selectedTrip.startDate);
+    const passportExpiryDate = new Date(selectedPassport.expiryDate);
+    
+    // Calculate months between trip start date and passport expiry date
+    const monthsUntilExpiry = differenceInMonths(passportExpiryDate, tripStartDate);
+
+    // If passport expires within 6 months from trip start date, show warning
+    if (monthsUntilExpiry < 6) {
+      return "Warning: The passport is valid for less than 6 months from the trip start date. Please inform the customer to renew their passport.";
+    }
+
+    return null;
+  })();
+
+  console.log({customerPassports});
 
   return (
     <div className="space-y-4">
@@ -195,9 +283,18 @@ export function CustomerSection({
                     </Button>
                   )}
                 </div>
-                {field.value && <FormDescription className={isReChecked ? "text-green-500" : "text-red-500"}>
-                  {isReChecked ? "The customer's information has been rechecked." : "The customer's information has not been rechecked."}
-                </FormDescription>}
+                {field.value && (
+                  <>
+                    <FormDescription className={isReChecked ? "text-green-500" : "text-red-500"}>
+                      {isReChecked ? "The customer's information has been rechecked." : "The customer's information has not been rechecked."}
+                    </FormDescription>
+                    {birthdayWarning && (
+                      <FormDescription className="text-green-600 dark:text-green-400">
+                        {birthdayWarning}
+                      </FormDescription>
+                    )}
+                  </>
+                )}
               </div>
             )}
             <FormMessage />
@@ -259,6 +356,11 @@ export function CustomerSection({
                   ))}
                 </SelectContent>
               </Select>
+            )}
+            {passportExpiryWarning && (
+              <FormDescription className="text-yellow-600 dark:text-yellow-500">
+                {passportExpiryWarning}
+              </FormDescription>
             )}
             <FormMessage />
           </FormItem>
