@@ -145,7 +145,7 @@ export default function CommissionsPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Commissions</h1>
           <p className="text-muted-foreground">
-            View commission summary grouped by sales user
+            View commission summaries grouped by sales user.
           </p>
         </div>
       </div>

@@ -215,7 +215,7 @@ export default function LeadsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Leads</h2>
-          <p className="text-muted-foreground">Track and manage your leads.</p>
+          <p className="text-muted-foreground">Create and update potential customers interested in upcoming trips.</p>
         </div>
         <Link href="/dashboard/leads/create">
           <Button>

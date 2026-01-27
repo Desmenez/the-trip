@@ -243,7 +243,7 @@ export default function TasksPage() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Tasks</h2>
-          <p className="text-muted-foreground">Manage your tasks and follow-ups.</p>
+          <p className="text-muted-foreground">Create and update the tasks and follow-ups.</p>
         </div>
         <Link href="/dashboard/tasks/create">
           <Button>

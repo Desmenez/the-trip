@@ -1,14 +1,23 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { addMonths, addDays, subDays } from "date-fns";
 
 export async function GET(request: Request) {
   try {
+    // Check authorization: either CRON_SECRET (for cron jobs) or session (for UI calls)
     const authHeader = request.headers.get("authorization");
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-      return new NextResponse("Unauthorized", {
-        status: 401,
-      });
+    const hasValidCronSecret = authHeader === `Bearer ${process.env.CRON_SECRET}`;
+    
+    // If no valid cron secret, check for session
+    if (!hasValidCronSecret) {
+      const session = await getServerSession(authOptions);
+      if (!session) {
+        return new NextResponse("Unauthorized", {
+          status: 401,
+        });
+      }
     }
 
     // 1. Passport Expiry Alerts
@@ -239,8 +248,8 @@ export async function GET(request: Request) {
             data: {
               userId: task.userId,
               type: "TASK_DUE",
-              title: "Task Due Soon",
-              message: `Reminder: "${task.topic}" is due tomorrow. Please make sure it is completed on time!`,
+              title: "Reminder",
+              message: `"${task.topic}" is due tomorrow. Please make sure it is completed on time!`,
               link: `/dashboard/tasks?taskId=${task.id}`,
               entityId: task.id,
             },

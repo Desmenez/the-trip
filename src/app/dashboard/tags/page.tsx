@@ -160,7 +160,7 @@ export default function TagsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Tags</h2>
-          <p className="text-muted-foreground">Manage customer tags for better organization.</p>
+          <p className="text-muted-foreground">Create and update customer tags for groupings and segmentations.</p>
         </div>
         <Link href="/dashboard/tags/create">
           <Button>

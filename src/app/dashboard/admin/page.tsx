@@ -211,7 +211,7 @@ export default function AdminPage() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Staffs</h2>
-          <p className="text-muted-foreground">Manage staff members and their permissions.</p>
+          <p className="text-muted-foreground">Create and update staff information and assign role permissions.</p>
         </div>
         <Link href="/dashboard/admin/create">
           <Button>

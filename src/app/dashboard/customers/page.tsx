@@ -155,7 +155,7 @@ export default function CustomersPage() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Customers</h2>
-          <p className="text-muted-foreground">Manage your individual and corporate clients.</p>
+          <p className="text-muted-foreground">Update customer information including personal information, addresses, passports, food allergies.</p>
         </div>
         {/* <Link href="/dashboard/customers/create">
           <Button>

@@ -200,7 +200,7 @@ export default function AirlineAndAirportsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">IATA Codes</h2>
-          <p className="text-muted-foreground">Manage IATA codes for airlines and airports.</p>
+          <p className="text-muted-foreground">Create and update IATA codes for airports.</p>
         </div>
         <Link href="/dashboard/airline-and-airports/create">
           <Button>
