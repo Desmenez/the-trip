@@ -257,14 +257,15 @@ export function TaskForm({ mode, initialData, onSubmit, onCancel, isLoading = fa
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="absolute right-10 top-0 h-full hover:bg-transparent"
+                    className="absolute right-8 top-1/2 -translate-y-1/2 z-10 h-6 w-6"
                     onClick={(e) => {
+                      e.preventDefault();
                       e.stopPropagation();
                       field.onChange(null);
                     }}
                     disabled={isLoading}
                   >
-                    <X className="h-4 w-4 text-muted-foreground" />
+                    <X className="h-4 w-4" />
                   </Button>
                 )}
               </div>

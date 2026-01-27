@@ -503,51 +503,72 @@ export function CustomerForm({
                     return (
                       <FormItem className="flex flex-col">
                         <FormLabel>Province</FormLabel>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <FormControl>
-                              <Button
-                                variant="outline"
-                                role="combobox"
-                                disabled={readOnly}
-                                className={cn("w-full justify-between", !field.value && "text-muted-foreground")}
-                              >
-                                {field.value || "Select province"}
-                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-[300px] p-0">
-                            <Command>
-                              <CommandInput placeholder="Search province..." />
-                              <CommandList>
-                                <CommandEmpty>No province found.</CommandEmpty>
-                                <CommandGroup>
-                                  {getProvinces().map((province) => (
-                                    <CommandItem
-                                      value={province}
-                                      key={province}
-                                      onSelect={() => {
-                                        form.setValue(`addresses.${index}.province`, province);
-                                        form.setValue(`addresses.${index}.district`, "");
-                                        form.setValue(`addresses.${index}.subDistrict`, "");
-                                        form.setValue(`addresses.${index}.postalCode`, "");
-                                      }}
-                                    >
-                                      <Check
-                                        className={cn(
-                                          "mr-2 h-4 w-4",
-                                          province === field.value ? "opacity-100" : "opacity-0",
-                                        )}
-                                      />
-                                      {province}
-                                    </CommandItem>
-                                  ))}
-                                </CommandGroup>
-                              </CommandList>
-                            </Command>
-                          </PopoverContent>
-                        </Popover>
+                        <div className="relative">
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant="outline"
+                                  role="combobox"
+                                  disabled={readOnly}
+                                  className={cn("w-full justify-between", !field.value && "text-muted-foreground")}
+                                >
+                                  {field.value || "Select province"}
+                                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-[300px] p-0">
+                              <Command>
+                                <CommandInput placeholder="Search province..." />
+                                <CommandList>
+                                  <CommandEmpty>No province found.</CommandEmpty>
+                                  <CommandGroup>
+                                    {getProvinces().map((province) => (
+                                      <CommandItem
+                                        value={province}
+                                        key={province}
+                                        onSelect={() => {
+                                          form.setValue(`addresses.${index}.province`, province);
+                                          form.setValue(`addresses.${index}.district`, "");
+                                          form.setValue(`addresses.${index}.subDistrict`, "");
+                                          form.setValue(`addresses.${index}.postalCode`, "");
+                                        }}
+                                      >
+                                        <Check
+                                          className={cn(
+                                            "mr-2 h-4 w-4",
+                                            province === field.value ? "opacity-100" : "opacity-0",
+                                          )}
+                                        />
+                                        {province}
+                                      </CommandItem>
+                                    ))}
+                                  </CommandGroup>
+                                </CommandList>
+                              </Command>
+                            </PopoverContent>
+                          </Popover>
+                          {field.value && !readOnly && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="absolute right-8 top-1/2 -translate-y-1/2 z-10 h-6 w-6"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                form.setValue(`addresses.${index}.province`, "");
+                                form.setValue(`addresses.${index}.district`, "");
+                                form.setValue(`addresses.${index}.subDistrict`, "");
+                                form.setValue(`addresses.${index}.postalCode`, "");
+                              }}
+                              disabled={readOnly}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
                         <FormMessage />
                       </FormItem>
                     );
@@ -562,50 +583,70 @@ export function CustomerForm({
                     return (
                       <FormItem className="flex flex-col">
                         <FormLabel>District</FormLabel>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <FormControl>
-                              <Button
-                                variant="outline"
-                                role="combobox"
-                                disabled={!provinceValue || readOnly}
-                                className={cn("w-full justify-between", !field.value && "text-muted-foreground")}
-                              >
-                                {field.value || "Select district"}
-                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-[300px] p-0">
-                            <Command>
-                              <CommandInput placeholder="Search district..." />
-                              <CommandList>
-                                <CommandEmpty>No district found.</CommandEmpty>
-                                <CommandGroup>
-                                  {districts.map((district) => (
-                                    <CommandItem
-                                      value={district}
-                                      key={district}
-                                      onSelect={() => {
-                                        form.setValue(`addresses.${index}.district`, district);
-                                        form.setValue(`addresses.${index}.subDistrict`, "");
-                                        form.setValue(`addresses.${index}.postalCode`, "");
-                                      }}
-                                    >
-                                      <Check
-                                        className={cn(
-                                          "mr-2 h-4 w-4",
-                                          district === field.value ? "opacity-100" : "opacity-0",
-                                        )}
-                                      />
-                                      {district}
-                                    </CommandItem>
-                                  ))}
-                                </CommandGroup>
-                              </CommandList>
-                            </Command>
-                          </PopoverContent>
-                        </Popover>
+                        <div className="relative">
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant="outline"
+                                  role="combobox"
+                                  disabled={!provinceValue || readOnly}
+                                  className={cn("w-full justify-between", !field.value && "text-muted-foreground")}
+                                >
+                                  {field.value || "Select district"}
+                                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-[300px] p-0">
+                              <Command>
+                                <CommandInput placeholder="Search district..." />
+                                <CommandList>
+                                  <CommandEmpty>No district found.</CommandEmpty>
+                                  <CommandGroup>
+                                    {districts.map((district) => (
+                                      <CommandItem
+                                        value={district}
+                                        key={district}
+                                        onSelect={() => {
+                                          form.setValue(`addresses.${index}.district`, district);
+                                          form.setValue(`addresses.${index}.subDistrict`, "");
+                                          form.setValue(`addresses.${index}.postalCode`, "");
+                                        }}
+                                      >
+                                        <Check
+                                          className={cn(
+                                            "mr-2 h-4 w-4",
+                                            district === field.value ? "opacity-100" : "opacity-0",
+                                          )}
+                                        />
+                                        {district}
+                                      </CommandItem>
+                                    ))}
+                                  </CommandGroup>
+                                </CommandList>
+                              </Command>
+                            </PopoverContent>
+                          </Popover>
+                          {field.value && !readOnly && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="absolute right-8 top-1/2 -translate-y-1/2 z-10 h-6 w-6"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                form.setValue(`addresses.${index}.district`, "");
+                                form.setValue(`addresses.${index}.subDistrict`, "");
+                                form.setValue(`addresses.${index}.postalCode`, "");
+                              }}
+                              disabled={readOnly}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
                         <FormMessage />
                       </FormItem>
                     );
@@ -622,57 +663,76 @@ export function CustomerForm({
                     return (
                       <FormItem className="flex flex-col">
                         <FormLabel>Sub district</FormLabel>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <FormControl>
-                              <Button
-                                variant="outline"
-                                role="combobox"
-                                disabled={!provinceValue || !districtValue || readOnly}
-                                className={cn("w-full justify-between", !field.value && "text-muted-foreground")}
-                              >
-                                {field.value || "Select sub-district"}
-                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-[300px] p-0">
-                            <Command>
-                              <CommandInput placeholder="Search sub-district..." />
-                              <CommandList>
-                                <CommandEmpty>No sub-district found.</CommandEmpty>
-                                <CommandGroup>
-                                  {subDistricts.map((subDistrict) => (
-                                    <CommandItem
-                                      value={subDistrict}
-                                      key={subDistrict}
-                                      onSelect={() => {
-                                        form.setValue(`addresses.${index}.subDistrict`, subDistrict);
-                                        // Auto-fill postal code
-                                        if (provinceValue && districtValue) {
-                                          const postCodes = getPostCode(provinceValue, districtValue, subDistrict);
-                                          if (postCodes && postCodes.length > 0) {
-                                            // Get unique postal codes and use the first one
-                                            const uniquePostCodes = [...new Set(postCodes)];
-                                            form.setValue(`addresses.${index}.postalCode`, uniquePostCodes[0]);
+                        <div className="relative">
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant="outline"
+                                  role="combobox"
+                                  disabled={!provinceValue || !districtValue || readOnly}
+                                  className={cn("w-full justify-between", !field.value && "text-muted-foreground")}
+                                >
+                                  {field.value || "Select sub-district"}
+                                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-[300px] p-0">
+                              <Command>
+                                <CommandInput placeholder="Search sub-district..." />
+                                <CommandList>
+                                  <CommandEmpty>No sub-district found.</CommandEmpty>
+                                  <CommandGroup>
+                                    {subDistricts.map((subDistrict) => (
+                                      <CommandItem
+                                        value={subDistrict}
+                                        key={subDistrict}
+                                        onSelect={() => {
+                                          form.setValue(`addresses.${index}.subDistrict`, subDistrict);
+                                          // Auto-fill postal code
+                                          if (provinceValue && districtValue) {
+                                            const postCodes = getPostCode(provinceValue, districtValue, subDistrict);
+                                            if (postCodes && postCodes.length > 0) {
+                                              // Get unique postal codes and use the first one
+                                              const uniquePostCodes = [...new Set(postCodes)];
+                                              form.setValue(`addresses.${index}.postalCode`, uniquePostCodes[0]);
+                                            }
                                           }
-                                        }
-                                      }}
-                                    >
-                                      <Check
-                                        className={cn(
-                                          "mr-2 h-4 w-4",
-                                          subDistrict === field.value ? "opacity-100" : "opacity-0",
-                                        )}
-                                      />
-                                      {subDistrict}
-                                    </CommandItem>
-                                  ))}
-                                </CommandGroup>
-                              </CommandList>
-                            </Command>
-                          </PopoverContent>
-                        </Popover>
+                                        }}
+                                      >
+                                        <Check
+                                          className={cn(
+                                            "mr-2 h-4 w-4",
+                                            subDistrict === field.value ? "opacity-100" : "opacity-0",
+                                          )}
+                                        />
+                                        {subDistrict}
+                                      </CommandItem>
+                                    ))}
+                                  </CommandGroup>
+                                </CommandList>
+                              </Command>
+                            </PopoverContent>
+                          </Popover>
+                          {field.value && !readOnly && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="absolute right-8 top-1/2 -translate-y-1/2 z-10 h-6 w-6"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                form.setValue(`addresses.${index}.subDistrict`, "");
+                                form.setValue(`addresses.${index}.postalCode`, "");
+                              }}
+                              disabled={readOnly}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
                         <FormMessage />
                       </FormItem>
                     );

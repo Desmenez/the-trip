@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSearchCustomers, useCustomer } from "@/app/dashboard/customers/hooks/use-customers";
 import { LEAD_STATUS_VALUES, LEAD_STATUS_LABELS, LEAD_SOURCE_VALUES, LEAD_SOURCE_LABELS } from "@/lib/constants/lead";
@@ -486,28 +486,46 @@ export function LeadForm({ mode, initialData, onSubmit, onCancel, isLoading }: L
           />
         )}
 
-        <div className="grid grid-cols-1 gap-4">
-          <h3 className="text-lg font-semibold col-span-2">Source & Sales</h3>
+        <div className="grid grid-cols-1 gap-4 w-full">
+          <h3 className="text-lg font-semibold">Source & Sales</h3>
           <FormField
             control={form.control}
             name="source"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Source</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value} disabled={disabled}>
-                  <FormControl>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select source" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {LEAD_SOURCE_VALUES.map((source) => (
-                      <SelectItem key={source} value={source}>
-                        {LEAD_SOURCE_LABELS[source]}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="relative">
+                  <Select onValueChange={field.onChange} value={field.value} disabled={disabled}>
+                    <FormControl>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select source" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {LEAD_SOURCE_VALUES.map((source) => (
+                        <SelectItem key={source} value={source}>
+                          {LEAD_SOURCE_LABELS[source]}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {field.value && !disabled && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-8 top-1/2 -translate-y-1/2 z-10 h-6 w-6"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        field.onChange("");
+                      }}
+                      disabled={disabled}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
                 <FormMessage />
               </FormItem>
             )}
