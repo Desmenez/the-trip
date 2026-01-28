@@ -28,6 +28,7 @@ import { DragDropUpload } from "@/components/upload-image";
 import { BookingFormValues, SelectedCustomer, PaymentFormValue } from "../booking-schema";
 import { Booking } from "@/app/dashboard/bookings/hooks/use-bookings";
 import { Trip } from "@/app/dashboard/trips/hooks/use-trips";
+import { format } from "date-fns";
 
 interface PaymentSectionProps {
   form: UseFormReturn<BookingFormValues>;
@@ -320,12 +321,10 @@ export function PaymentSection({
                 return `payment-proofs/${customerFullName}`;
               }
 
-              const tripName = selectedTrip.name
-                .replace(/[^a-zA-Z0-9ก-๙\s_]/g, "")
-                .replace(/\s+/g, "_")
-                .toLowerCase();
+              const tripCode = selectedTrip.code;
+              const dateTime = format(new Date(), "yyyy-MM-dd");
 
-              return `payment-proofs/${customerFullName}_${tripName}`;
+              return `payment-proofs/${tripCode}/${customerFullName}/${dateTime}`;
             };
 
             const paymentType = index === 0 ? "1st" : index === 1 ? "2nd" : "3rd";

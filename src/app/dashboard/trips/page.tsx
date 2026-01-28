@@ -37,7 +37,7 @@ export default function TripsPage() {
       {
         accessorKey: "name",
         header: "Trip name",
-        cell: ({ row }) => <div className="font-medium max-w-40 truncate">{row.original.name}</div>,
+        cell: ({ row }) => <div className="font-medium w-40 truncate">{row.original.name}</div>,
       },
       {
         accessorKey: "airlineAndAirport",

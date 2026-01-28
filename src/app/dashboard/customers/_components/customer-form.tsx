@@ -1070,7 +1070,10 @@ export function CustomerForm({
                               .toLowerCase()
                             : `temp_${Date.now()}_${index}`; // Use timestamp and index for temp customers
 
-                        const folderName = `passports/${sanitizedName}`;
+                        const passportNumber = form.watch(`passports.${index}.passportNumber`);
+                        const dateTime = format(new Date(), "yyyy-MM-dd");
+
+                        const folderName = `passports/${sanitizedName}/${passportNumber}-${dateTime}`;
                         // Use unique key to ensure component instance is separate from other DragDropUpload components
                         const uploadKey = `passport-upload-${index}-${folderName}`;
 

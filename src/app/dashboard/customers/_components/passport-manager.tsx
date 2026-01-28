@@ -40,10 +40,12 @@ type PassportInput = Omit<Passport, "expiryDate"> & { expiryDate: Date | string 
 
 interface PassportManagerProps {
   customerId: string;
+  customerFirstName?: string;
+  customerLastName?: string;
   passports: Passport[];
 }
 
-export function PassportManager({ customerId, passports }: PassportManagerProps) {
+export function PassportManager({ customerId, customerFirstName, customerLastName, passports }: PassportManagerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [editingPassport, setEditingPassport] = useState<PassportInput | null>(null);
   const [isViewOpen, setIsViewOpen] = useState(false);
@@ -392,7 +394,19 @@ export function PassportManager({ customerId, passports }: PassportManagerProps)
                   render={({ field }) => {
                     const imageUrl = field.value;
                     const customerIdForFolder = customerId || tempFolderName;
-                    const folderName = `passports/${customerIdForFolder}`;
+                    const passportNumber = form.watch("passportNumber");
+                    const firstName = customerFirstName || "";
+                    const lastName = customerLastName || "";
+                    const customerName = `${firstName}_${lastName}`;
+                    const sanitizedName =
+                    customerName !== "_"
+                      ? customerName
+                        .replace(/[^a-zA-Z0-9ก-๙\s_]/g, "")
+                        .replace(/\s+/g, "_")
+                        .toLowerCase()
+                      : `temp_${Date.now()}`;
+                    const dateTime = format(new Date(), "yyyy-MM-dd");
+                    const folderName = `passports/${sanitizedName}/${passportNumber}-${dateTime}`;
                     const uploadKey = `passport-upload-${customerIdForFolder}`;
 
                     return (

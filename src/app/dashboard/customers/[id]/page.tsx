@@ -143,7 +143,10 @@ export default function CustomerDetailPage() {
             </Card>
           )}
 
-          <PassportManager customerId={customer.id} passports={customer.passports} />
+          <PassportManager customerId={customer.id} passports={customer.passports}
+            customerFirstName={customer.firstNameEn}
+            customerLastName={customer.lastNameEn}
+          />
 
           {customer.foodAllergies && customer.foodAllergies.length > 0 && (
             <Card>

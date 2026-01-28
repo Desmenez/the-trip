@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { DragDropUpload } from "@/components/upload-image";
 import { X } from "lucide-react";
+import { format } from "date-fns";
 
 const formSchema = z.object({
   amount: z.string().min(1, { message: "Amount is required" }),
@@ -31,6 +32,7 @@ interface PaymentFormProps {
       lastNameEn: string;
     };
     trip?: {
+      code: string;
       name: string;
     };
   };
@@ -54,12 +56,10 @@ export function PaymentForm({ bookingId, booking, onSuccess, onCancel }: Payment
       .replace(/\s+/g, "_")
       .toLowerCase();
 
-    const tripName = booking.trip.name
-      .replace(/[^a-zA-Z0-9ก-๙\s_]/g, "")
-      .replace(/\s+/g, "_")
-      .toLowerCase();
+    const tripCode = booking.trip.code;
+    const dateTime = format(new Date(), "yyyy-MM-dd");
 
-    return `payment-proofs/${customerFullName}_${tripName}`;
+    return `payment-proofs/${tripCode}/${customerFullName}/${dateTime}`;
   };
 
   const form = useForm<PaymentFormValues>({

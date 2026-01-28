@@ -24,7 +24,7 @@ const familyColumns: ColumnDef<Family>[] = [
     header: "Name",
     cell: ({ row }) => {
       const family = row.original;
-      return <div className="font-medium">{family.name}</div>;
+      return <div className="w-[180px] truncate font-medium">{family.name}</div>;
     },
   },
   {
