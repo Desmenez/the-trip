@@ -89,7 +89,7 @@ export default function FamilyDetailPage({ params }: { params: Promise<{ id: str
                             : `${customer.firstNameTh} ${customer.lastNameTh}`}
                         </p>
                       )}
-                    {customer.tags && customer.tags.length > 0 && (
+                    {/* {customer.tags && customer.tags.length > 0 && (
                       <div className="mt-2 flex flex-wrap gap-2">
                         {customer.tags.map(({ tag }) => (
                           <Badge key={tag.id} variant="outline" className="bg-blue-100 text-blue-800">
@@ -97,7 +97,7 @@ export default function FamilyDetailPage({ params }: { params: Promise<{ id: str
                           </Badge>
                         ))}
                       </div>
-                    )}
+                    )} */}
                   </div>
                 </div>
               </Link>

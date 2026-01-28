@@ -64,7 +64,7 @@ export default function CustomerDetailPage() {
                             : ""}
                   </span>
                 )}
-                {customer.firstNameEn && customer.lastNameEn}
+                {`${customer.firstNameEn} ${customer.lastNameEn}`}
               </h2>
             </div>
             {(customer.firstNameTh || customer.lastNameTh) && (

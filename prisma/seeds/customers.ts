@@ -24,9 +24,9 @@ export async function seedCustomers(prisma: PrismaClient) {
       addresses: [
         {
           address: "123 Sukhumvit Road",
-          province: "Bangkok",
-          district: "Watthana",
-          subDistrict: "Khlong Toei Nuea",
+          province: "กรุงเทพมหานคร",
+          district: "วัฒนา",
+          subDistrict: "คลองเตยเหนือ",
           postalCode: "10110",
         },
       ],
@@ -56,9 +56,9 @@ export async function seedCustomers(prisma: PrismaClient) {
       addresses: [
         {
           address: "456 Silom Road",
-          province: "Bangkok",
-          district: "Bang Rak",
-          subDistrict: "Si Lom",
+          province: "กรุงเทพมหานคร",
+          district: "บางรัก",
+          subDistrict: "สีลม",
           postalCode: "10500",
         },
       ],
@@ -92,9 +92,9 @@ export async function seedCustomers(prisma: PrismaClient) {
       addresses: [
         {
           address: "789 Ratchadamri Road",
-          province: "Bangkok",
-          district: "Pathum Wan",
-          subDistrict: "Lumphini",
+          province: "กรุงเทพมหานคร",
+          district: "ปทุมวัน",
+          subDistrict: "ลุมพินี",
           postalCode: "10330",
         },
       ],
@@ -129,9 +129,9 @@ export async function seedCustomers(prisma: PrismaClient) {
       addresses: [
         {
           address: "321 Phayathai Road",
-          province: "Bangkok",
-          district: "Ratchathewi",
-          subDistrict: "Thung Phaya Thai",
+          province: "กรุงเทพมหานคร",
+          district: "ราชเทวี",
+          subDistrict: "ทุ่งพญาไท",
           postalCode: "10400",
         },
       ],
@@ -160,9 +160,9 @@ export async function seedCustomers(prisma: PrismaClient) {
       addresses: [
         {
           address: "654 Sathorn Road",
-          province: "Bangkok",
-          district: "Sathon",
-          subDistrict: "Thung Maha Mek",
+          province: "กรุงเทพมหานคร",
+          district: "สาทร",
+          subDistrict: "ทุ่งมหาเมฆ",
           postalCode: "10120",
         },
       ],
@@ -197,9 +197,9 @@ export async function seedCustomers(prisma: PrismaClient) {
       addresses: [
         {
           address: "111 Wireless Road",
-          province: "Bangkok",
-          district: "Lumphini",
-          subDistrict: "Lumphini",
+          province: "กรุงเทพมหานคร",
+          district: "ปทุมวัน",
+          subDistrict: "ลุมพินี",
           postalCode: "10330",
         },
       ],
@@ -228,9 +228,9 @@ export async function seedCustomers(prisma: PrismaClient) {
       addresses: [
         {
           address: "222 Rama IV Road",
-          province: "Bangkok",
-          district: "Sathon",
-          subDistrict: "Yan Nawa",
+          province: "กรุงเทพมหานคร",
+          district: "สาทร",
+          subDistrict: "ยานนาวา",
           postalCode: "10120",
         },
       ],
@@ -265,9 +265,9 @@ export async function seedCustomers(prisma: PrismaClient) {
       addresses: [
         {
           address: "333 Asoke Road",
-          province: "Bangkok",
-          district: "Watthana",
-          subDistrict: "Khlong Toei Nuea",
+          province: "กรุงเทพมหานคร",
+          district: "วัฒนา",
+          subDistrict: "คลองเตยเหนือ",
           postalCode: "10110",
         },
       ],
@@ -296,9 +296,9 @@ export async function seedCustomers(prisma: PrismaClient) {
       addresses: [
         {
           address: "444 Phetchaburi Road",
-          province: "Bangkok",
-          district: "Ratchathewi",
-          subDistrict: "Thung Phaya Thai",
+          province: "กรุงเทพมหานคร",
+          district: "ราชเทวี",
+          subDistrict: "ทุ่งพญาไท",
           postalCode: "10400",
         },
       ],
@@ -333,9 +333,9 @@ export async function seedCustomers(prisma: PrismaClient) {
       addresses: [
         {
           address: "555 Ladprao Road",
-          province: "Bangkok",
-          district: "Chatuchak",
-          subDistrict: "Chatuchak",
+          province: "กรุงเทพมหานคร",
+          district: "จตุจักร",
+          subDistrict: "จตุจักร",
           postalCode: "10900",
         },
       ],
@@ -364,9 +364,9 @@ export async function seedCustomers(prisma: PrismaClient) {
       addresses: [
         {
           address: "666 Ratchaprarop Road",
-          province: "Bangkok",
-          district: "Ratchathewi",
-          subDistrict: "Thung Phaya Thai",
+          province: "กรุงเทพมหานคร",
+          district: "ราชเทวี",
+          subDistrict: "ทุ่งพญาไท",
           postalCode: "10400",
         },
       ],
@@ -401,9 +401,9 @@ export async function seedCustomers(prisma: PrismaClient) {
       addresses: [
         {
           address: "777 Thonglor Road",
-          province: "Bangkok",
-          district: "Watthana",
-          subDistrict: "Khlong Tan Nuea",
+          province: "กรุงเทพมหานคร",
+          district: "วัฒนา",
+          subDistrict: "คลองตันเหนือ",
           postalCode: "10110",
         },
       ],
@@ -432,9 +432,9 @@ export async function seedCustomers(prisma: PrismaClient) {
       addresses: [
         {
           address: "888 Ekkamai Road",
-          province: "Bangkok",
-          district: "Watthana",
-          subDistrict: "Khlong Tan Nuea",
+          province: "กรุงเทพมหานคร",
+          district: "วัฒนา",
+          subDistrict: "คลองตันเหนือ",
           postalCode: "10110",
         },
       ],
@@ -468,9 +468,9 @@ export async function seedCustomers(prisma: PrismaClient) {
       addresses: [
         {
           address: "999 On Nut Road",
-          province: "Bangkok",
-          district: "Suan Luang",
-          subDistrict: "On Nut",
+          province: "กรุงเทพมหานคร",
+          district: "สวนหลวง",
+          subDistrict: "อ่อนนุช",
           postalCode: "10250",
         },
       ],
@@ -500,9 +500,9 @@ export async function seedCustomers(prisma: PrismaClient) {
       addresses: [
         {
           address: "1010 Bangna-Trad Road",
-          province: "Bangkok",
-          district: "Bang Na",
-          subDistrict: "Bang Na",
+          province: "กรุงเทพมหานคร",
+          district: "บางนา",
+          subDistrict: "บางนาเหนือ",
           postalCode: "10260",
         },
       ],
@@ -536,9 +536,9 @@ export async function seedCustomers(prisma: PrismaClient) {
       addresses: [
         {
           address: "1111 Srinakarin Road",
-          province: "Bangkok",
-          district: "Suan Luang",
-          subDistrict: "Suan Luang",
+          province: "กรุงเทพมหานคร",
+          district: "สวนหลวง",
+          subDistrict: "สวนหลวง",
           postalCode: "10250",
         },
       ],
@@ -567,9 +567,9 @@ export async function seedCustomers(prisma: PrismaClient) {
       addresses: [
         {
           address: "1212 Lat Krabang Road",
-          province: "Bangkok",
-          district: "Lat Krabang",
-          subDistrict: "Lat Krabang",
+          province: "กรุงเทพมหานคร",
+          district: "ลาดกระบัง",
+          subDistrict: "ลาดกระบัง",
           postalCode: "10520",
         },
       ],
@@ -604,9 +604,9 @@ export async function seedCustomers(prisma: PrismaClient) {
       addresses: [
         {
           address: "1313 Ramkhamhaeng Road",
-          province: "Bangkok",
-          district: "Huai Khwang",
-          subDistrict: "Huai Khwang",
+          province: "กรุงเทพมหานคร",
+          district: "ห้วยขวาง",
+          subDistrict: "ห้วยขวาง",
           postalCode: "10310",
         },
       ],
@@ -635,9 +635,9 @@ export async function seedCustomers(prisma: PrismaClient) {
       addresses: [
         {
           address: "1414 Vibhavadi Rangsit Road",
-          province: "Bangkok",
-          district: "Chatuchak",
-          subDistrict: "Chatuchak",
+          province: "กรุงเทพมหานคร",
+          district: "จตุจักร",
+          subDistrict: "จตุจักร",
           postalCode: "10900",
         },
       ],
@@ -672,9 +672,9 @@ export async function seedCustomers(prisma: PrismaClient) {
       addresses: [
         {
           address: "1515 Phahonyothin Road",
-          province: "Bangkok",
-          district: "Chatuchak",
-          subDistrict: "Chatuchak",
+          province: "กรุงเทพมหานคร",
+          district: "จตุจักร",
+          subDistrict: "จตุจักร",
           postalCode: "10900",
         },
       ],

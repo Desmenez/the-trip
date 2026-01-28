@@ -98,11 +98,12 @@ export function TravelDetailsSection({
                       onCheckedChange={(checked) => {
                         setEnableBedPrice(checked);
                         if (!checked) {
-                          field.onChange("");
+                          // field.onChange("");
+                          form.setValue("extraPricePerBed", "", { shouldValidate: false })
                           form.clearErrors("extraPricePerBed");
                         } else {
                           // Trigger validation when enabled
-                          setTimeout(() => form.trigger("extraPricePerBed"), 0);
+                          // setTimeout(() => form.trigger("extraPricePerBed"), 0);
                         }
                       }}
                       disabled={readOnly}
@@ -203,10 +204,10 @@ export function TravelDetailsSection({
                           form.setValue("seatClass", undefined);
                         } else {
                           // Trigger validation when enabled
-                          setTimeout(() => {
-                            form.trigger("extraPricePerSeat");
-                            form.trigger("seatClass");
-                          }, 0);
+                          // setTimeout(() => {
+                          //   form.trigger("extraPricePerSeat");
+                          //   form.trigger("seatClass");
+                          // }, 0);
                         }
                       }}
                       disabled={readOnly}
@@ -303,11 +304,12 @@ export function TravelDetailsSection({
                     onCheckedChange={(checked) => {
                       setEnableBagPrice(checked);
                       if (!checked) {
-                        field.onChange("");
+                        // field.onChange("");
+                        form.setValue("extraPricePerBag", "", { shouldValidate: false })
                         form.clearErrors("extraPricePerBag");
                       } else {
                         // Trigger validation when enabled
-                        setTimeout(() => form.trigger("extraPricePerBag"), 0);
+                        // setTimeout(() => form.trigger("extraPricePerBag"), 0);
                       }
                     }}
                     disabled={readOnly}
@@ -369,11 +371,12 @@ export function TravelDetailsSection({
                     onCheckedChange={(checked) => {
                       setEnableDiscount(checked);
                       if (!checked) {
-                        field.onChange("");
+                        // field.onChange("");
+                        form.setValue("discountPrice", "", { shouldValidate: false })
                         form.clearErrors("discountPrice");
                       } else {
                         // Trigger validation when enabled
-                        setTimeout(() => form.trigger("discountPrice"), 0);
+                        // setTimeout(() => form.trigger("discountPrice"), 0);
                       }
                     }}
                     disabled={readOnly}

@@ -54,16 +54,16 @@ export async function POST(req: Request) {
     });
 
     // Create notification for the user
-    await prisma.notification.create({
-      data: {
-        userId: userId || session.user.id,
-        type: "SYSTEM",
-        title: "New Task Created",
-        message: `Task "${topic}" has been created successfully.`,
-        link: relatedCustomerId ? `/dashboard/customers/${relatedCustomerId}?tab=tasks` : "/dashboard/tasks",
-        entityId: task.id,
-      },
-    });
+    // await prisma.notification.create({
+    //   data: {
+    //     userId: userId || session.user.id,
+    //     type: "SYSTEM",
+    //     title: "New Task Created",
+    //     message: `Task "${topic}" has been created successfully.`,
+    //     link: relatedCustomerId ? `/dashboard/customers/${relatedCustomerId}?tab=tasks` : "/dashboard/tasks",
+    //     entityId: task.id,
+    //   },
+    // });
 
     return NextResponse.json(task);
   } catch (error) {

@@ -156,8 +156,6 @@ export function CustomerSection({
     return null;
   })();
 
-  console.log({customerPassports});
-
   return (
     <div className="space-y-4">
       {/* Customer Field */}

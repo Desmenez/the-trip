@@ -8,7 +8,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, X } from "lucide-react";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
@@ -193,7 +193,7 @@ export function FamilyForm({
                         variant="outline"
                         role="combobox"
                         className={cn(
-                          "w-full justify-between",
+                          "w-full justify-between h-auto min-h-10 py-2",
                           (!field.value || field.value.length === 0) && "text-muted-foreground",
                         )}
                         disabled={isLoading}
@@ -202,8 +202,33 @@ export function FamilyForm({
                           {field.value && field.value.length > 0 ? (
                             selectedCustomers.length > 0 ? (
                               selectedCustomers.map((customer) => (
-                                <Badge key={customer.id} variant="outline">
+                                <Badge
+                                  key={customer.id}
+                                  variant="outline"
+                                  className="flex items-center gap-1 pr-1"
+                                >
                                   {customer.firstNameEn} {customer.lastNameEn}
+                                  <span
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      const currentValue = field.value || [];
+                                      field.onChange(currentValue.filter((id) => id !== customer.id));
+                                    }}
+                                    role="button"
+                                    tabIndex={0}
+                                    onKeyDown={(e) => {
+                                      if (e.key === "Enter" || e.key === " ") {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        const currentValue = field.value || [];
+                                        field.onChange(currentValue.filter((id) => id !== customer.id));
+                                      }
+                                    }}
+                                    className="ml-1 rounded-full hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 cursor-pointer"
+                                  >
+                                    <X className="h-2 w-2" />
+                                  </span>
                                 </Badge>
                               ))
                             ) : (
@@ -213,7 +238,7 @@ export function FamilyForm({
                             <span className="text-muted-foreground">Select customers</span>
                           )}
                         </span>
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50 self-start mt-1" />
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
