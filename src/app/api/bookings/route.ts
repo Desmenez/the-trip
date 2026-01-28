@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { Prisma, Role } from "@prisma/client";
 import { calculateCommission } from "@/lib/services/commission-calculator";
+import { updateBookingPaidAmount } from "@/lib/services/booking-payment";
 
 export async function GET(request: Request) {
   const session = await getServerSession(authOptions);
@@ -420,6 +421,11 @@ export async function POST(req: Request) {
           where: { id: newBooking.id },
           data: updateData as unknown as Prisma.BookingUpdateInput,
         });
+      }
+
+      // Update paidAmount after creating payments
+      if (createdPayments.length > 0) {
+        await updateBookingPaidAmount(newBooking.id, tx);
       }
 
       // 4. Create symmetric companion relationships using explicit join table

@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { Prisma } from "@prisma/client";
+import { calculateTripStatus } from "@/lib/services/trip-status";
 
 export async function GET(request: Request) {
   const session = await getServerSession(authOptions);
@@ -110,42 +111,13 @@ export async function GET(request: Request) {
     // Calculate trip status for each trip
     const now = new Date();
     let tripsWithStatus = trips.map((trip) => {
-      const startDate = new Date(trip.startDate);
-      const endDate = new Date(trip.endDate);
-      const activeBookingsCount = trip._count.bookings;
-      const pax = trip.pax;
-
-      let status: "UPCOMING" | "SOLD_OUT" | "COMPLETED" | "ON_TRIP" | "CANCELLED";
-      
-      // Check if trip has started (startDate <= now)
-      if (startDate <= now) {
-        // Cancelled: When the start date has been reached but the trip have no any bookings
-        // This status persists even after endDate passes
-        if (activeBookingsCount === 0) {
-          status = "CANCELLED";
-        }
-        // Trip has bookings
-        else {
-          // Completed: When the end date has been passed and there are bookings
-          if (endDate < now) {
-            status = "COMPLETED";
-          }
-          // On trip: When the trip is ongoing (startDate <= now <= endDate) and there are bookings
-          else {
-            status = "ON_TRIP";
-          }
-        }
-      }
-      // Start date has not been reached (startDate > now)
-      else {
-        // Sold out: When the start date has not been reached but the trip have been fully booked
-        if (activeBookingsCount >= pax) {
-          status = "SOLD_OUT";
-        } else {
-          // Upcoming: When the start date has not been reached
-          status = "UPCOMING";
-        }
-      }
+      const status = calculateTripStatus(
+        trip.startDate,
+        trip.endDate,
+        trip._count.bookings,
+        trip.pax,
+        now
+      );
 
       return {
         ...trip,

@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/auth";
 import { Prisma, Role } from "@prisma/client";
 import { syncLeadStatusFromBooking } from "@/lib/services/lead-sync";
 import { calculateCommission, updateCommissionStatus } from "@/lib/services/commission-calculator";
+import { updateBookingPaidAmount } from "@/lib/services/booking-payment";
 
 export async function GET(
   req: Request,
@@ -523,6 +524,9 @@ export async function PUT(
           where: { id },
           data: paymentUpdateData as unknown as Prisma.BookingUpdateInput,
         });
+
+        // Update paidAmount after payment changes
+        await updateBookingPaidAmount(id, tx);
       }
 
       return updatedBooking;

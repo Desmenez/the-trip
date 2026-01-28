@@ -2,8 +2,9 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { calculateTripStatus } from "@/lib/services/trip-status";
 
-export async function GET() {
+export async function GET(request: Request) {
   const session = await getServerSession(authOptions);
 
   if (!session) {
@@ -11,6 +12,11 @@ export async function GET() {
   }
 
   try {
+    const { searchParams } = new URL(request.url);
+    const upcomingTripsPage = parseInt(searchParams.get("upcomingTripsPage") || "1", 10);
+    const upcomingTripsPageSize = parseInt(searchParams.get("upcomingTripsPageSize") || "5", 10);
+    const upcomingTripsSkip = (upcomingTripsPage - 1) * upcomingTripsPageSize;
+
     const now = new Date();
     const [
       customerCount,
@@ -18,6 +24,7 @@ export async function GET() {
       openBookingsCount,
       bookingsForRevenue,
       allBookingsForCustomerRevenue,
+      upcomingTripsTotal,
       tripsRaw
     ] = await Promise.all([
       prisma.customer.count(),
@@ -45,21 +52,7 @@ export async function GET() {
           },
         },
         select: {
-          firstPayment: {
-            select: {
-              amount: true,
-            },
-          },
-          secondPayment: {
-            select: {
-              amount: true,
-            },
-          },
-          thirdPayment: {
-            select: {
-              amount: true,
-            },
-          },
+          paidAmount: true, // Use cached paidAmount field for better performance
         },
       }),
       // Fetch bookings for outstanding and top customers calculation
@@ -116,6 +109,15 @@ export async function GET() {
           },
         },
       }),
+      // Get total count of upcoming trips for pagination
+      prisma.trip.count({
+        where: {
+          startDate: {
+            gt: now, // Only count trips that haven't started yet
+          },
+        },
+      }),
+      // Fetch upcoming trips with pagination
       prisma.trip.findMany({
         where: {
           startDate: {
@@ -123,7 +125,8 @@ export async function GET() {
           },
         },
         orderBy: { startDate: "asc" }, // Order by startDate for upcoming trips
-        take: 100, // Limit to 100 trips to avoid loading too many
+        skip: upcomingTripsSkip,
+        take: upcomingTripsPageSize,
         include: {
           airlineAndAirport: {
             select: {
@@ -147,11 +150,9 @@ export async function GET() {
     ]);
 
     // Calculate total revenue from paid amounts
+    // Use paidAmount field for better performance (cached value)
     const totalRevenue = bookingsForRevenue.reduce((sum, booking) => {
-      const firstAmount = booking.firstPayment ? Number(booking.firstPayment.amount) : 0;
-      const secondAmount = booking.secondPayment ? Number(booking.secondPayment.amount) : 0;
-      const thirdAmount = booking.thirdPayment ? Number(booking.thirdPayment.amount) : 0;
-      return sum + firstAmount + secondAmount + thirdAmount;
+      return sum + Number(booking.paidAmount || 0);
     }, 0);
 
     // Calculate total outstanding (remaining unpaid amounts)
@@ -179,44 +180,17 @@ export async function GET() {
       return sum + Math.max(0, remaining);
     }, 0);
 
-    // Calculate trip status for upcoming trips (same logic as /api/trips/route.ts)
+    // Calculate trip status for upcoming trips using shared utility function
+    // Filter for UPCOMING status only (since we already filtered by startDate > now)
     const upcomingTrips = tripsRaw
       .map((trip) => {
-        const startDate = new Date(trip.startDate);
-        const endDate = new Date(trip.endDate);
-        const activeBookingsCount = trip._count.bookings;
-        const pax = trip.pax;
-
-        let status: "UPCOMING" | "SOLD_OUT" | "COMPLETED" | "ON_TRIP" | "CANCELLED";
-        
-        // Check if trip has started (startDate <= now)
-        if (startDate <= now) {
-          // Cancelled: When the start date has been reached but the trip have no any bookings
-          if (activeBookingsCount === 0) {
-            status = "CANCELLED";
-          }
-          // Trip has bookings
-          else {
-            // Completed: When the end date has been passed and there are bookings
-            if (endDate < now) {
-              status = "COMPLETED";
-            }
-            // On trip: When the trip is ongoing (startDate <= now <= endDate) and there are bookings
-            else {
-              status = "ON_TRIP";
-            }
-          }
-        }
-        // Start date has not been reached (startDate > now)
-        else {
-          // Sold out: When the start date has not been reached but the trip have been fully booked
-          if (activeBookingsCount >= pax) {
-            status = "SOLD_OUT";
-          } else {
-            // Upcoming: When the start date has not been reached
-            status = "UPCOMING";
-          }
-        }
+        const status = calculateTripStatus(
+          trip.startDate,
+          trip.endDate,
+          trip._count.bookings,
+          trip.pax,
+          now
+        );
 
         return {
           id: trip.id,
@@ -225,8 +199,7 @@ export async function GET() {
           status,
         };
       })
-      .filter((trip) => trip.status === "UPCOMING")
-      .slice(0, 5); // Limit to 5 trips
+      .filter((trip) => trip.status === "UPCOMING");
 
     // Calculate top 5 customers by revenue
     const customerRevenueMap = new Map<string, {
@@ -279,6 +252,10 @@ export async function GET() {
       totalRevenue,
       totalOutstanding,
       upcomingTrips,
+      upcomingTripsTotal,
+      upcomingTripsPage,
+      upcomingTripsPageSize,
+      upcomingTripsTotalPages: Math.ceil(upcomingTripsTotal / upcomingTripsPageSize),
       topCustomersByRevenue,
     });
   } catch (error) {

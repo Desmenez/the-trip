@@ -42,24 +42,16 @@ export async function GET(request: Request) {
       },
       include: {
         booking: {
-          include: {
-            payments: {
-              select: {
-                amount: true,
-              },
-            },
+          select: {
+            paidAmount: true, // Use cached paidAmount field for better performance
           },
         },
       },
     });
 
-    // Calculate totals from all commissions
+    // Calculate totals from all commissions using cached paidAmount
     const totalSales = allCommissions.reduce((sum, commission) => {
-      const bookingTotal = commission.booking.payments.reduce(
-        (paymentSum, payment) => paymentSum + Number(payment.amount),
-        0
-      );
-      return sum + bookingTotal;
+      return sum + Number(commission.booking.paidAmount || 0);
     }, 0);
 
     const totalCommission = allCommissions.reduce(

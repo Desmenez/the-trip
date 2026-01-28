@@ -335,6 +335,10 @@ model Booking {
   payments    Payment[]    @relation("BookingPayments")
   commissions Commission[]
 
+  // Cached paid amount for performance (sum of all payments)
+  // This field should be updated automatically when payments are created/updated/deleted
+  paidAmount Decimal @default(0) @db.Decimal(10, 2)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

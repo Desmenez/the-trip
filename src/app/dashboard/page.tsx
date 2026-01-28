@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Users, FileText, DollarSign, BookMarked } from "lucide-react";
 import { Loading } from "@/components/page/loading";
 
@@ -29,6 +30,10 @@ interface DashboardStats {
   totalRevenue: number;
   totalOutstanding: number;
   upcomingTrips: UpcomingTrip[];
+  upcomingTripsTotal: number;
+  upcomingTripsPage: number;
+  upcomingTripsPageSize: number;
+  upcomingTripsTotalPages: number;
   topCustomersByRevenue: TopCustomerByRevenue[];
 }
 
@@ -36,11 +41,17 @@ export default function DashboardPage() {
   const { data: session } = useSession();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [upcomingTripsPage, setUpcomingTripsPage] = useState(1);
+  const upcomingTripsPageSize = 5;
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res = await fetch("/api/dashboard");
+        const params = new URLSearchParams();
+        params.set("upcomingTripsPage", upcomingTripsPage.toString());
+        params.set("upcomingTripsPageSize", upcomingTripsPageSize.toString());
+
+        const res = await fetch(`/api/dashboard?${params.toString()}`);
         if (res.ok) {
           const data = await res.json();
           setStats(data);
@@ -53,7 +64,7 @@ export default function DashboardPage() {
     };
 
     fetchStats();
-  }, []);
+  }, [upcomingTripsPage]);
 
   if (loading) {
     return <Loading />;
@@ -149,18 +160,54 @@ export default function DashboardPage() {
               {stats?.upcomingTrips.length === 0 ? (
                 <p className="text-muted-foreground text-sm">No upcoming trips.</p>
               ) : (
-                stats?.upcomingTrips.map((trip, index) => (
-                  <div key={trip.id} className="flex items-center">
-                    <div className="ml-4 space-y-1 flex gap-4">
-                      <p className="text-muted-foreground text-sm">{index + 1}</p>
-                      <p className="text-sm leading-none font-medium">{trip.name}</p>
-                    </div>
-                    <div className="ml-auto font-medium">
-                      {trip.pax}
-                      <span className="text-muted-foreground text-sm"> PAX</span>
-                    </div>
+                <>
+                  <div className="space-y-2">
+                    {stats?.upcomingTrips.map((trip, index) => (
+                      <div key={trip.id} className="flex items-center">
+                        <div className="ml-4 space-y-1 flex gap-4">
+                          <p className="text-muted-foreground text-sm">
+                            {((upcomingTripsPage - 1) * upcomingTripsPageSize) + index + 1}
+                          </p>
+                          <p className="text-sm leading-none font-medium">{trip.name}</p>
+                        </div>
+                        <div className="ml-auto font-medium">
+                          {trip.pax}
+                          <span className="text-muted-foreground text-sm"> PAX</span>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))
+
+                  {/* Pagination */}
+                  {stats && stats.upcomingTripsTotalPages > 1 && (
+                    <div className="mt-4 flex items-center justify-between">
+                      <div className="text-sm text-muted-foreground">
+                        Showing {((upcomingTripsPage - 1) * upcomingTripsPageSize) + 1} to {Math.min(upcomingTripsPage * upcomingTripsPageSize, stats.upcomingTripsTotal)} of {stats.upcomingTripsTotal} trips
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setUpcomingTripsPage(upcomingTripsPage - 1)}
+                          disabled={upcomingTripsPage === 1 || loading}
+                        >
+                          Previous
+                        </Button>
+                        <span className="text-sm">
+                          Page {upcomingTripsPage} of {stats.upcomingTripsTotalPages}
+                        </span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setUpcomingTripsPage(upcomingTripsPage + 1)}
+                          disabled={upcomingTripsPage >= stats.upcomingTripsTotalPages || loading}
+                        >
+                          Next
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </CardContent>

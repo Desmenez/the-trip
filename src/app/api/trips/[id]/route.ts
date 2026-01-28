@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { calculateTripStatus } from "@/lib/services/trip-status";
 
 export async function GET(
   req: Request,
@@ -40,44 +41,15 @@ export async function GET(
       return new NextResponse("Trip not found", { status: 404 });
     }
 
-    // Calculate trip status
+    // Calculate trip status using shared utility function
     const now = new Date();
-    const startDate = new Date(trip.startDate);
-    const endDate = new Date(trip.endDate);
-    const activeBookingsCount = trip._count.bookings;
-    const pax = trip.pax;
-
-    let status: "UPCOMING" | "SOLD_OUT" | "COMPLETED" | "ON_TRIP" | "CANCELLED";
-    
-    // Check if trip has started (startDate <= now)
-    if (startDate <= now) {
-      // Cancelled: When the start date has been reached but the trip have no any bookings
-      // This status persists even after endDate passes
-      if (activeBookingsCount === 0) {
-        status = "CANCELLED";
-      }
-      // Trip has bookings
-      else {
-        // Completed: When the end date has been passed and there are bookings
-        if (endDate < now) {
-          status = "COMPLETED";
-        }
-        // On trip: When the trip is ongoing (startDate <= now <= endDate) and there are bookings
-        else {
-          status = "ON_TRIP";
-        }
-      }
-    }
-    // Start date has not been reached (startDate > now)
-    else {
-      // Sold out: When the start date has not been reached but the trip have been fully booked
-      if (activeBookingsCount >= pax) {
-        status = "SOLD_OUT";
-      } else {
-        // Upcoming: When the start date has not been reached
-        status = "UPCOMING";
-      }
-    }
+    const status = calculateTripStatus(
+      trip.startDate,
+      trip.endDate,
+      trip._count.bookings,
+      trip.pax,
+      now
+    );
 
     return NextResponse.json({
       ...trip,
@@ -176,42 +148,13 @@ export async function PUT(
 
     // Calculate trip status
     const now = new Date();
-    const startDateObj = new Date(trip.startDate);
-    const endDateObj = new Date(trip.endDate);
-    const activeBookingsCount = trip._count.bookings;
-    const tripPax = trip.pax;
-
-    let status: "UPCOMING" | "SOLD_OUT" | "COMPLETED" | "ON_TRIP" | "CANCELLED";
-    
-    // Check if trip has started (startDate <= now)
-    if (startDateObj <= now) {
-      // Cancelled: When the start date has been reached but the trip have no any bookings
-      // This status persists even after endDate passes
-      if (activeBookingsCount === 0) {
-        status = "CANCELLED";
-      }
-      // Trip has bookings
-      else {
-        // Completed: When the end date has been passed and there are bookings
-        if (endDateObj < now) {
-          status = "COMPLETED";
-        }
-        // On trip: When the trip is ongoing (startDate <= now <= endDate) and there are bookings
-        else {
-          status = "ON_TRIP";
-        }
-      }
-    }
-    // Start date has not been reached (startDate > now)
-    else {
-      // Sold out: When the start date has not been reached but the trip have been fully booked
-      if (activeBookingsCount >= tripPax) {
-        status = "SOLD_OUT";
-      } else {
-        // Upcoming: When the start date has not been reached
-        status = "UPCOMING";
-      }
-    }
+    const status = calculateTripStatus(
+      trip.startDate,
+      trip.endDate,
+      trip._count.bookings,
+      trip.pax,
+      now
+    );
 
     return NextResponse.json({
       ...trip,

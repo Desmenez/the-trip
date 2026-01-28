@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
+import { updateBookingPaidAmount } from "@/lib/services/booking-payment";
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
@@ -147,6 +148,9 @@ export async function POST(req: Request) {
         where: { id: bookingId },
         data: updateData as unknown as Prisma.BookingUpdateInput,
       });
+
+      // Update paidAmount
+      await updateBookingPaidAmount(bookingId, tx);
 
       return payment;
     });
