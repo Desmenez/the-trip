@@ -84,52 +84,53 @@ export function UserFilter({ onFilterChange }: UserFilterProps) {
   }, [searchQuery, roleFilter, statusFilter]);
 
   return (
-    <div className="flex flex-col items-center justify-end gap-4 md:flex-row">
+    <div className="flex flex-col items-end justify-end gap-4 lg:flex-row">
+      <div className="flex w-full flex-col gap-4 lg:w-auto md:flex-row">
+        {/* Status filter */}
+        <Select
+          value={status}
+          onValueChange={(value) => {
+            setStatus(value);
+            pushWithParams({ status: value });
+          }}
+        >
+          <SelectTrigger className="w-full lg:w-40">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">All status</SelectItem>
+            {USER_STATUS_VALUES.map((statusValue) => (
+              <SelectItem key={statusValue} value={statusValue}>
+                {USER_STATUS_LABELS[statusValue]}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
-      {/* Status filter */}
-      <Select
-        value={status}
-        onValueChange={(value) => {
-          setStatus(value);
-          pushWithParams({ status: value });
-        }}
-      >
-        <SelectTrigger className="w-full md:w-40">
-          <SelectValue placeholder="Status" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="ALL">All status</SelectItem>
-          {USER_STATUS_VALUES.map((statusValue) => (
-            <SelectItem key={statusValue} value={statusValue}>
-              {USER_STATUS_LABELS[statusValue]}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      
-      {/* Role filter */}
-      <Select
-        value={role}
-        onValueChange={(value) => {
-          setRole(value);
-          pushWithParams({ role: value });
-        }}
-      >
-        <SelectTrigger className="w-full md:w-40">
-          <SelectValue placeholder="Role" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="ALL">All roles</SelectItem>
-          {ROLE_VALUES.map((roleValue) => (
-            <SelectItem key={roleValue} value={roleValue}>
-              {ROLE_LABELS[roleValue]}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+        {/* Role filter */}
+        <Select
+          value={role}
+          onValueChange={(value) => {
+            setRole(value);
+            pushWithParams({ role: value });
+          }}
+        >
+          <SelectTrigger className="w-full lg:w-40">
+            <SelectValue placeholder="Role" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">All roles</SelectItem>
+            {ROLE_VALUES.map((roleValue) => (
+              <SelectItem key={roleValue} value={roleValue}>
+                {ROLE_LABELS[roleValue]}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
       {/* Search */}
-      <div className="relative w-full flex-1 md:max-w-sm">
+      <div className="relative w-full lg:w-96">
         <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
         <Input
           placeholder="Search by staff name, email, phone number"

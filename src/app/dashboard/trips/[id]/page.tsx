@@ -17,7 +17,7 @@ import { DataTablePagination } from "@/components/data-table/data-table-paginati
 import { useDataTableInstance } from "@/hooks/use-data-table-instance";
 import { useMemo, useCallback, useEffect } from "react";
 import { Loading } from "@/components/page/loading";
-import { getPaymentStatusColor, PAYMENT_STATUS_LABELS } from "@/lib/constants/payment";
+import { getPaymentStatusVariant, PAYMENT_STATUS_LABELS } from "@/lib/constants/payment";
 import { PaymentStatus } from "@prisma/client";
 
 export default function TripDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -102,7 +102,7 @@ export default function TripDetailPage({ params }: { params: Promise<{ id: strin
         accessorKey: "paymentStatus",
         header: "Status",
         cell: ({ row }) => (
-          <Badge className={getPaymentStatusColor(row.original.paymentStatus)}>
+          <Badge variant={getPaymentStatusVariant(row.original.paymentStatus)}>
             {PAYMENT_STATUS_LABELS[row.original.paymentStatus as PaymentStatus]}
           </Badge>),
       },

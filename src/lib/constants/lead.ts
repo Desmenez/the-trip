@@ -19,9 +19,22 @@ export const MANUAL_LEAD_STATUSES: LeadStatus[] = ["INTERESTED", "CANCELLED"];
 // System Lead Statuses (System manages automatically)
 export const SYSTEM_LEAD_STATUSES: LeadStatus[] = ["BOOKED", "COMPLETED"];
 
+// LeadStatus badge variant mapping
+export const LEAD_STATUS_VARIANTS: Record<LeadStatus, "default" | "secondary" | "destructive" | "outline" | "success" | "info" | "warning"> = {
+  INTERESTED: "info",
+  BOOKED: "warning",
+  COMPLETED: "success",
+  CANCELLED: "destructive",
+};
+
 // Helper function to get lead status label
 export function getLeadStatusLabel(status: string): string {
   return LEAD_STATUS_LABELS[status as LeadStatus] || status.replace("_", " ");
+}
+
+// Helper function to get lead status badge variant
+export function getLeadStatusVariant(status: string): "default" | "secondary" | "destructive" | "outline" | "success" | "info" | "warning" {
+  return LEAD_STATUS_VARIANTS[status as LeadStatus] || "default";
 }
 
 // Helper function to check if status is manual

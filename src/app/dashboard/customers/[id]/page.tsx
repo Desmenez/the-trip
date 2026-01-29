@@ -79,37 +79,75 @@ export default function CustomerDetailPage() {
         </Link> */}
       </div>
 
-      <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-        {/* Left Column: Profile Info */}
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Contact Info</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center gap-3">
-                <Mail className="text-muted-foreground h-4 w-4" />
-                <span>{customer.email || "-"}</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <Phone className="text-muted-foreground h-4 w-4" />
-                <span>{customer.phoneNumber || "-"}</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="text-muted-foreground w-4 text-center text-xs font-bold">L</span>
-                <span>{customer.lineId || "-"}</span>
-              </div>
-              {customer.dateOfBirth && (
+      <div className="flex flex-col gap-8">
+        {/* Profile Info */}
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+          {/* Passport Manager */}
+          <PassportManager 
+            className="h-fit"
+            customerId={customer.id} 
+            passports={customer.passports}
+            customerFirstName={customer.firstNameEn}
+            customerLastName={customer.lastNameEn}
+          />
+
+          <div className="flex flex-col gap-6">
+            {/* Contact Info */}
+            <Card className="h-fit">
+              <CardHeader>
+                <CardTitle>Contact Info</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
                 <div className="flex items-center gap-3">
-                  <Calendar className="text-muted-foreground h-4 w-4" />
-                  <span>{format(new Date(customer.dateOfBirth), "PP")}</span>
+                  <Mail className="text-muted-foreground h-4 w-4" />
+                  <span>{customer.email || "-"}</span>
                 </div>
-              )}
-            </CardContent>
-          </Card>
+                <div className="flex items-center gap-3">
+                  <Phone className="text-muted-foreground h-4 w-4" />
+                  <span>{customer.phoneNumber || "-"}</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-muted-foreground w-4 text-center text-xs font-bold">L</span>
+                  <span>{customer.lineId || "-"}</span>
+                </div>
+                {customer.dateOfBirth && (
+                  <div className="flex items-center gap-3">
+                    <Calendar className="text-muted-foreground h-4 w-4" />
+                    <span>{format(new Date(customer.dateOfBirth), "PP")}</span>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Food Allergies */}
+            {customer.foodAllergies && customer.foodAllergies.length > 0 && (
+              <Card className="h-fit">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <UtensilsCrossed className="h-4 w-4" />
+                    Food Allergies
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {customer.foodAllergies.map((allergy, index) => (
+                    <div key={allergy.id || index} className="space-y-2">
+                      <div className="flex flex-wrap gap-2">
+                        {allergy.types.map((type) => (
+                          <Badge key={type} variant="outline" className="bg-orange-50 text-orange-800">
+                            {type.replace(/_/g, " ")}
+                          </Badge>
+                        ))}
+                      </div>
+                      {allergy.note && <p className="text-muted-foreground text-sm">{allergy.note}</p>}
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
+          </div>
 
           {customer.addresses && customer.addresses.length > 0 && (
-            <Card>
+            <Card className="h-fit">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <MapPin className="h-4 w-4" />
@@ -142,39 +180,9 @@ export default function CustomerDetailPage() {
               </CardContent>
             </Card>
           )}
-
-          <PassportManager customerId={customer.id} passports={customer.passports}
-            customerFirstName={customer.firstNameEn}
-            customerLastName={customer.lastNameEn}
-          />
-
-          {customer.foodAllergies && customer.foodAllergies.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <UtensilsCrossed className="h-4 w-4" />
-                  Food Allergies
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {customer.foodAllergies.map((allergy, index) => (
-                  <div key={allergy.id || index} className="space-y-2">
-                    <div className="flex flex-wrap gap-2">
-                      {allergy.types.map((type) => (
-                        <Badge key={type} variant="outline" className="bg-orange-50 text-orange-800">
-                          {type.replace(/_/g, " ")}
-                        </Badge>
-                      ))}
-                    </div>
-                    {allergy.note && <p className="text-muted-foreground text-sm">{allergy.note}</p>}
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          )}
         </div>
 
-        {/* Right Column: Tabs */}
+        {/* Tabs */}
         <div className="md:col-span-2">
           <CustomerTabs customerId={customer.id} leads={customer.leads || []} bookings={customer.bookings || []} />
         </div>

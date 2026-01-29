@@ -39,13 +39,14 @@ import { toast } from "sonner";
 type PassportInput = Omit<Passport, "expiryDate"> & { expiryDate: Date | string };
 
 interface PassportManagerProps {
+  className?: string;
   customerId: string;
   customerFirstName?: string;
   customerLastName?: string;
   passports: Passport[];
 }
 
-export function PassportManager({ customerId, customerFirstName, customerLastName, passports }: PassportManagerProps) {
+export function PassportManager({ className, customerId, customerFirstName, customerLastName, passports }: PassportManagerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [editingPassport, setEditingPassport] = useState<PassportInput | null>(null);
   const [isViewOpen, setIsViewOpen] = useState(false);
@@ -171,7 +172,7 @@ export function PassportManager({ customerId, customerFirstName, customerLastNam
   const isLoading = createPassport.isPending || updatePassport.isPending || deletePassportMutation.isPending;
 
   return (
-    <Card>
+    <Card className={className}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-base font-medium">Passports</CardTitle>
         <Button variant="secondary" size="sm" onClick={handleAddNew}>

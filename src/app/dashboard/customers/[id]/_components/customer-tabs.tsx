@@ -40,7 +40,7 @@ export function CustomerTabs({
 
   return (
     <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-      <TabsList className="grid w-full grid-cols-3">
+      <TabsList className="grid w-full max-w-2xl grid-cols-3">
         <TabsTrigger value="tasks">Tasks</TabsTrigger>
         <TabsTrigger value="leads">Leads</TabsTrigger>
         <TabsTrigger value="bookings">Bookings</TabsTrigger>

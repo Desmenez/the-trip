@@ -14,6 +14,7 @@ import { DataTablePagination } from "@/components/data-table/data-table-paginati
 import { useTrips, useExportTrips, type Trip } from "./hooks/use-trips";
 import { Loading } from "@/components/page/loading";
 import { TripFilter } from "./_components/trip-filter";
+import { getTripStatusLabel, getTripStatusVariant } from "@/lib/constants/trip";
 
 export default function TripsPage() {
   const searchParams = useSearchParams();
@@ -102,41 +103,9 @@ export default function TripsPage() {
         header: "Status",
         cell: ({ row }) => {
           const status = row.original.status;
-          const getStatusColor = (status: string) => {
-            switch (status) {
-              case "UPCOMING":
-                return "bg-blue-500";
-              case "SOLD_OUT":
-                return "bg-orange-500";
-              case "COMPLETED":
-                return "bg-green-500";
-              case "ON_TRIP":
-                return "bg-purple-500";
-              case "CANCELLED":
-                return "bg-red-500";
-              default:
-                return "bg-gray-500";
-            }
-          };
-          const getStatusLabel = (status: string) => {
-            switch (status) {
-              case "UPCOMING":
-                return "Upcoming";
-              case "SOLD_OUT":
-                return "Sold out";
-              case "COMPLETED":
-                return "Completed";
-              case "ON_TRIP":
-                return "On trip";
-              case "CANCELLED":
-                return "Cancelled";
-              default:
-                return status;
-            }
-          };
           return (
-            <Badge className={getStatusColor(status)}>
-              {getStatusLabel(status)}
+            <Badge variant={getTripStatusVariant(status)}>
+              {getTripStatusLabel(status)}
             </Badge>
           );
         },

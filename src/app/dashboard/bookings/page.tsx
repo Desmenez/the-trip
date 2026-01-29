@@ -13,7 +13,7 @@ import { DataTablePagination } from "@/components/data-table/data-table-paginati
 import { useBookings, useExportBookings, type Booking } from "./hooks/use-bookings";
 import { Loading } from "@/components/page/loading";
 import { BookingFilter } from "./_components/booking-filter";
-import { getPaymentStatusColor, PAYMENT_STATUS_LABELS } from "@/lib/constants/payment";
+import { getPaymentStatusVariant, PAYMENT_STATUS_LABELS } from "@/lib/constants/payment";
 import { PaymentStatus } from "@prisma/client";
 
 export default function BookingsPage() {
@@ -54,13 +54,13 @@ export default function BookingsPage() {
       {
         accessorKey: "trip",
         header: "Trip code",
-        cell: ({ row }) => <div className="font-mono font-medium">{row.original.trip.code}</div>,
+        cell: ({ row }) => <div className="font-mono font-medium w-[100px] truncate">{row.original.trip.code}</div>,
       },
       {
         accessorKey: "customer",
         header: "Customer name",
         cell: ({ row }) => (
-          <div className="font-medium">
+          <div className="font-medium w-[180px] truncate">
             {`${row.original.customer.firstNameEn} ${row.original.customer.lastNameEn}`}
           </div>
         ),
@@ -105,7 +105,7 @@ export default function BookingsPage() {
         accessorKey: "paymentStatus",
         header: "Payment status",
         cell: ({ row }) => (
-          <Badge className={getPaymentStatusColor(row.original.paymentStatus)}>
+          <Badge variant={getPaymentStatusVariant(row.original.paymentStatus)}>
             {PAYMENT_STATUS_LABELS[row.original.paymentStatus as PaymentStatus]}
           </Badge>
         ),

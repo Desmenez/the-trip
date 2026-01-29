@@ -113,135 +113,137 @@ export function CustomerFilter({ onFilterChange }: CustomerFilterProps) {
   };
 
   return (
-    <div className="flex flex-col items-center justify-end gap-4 md:flex-row">
-      {/* Tag filter */}
-      <Popover open={tagSearchOpen} onOpenChange={setTagSearchOpen}>
-        <div className="relative w-full md:w-[260px]">
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              role="combobox"
-              className={cn(
-                "w-full justify-between pr-8 text-left font-normal md:w-[260px]",
-                selectedTagIds.length === 0 && "text-muted-foreground",
-              )}
-            >
-              {selectedTagIds.length > 0
-                ? `${selectedTagIds.length} tag${selectedTagIds.length > 1 ? "s" : ""} selected`
-                : "Select tags"}
-              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-            </Button>
-          </PopoverTrigger>
-          {selectedTagIds.length > 0 && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute top-1/2 right-1 h-7 w-7 -translate-y-1/2"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleClearTags();
-              }}
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
-        <PopoverContent className="w-[300px] p-0" align="start">
-          <Command>
-            <CommandInput placeholder="Search tags..." />
-            <CommandList>
-              <CommandEmpty>No tags found.</CommandEmpty>
-              <CommandGroup>
-                {tags.map((tag) => {
-                  const isSelected = selectedTagIds.includes(tag.id);
-                  return (
-                    <CommandItem
-                      value={tag.name}
-                      key={tag.id}
-                      onSelect={() => handleTagToggle(tag.id)}
-                    >
-                      <Check className={cn("mr-2 h-4 w-4", isSelected ? "opacity-100" : "opacity-0")} />
-                      {tag.name}
-                    </CommandItem>
-                  );
-                })}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      </Popover>
+    <div className="flex flex-col items-end justify-end gap-4 lg:flex-row">
+      <div className="flex w-full flex-col gap-4 lg:w-auto md:flex-row">
+        {/* Tag filter */}
+        <Popover open={tagSearchOpen} onOpenChange={setTagSearchOpen}>
+          <div className="relative w-full lg:w-[260px]">
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                role="combobox"
+                className={cn(
+                  "w-full justify-between pr-8 text-left font-normal lg:w-[260px]",
+                  selectedTagIds.length === 0 && "text-muted-foreground",
+                )}
+              >
+                {selectedTagIds.length > 0
+                  ? `${selectedTagIds.length} tag${selectedTagIds.length > 1 ? "s" : ""} selected`
+                  : "Select tags"}
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            {selectedTagIds.length > 0 && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute top-1/2 right-1 h-7 w-7 -translate-y-1/2"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleClearTags();
+                }}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+          <PopoverContent className="w-[300px] p-0" align="start">
+            <Command>
+              <CommandInput placeholder="Search tags..." />
+              <CommandList>
+                <CommandEmpty>No tags found.</CommandEmpty>
+                <CommandGroup>
+                  {tags.map((tag) => {
+                    const isSelected = selectedTagIds.includes(tag.id);
+                    return (
+                      <CommandItem
+                        value={tag.name}
+                        key={tag.id}
+                        onSelect={() => handleTagToggle(tag.id)}
+                      >
+                        <Check className={cn("mr-2 h-4 w-4", isSelected ? "opacity-100" : "opacity-0")} />
+                        {tag.name}
+                      </CommandItem>
+                    );
+                  })}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
 
-      {/* Filter: Passport expiry range */}
-      <Popover>
-        <div className="relative w-full md:w-[260px]">
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className={cn(
-                "w-full justify-start pr-8 text-left font-normal md:w-[260px]",
-                !expiryFrom && !expiryTo && "text-muted-foreground",
-              )}
-            >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {expiryFrom || expiryTo ? (
-                <span className="truncate">
-                  {expiryFrom ? format(new Date(expiryFrom), "dd MMM yyyy") : "..."} -{" "}
-                  {expiryTo ? format(new Date(expiryTo), "dd MMM yyyy") : "..."}
-                </span>
-              ) : (
-                "Passport expiry range"
-              )}
-            </Button>
-          </PopoverTrigger>
-          {(expiryFrom || expiryTo) && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute top-1/2 right-1 h-7 w-7 -translate-y-1/2"
-              onClick={(e) => {
-                e.stopPropagation();
-                setExpiryFrom("");
-                setExpiryTo("");
+        {/* Filter: Passport expiry range */}
+        <Popover>
+          <div className="relative w-full lg:w-[260px]">
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "w-full justify-start pr-8 text-left font-normal lg:w-[260px]",
+                  !expiryFrom && !expiryTo && "text-muted-foreground",
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {expiryFrom || expiryTo ? (
+                  <span className="truncate">
+                    {expiryFrom ? format(new Date(expiryFrom), "dd MMM yyyy") : "..."} -{" "}
+                    {expiryTo ? format(new Date(expiryTo), "dd MMM yyyy") : "..."}
+                  </span>
+                ) : (
+                  "Passport expiry range"
+                )}
+              </Button>
+            </PopoverTrigger>
+            {(expiryFrom || expiryTo) && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute top-1/2 right-1 h-7 w-7 -translate-y-1/2"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setExpiryFrom("");
+                  setExpiryTo("");
+                  pushWithParams({
+                    passportExpiryFrom: "",
+                    passportExpiryTo: "",
+                    page: 1,
+                  });
+                }}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+          <PopoverContent className="w-auto p-0" align="center">
+            <Calendar
+              captionLayout="dropdown"
+              mode="range"
+              numberOfMonths={2}
+              selected={{
+                from: expiryFrom ? new Date(expiryFrom) : undefined,
+                to: expiryTo ? new Date(expiryTo) : undefined,
+              }}
+              onSelect={(range) => {
+                const from = range?.from ? format(range.from, "yyyy-MM-dd") : "";
+                const to = range?.to ? format(range.to, "yyyy-MM-dd") : "";
+                setExpiryFrom(from);
+                setExpiryTo(to);
                 pushWithParams({
-                  passportExpiryFrom: "",
-                  passportExpiryTo: "",
+                  passportExpiryFrom: from,
+                  passportExpiryTo: to,
                   page: 1,
                 });
               }}
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
-        <PopoverContent className="w-auto p-0" align="center">
-          <Calendar
-            captionLayout="dropdown"
-            mode="range"
-            numberOfMonths={2}
-            selected={{
-              from: expiryFrom ? new Date(expiryFrom) : undefined,
-              to: expiryTo ? new Date(expiryTo) : undefined,
-            }}
-            onSelect={(range) => {
-              const from = range?.from ? format(range.from, "yyyy-MM-dd") : "";
-              const to = range?.to ? format(range.to, "yyyy-MM-dd") : "";
-              setExpiryFrom(from);
-              setExpiryTo(to);
-              pushWithParams({
-                passportExpiryFrom: from,
-                passportExpiryTo: to,
-                page: 1,
-              });
-            }}
-            fromYear={2000}
-            toYear={2100}
-            initialFocus
-          />
-        </PopoverContent>
-      </Popover>
+              fromYear={2000}
+              toYear={2100}
+              initialFocus
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
 
       {/* Search */}
-      <div className="relative w-full md:w-100">
+      <div className="relative w-full lg:w-[400px]">
         <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
         <Input
           placeholder="Search by customer name, phone number, email"

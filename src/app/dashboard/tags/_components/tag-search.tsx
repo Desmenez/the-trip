@@ -27,17 +27,13 @@ export function TagSearch({ search, onSearchChange }: TagSearchProps) {
     setSearchInput(search);
   }, [search]);
 
-  const handleClear = () => {
-    setSearchInput("");
-  };
-
   return (
-    <div className="relative w-full md:w-80">
+    <div className="relative w-full lg:w-96">
       <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
       <Input
         type="text"
         placeholder="Search by tag name"
-        className="pr-9 pl-9"
+        className="pl-9"
         value={searchInput}
         onChange={(e) => setSearchInput(e.target.value)}
       />

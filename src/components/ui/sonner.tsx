@@ -31,7 +31,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
           "--normal-text": "var(--popover-foreground)",
           "--normal-border": "var(--border)",
           "--success-bg": "var(--success)",
-          "--success-text": "var(--success-foreground)",
+          "--success-text": "oklch(0.985 0 0)",
           "--success-border": "var(--success)",
           "--error-bg": "var(--destructive)",
           "--error-text": "var(--destructive-foreground)",

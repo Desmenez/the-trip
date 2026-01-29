@@ -132,7 +132,7 @@ export default function AdminPage() {
       header: "Status",
       cell: ({ row }) => {
         const isActive = row.original.isActive;
-        return <Badge variant={isActive ? "default" : "destructive"}>{isActive ? "Active" : "Inactive"}</Badge>;
+        return <Badge variant={isActive ? "success" : "destructive"}>{isActive ? "Active" : "Inactive"}</Badge>;
       },
     },
     {

@@ -14,7 +14,7 @@ import { useLeads, type Lead } from "./hooks/use-leads";
 import { useLeadsParams, mapLeadsParamsToQuery } from "./hooks/use-leads-params";
 import { LeadFilter } from "./_components/lead-filter";
 import { Loading } from "@/components/page/loading";
-import { LEAD_STATUS_LABELS } from "@/lib/constants/lead";
+import { LEAD_STATUS_LABELS, getLeadStatusVariant } from "@/lib/constants/lead";
 import { LeadStatus } from "@prisma/client";
 
 export default function LeadsPage() {
@@ -33,21 +33,6 @@ export default function LeadsPage() {
     source,
     customerId,
   });
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "INTERESTED":
-        return "bg-blue-500";
-      case "BOOKED":
-        return "bg-green-500";
-      case "COMPLETED":
-        return "bg-emerald-500";
-      case "CANCELLED":
-        return "bg-red-500";
-      default:
-        return "bg-gray-500";
-    }
-  };
 
   const columns: ColumnDef<Lead>[] = useMemo(
     () => [
@@ -131,7 +116,7 @@ export default function LeadsPage() {
         accessorKey: "status",
         header: "Status",
         cell: ({ row }) => (
-          <Badge className={getStatusColor(row.original.status)}>{LEAD_STATUS_LABELS[row.original.status as LeadStatus]}</Badge>
+          <Badge variant={getLeadStatusVariant(row.original.status)}>{LEAD_STATUS_LABELS[row.original.status as LeadStatus]}</Badge>
         ),
       },
       {

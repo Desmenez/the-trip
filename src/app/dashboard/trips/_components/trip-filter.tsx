@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { useDebounce } from "@/hooks/use-debounce";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { TRIP_STATUS_LABELS, type TripStatus } from "@/lib/constants/trip";
 
 interface TripFilterProps {
   onFilterChange?: () => void;
@@ -92,8 +93,8 @@ export function TripFilter({ onFilterChange }: TripFilterProps) {
   }, [searchQuery, selectedDateQuery, typeQuery, statusQuery]);
 
   return (
-    <div className="flex flex-col items-end justify-end gap-4 md:flex-row">
-      <div className="flex w-full flex-col gap-4 md:w-auto md:flex-row">
+    <div className="flex flex-col items-end justify-end gap-4 lg:flex-row">
+      <div className="flex w-full flex-col gap-4 lg:w-auto md:flex-row">
         {/* Filter: Trip type */}
         <Select
           value={type}
@@ -102,7 +103,7 @@ export function TripFilter({ onFilterChange }: TripFilterProps) {
             pushWithParams({ type: value, page: 1 });
           }}
         >
-          <SelectTrigger className="w-full md:w-40">
+          <SelectTrigger className="w-full lg:w-40">
             <SelectValue placeholder="Trip type" />
           </SelectTrigger>
           <SelectContent>
@@ -120,90 +121,91 @@ export function TripFilter({ onFilterChange }: TripFilterProps) {
             pushWithParams({ status: value, page: 1 });
           }}
         >
-          <SelectTrigger className="w-full md:w-40">
+          <SelectTrigger className="w-full lg:w-40">
             <SelectValue placeholder="Trip status" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="ALL">All Status</SelectItem>
-            <SelectItem value="UPCOMING">Upcoming</SelectItem>
-            <SelectItem value="SOLD_OUT">Sold Out</SelectItem>
-            <SelectItem value="ON_TRIP">On Trip</SelectItem>
-            <SelectItem value="COMPLETED">Completed</SelectItem>
-            <SelectItem value="CANCELLED">Cancelled</SelectItem>
+            {(Object.keys(TRIP_STATUS_LABELS) as TripStatus[]).map((status) => (
+              <SelectItem key={status} value={status}>
+                {TRIP_STATUS_LABELS[status]}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
 
-      {/* Filter: Selected date */}
-      <Popover>
-        <div className="relative w-full md:w-[260px]">
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className={cn(
-                "w-full justify-start pr-8 text-left font-normal md:w-[260px]",
-                !selectedDate && "text-muted-foreground",
-              )}
-            >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {selectedDate ? (
-                <span className="truncate">
-                  {format(new Date(selectedDate), "dd MMM yyyy")}
-                </span>
-              ) : (
-                "Trip date range"
-              )}
-            </Button>
-          </PopoverTrigger>
-          {selectedDate && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute top-1/2 right-1 h-7 w-7 -translate-y-1/2"
-              onClick={(e) => {
-                e.stopPropagation();
-                setSelectedDate("");
+      <div className="flex w-full flex-col gap-4 lg:w-auto md:flex-row">
+        {/* Filter: Selected date */}
+        <Popover>
+          <div className="relative w-full lg:w-[260px]">
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "w-full justify-start pr-8 text-left font-normal lg:w-[260px]",
+                  !selectedDate && "text-muted-foreground",
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {selectedDate ? (
+                  <span className="truncate">
+                    {format(new Date(selectedDate), "dd MMM yyyy")}
+                  </span>
+                ) : (
+                  "Trip date range"
+                )}
+              </Button>
+            </PopoverTrigger>
+            {selectedDate && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute top-1/2 right-1 h-7 w-7 -translate-y-1/2"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedDate("");
+                  pushWithParams({
+                    selectedDate: "",
+                    page: 1,
+                  });
+                }}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+          <PopoverContent className="w-auto p-0" align="end">
+            <Calendar
+              captionLayout="dropdown"
+              mode="single"
+              selected={selectedDate ? new Date(selectedDate) : undefined}
+              onSelect={(date) => {
+                const dateStr = date ? format(date, "yyyy-MM-dd") : "";
+                setSelectedDate(dateStr);
                 pushWithParams({
-                  selectedDate: "",
+                  selectedDate: dateStr,
                   page: 1,
                 });
               }}
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
-        <PopoverContent className="w-auto p-0" align="end">
-          <Calendar
-            captionLayout="dropdown"
-            mode="single"
-            selected={selectedDate ? new Date(selectedDate) : undefined}
-            onSelect={(date) => {
-              const dateStr = date ? format(date, "yyyy-MM-dd") : "";
-              setSelectedDate(dateStr);
-              pushWithParams({
-                selectedDate: dateStr,
-                page: 1,
-              });
-            }}
-            fromYear={2000}
-            toYear={2100}
-            initialFocus
-          />
-        </PopoverContent>
-      </Popover>
+              fromYear={2000}
+              toYear={2100}
+              initialFocus
+            />
+          </PopoverContent>
+        </Popover>
 
-      {/* Search */}
-      <div className="relative w-full flex-1 md:max-w-sm">
-        <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-        <Input
-          type="text"
-          placeholder="Search by trip code, trip name, IATA code"
-          className="w-full pr-9 pl-9 md:w-full md:max-w-sm"
-          value={searchInput}
-          onChange={(e) => setSearchInput(e.target.value)}
-        />
-        {/* {searchInput && (
+        {/* Search */}
+        <div className="relative w-full lg:w-96">
+          <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+          <Input
+            type="text"
+            placeholder="Search by trip code, trip name, IATA code"
+            className="w-full pr-9 pl-9 md:w-full md:max-w-sm"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+          />
+          {/* {searchInput && (
           <Button
             variant="ghost"
             size="icon"
@@ -216,6 +218,7 @@ export function TripFilter({ onFilterChange }: TripFilterProps) {
             <X className="h-4 w-4" />
           </Button>
         )} */}
+        </div>
       </div>
     </div>
   );

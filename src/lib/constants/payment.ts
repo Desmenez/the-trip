@@ -7,13 +7,13 @@ export const PAYMENT_STATUS_LABELS: Record<PaymentStatus, string> = {
   CANCELLED: "Cancelled",
 };
 
-export const PAYMENT_STATUS_COLORS: Record<PaymentStatus, string> = {
-  FULLY_PAID: "bg-green-500",
-  DEPOSIT_PAID: "bg-blue-500",
-  DEPOSIT_PENDING: "bg-yellow-500",
-  CANCELLED: "bg-red-500",
+export const PAYMENT_STATUS_VARIANTS: Record<PaymentStatus, "default" | "secondary" | "destructive" | "success" | "info" | "warning"> = {
+  FULLY_PAID: "success",
+  DEPOSIT_PAID: "warning",
+  DEPOSIT_PENDING: "info",
+  CANCELLED: "destructive",
 };
 
-export function getPaymentStatusColor(status: string): string {
-  return PAYMENT_STATUS_COLORS[status as PaymentStatus] || "bg-gray-500";
+export function getPaymentStatusVariant(status: string): "default" | "secondary" | "destructive" | "success" | "info" | "warning" {
+  return PAYMENT_STATUS_VARIANTS[status as PaymentStatus] || "default";
 }

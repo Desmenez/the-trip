@@ -126,7 +126,7 @@ export function TripForm({ mode, initialData, onSubmit, onCancel, isLoading = fa
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
         <h2 className="text-xl font-semibold">Trip information</h2>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-4 items-start">
           <FormField
             control={form.control}
             name="type"
